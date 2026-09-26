@@ -1,20 +1,3 @@
-# AreaMap
-
-Android trip-safety prototype for Mountain Safe, built on Organic Maps.
-
-**Our additions:** a trip plan, local GPS-based check-ins, rest/acknowledgement,
-and an offline SOS information card. Open the map menu → **AreaMap · Поход**.
-
-[Build, test, limitations and next steps](docs/AREAMAP.md)
-
-The map, routing and track recorder are provided by Organic Maps. Upstream
-licenses and contributor attribution remain in place. This prototype does not
-automatically contact rescuers or provide server monitoring.
-
----
-
-## Upstream Organic Maps documentation
-
 <div align="center">
   <img src="qt/res/logo.png" height="100"/>
 </div>
