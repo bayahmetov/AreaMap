@@ -2,7 +2,6 @@ package app.organicmaps.routing;
 
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -17,10 +16,8 @@ import androidx.fragment.app.FragmentFactory;
 import androidx.fragment.app.FragmentManager;
 import app.organicmaps.MwmApplication;
 import app.organicmaps.R;
-import app.organicmaps.downloader.DownloaderActivity;
 import app.organicmaps.downloader.MapManagerHelper;
 import app.organicmaps.sdk.downloader.CountryItem;
-import app.organicmaps.sdk.routing.ResultCodes;
 import app.organicmaps.sdk.util.Utils;
 import app.organicmaps.util.UiUtils;
 
@@ -57,9 +54,6 @@ public class RoutingErrorDialogFragment extends BaseRoutingErrorDialogFragment
     builder.setNegativeButton(resHolder.getCancelBtnResId(), null);
     if (ResultCodesHelper.isDownloadable(mResultCode, mMissingMaps.size()))
       builder.setPositiveButton(R.string.download, null);
-    else if ((mResultCode == ResultCodes.START_POINT_NOT_FOUND || mResultCode == ResultCodes.END_POINT_NOT_FOUND)
-             && mMissingMaps.isEmpty())
-      builder.setPositiveButton(R.string.download_maps, null);
 
     mNeedMoreMaps = ResultCodesHelper.isMoreMapsNeeded(mResultCode);
     if (mNeedMoreMaps)
@@ -144,14 +138,7 @@ public class RoutingErrorDialogFragment extends BaseRoutingErrorDialogFragment
     if (button == null)
       return;
 
-    if (ResultCodesHelper.isDownloadable(mResultCode, mMissingMaps.size()))
-      button.setOnClickListener(v -> startDownload());
-    else if ((mResultCode == ResultCodes.START_POINT_NOT_FOUND || mResultCode == ResultCodes.END_POINT_NOT_FOUND)
-             && mMissingMaps.isEmpty())
-      button.setOnClickListener(v -> {
-        startActivity(new Intent(requireContext(), DownloaderActivity.class));
-        dismiss();
-      });
+    button.setOnClickListener(v -> startDownload());
   }
 
   @Override
