@@ -1444,6 +1444,12 @@ public class MwmActivity extends BaseMwmFragmentActivity
   {}
 
   @Override
+  public void onPedestrianDestinationAdjusted(int meters)
+  {
+    Toast.makeText(this, getString(R.string.areamap_destination_adjusted, meters), Toast.LENGTH_LONG).show();
+  }
+
+  @Override
   public void onCommonBuildError(int lastResultCode, @NonNull String[] lastMissingMaps)
   {
     RoutingErrorDialogFragment fragment = RoutingErrorDialogFragment.create(
