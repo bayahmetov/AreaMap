@@ -22,6 +22,20 @@ public final class RouteSafetyAnalysis
     }
   }
 
+  public static final class Hazard
+  {
+    public final double distanceMeters;
+    public final double gradePercent;
+    public final boolean descent;
+
+    Hazard(double distanceMeters, double gradePercent, boolean descent)
+    {
+      this.distanceMeters = distanceMeters;
+      this.gradePercent = gradePercent;
+      this.descent = descent;
+    }
+  }
+
   public static final class Result
   {
     public final int maxAltitude;
@@ -30,9 +44,10 @@ public final class RouteSafetyAnalysis
     public final int totalDescent;
     public final double maxGradePercent;
     @NonNull public final List<Peak> peaks;
+    @NonNull public final List<Hazard> hazards;
 
     Result(int maxAltitude, int minAltitude, int totalAscent, int totalDescent, double maxGradePercent,
-           @NonNull List<Peak> peaks)
+           @NonNull List<Peak> peaks, @NonNull List<Hazard> hazards)
     {
       this.maxAltitude = maxAltitude;
       this.minAltitude = minAltitude;
@@ -40,6 +55,7 @@ public final class RouteSafetyAnalysis
       this.totalDescent = totalDescent;
       this.maxGradePercent = maxGradePercent;
       this.peaks = peaks;
+      this.hazards = hazards;
     }
   }
 
@@ -54,17 +70,40 @@ public final class RouteSafetyAnalysis
     final int size = data.getSize();
     if (size < 2)
       return new Result(data.getMaxAltitude(), data.getMinAltitude(), data.getTotalAscent(), data.getTotalDescent(),
-                        0.0, Collections.emptyList());
+                        0.0, Collections.emptyList(), Collections.emptyList());
 
     final double[] effort = new double[size];
-    double maxGrade = 0.0;
     for (int i = 1; i < size; i++)
     {
       final double dx = Math.max(0.0, data.getDistance(i) - data.getDistance(i - 1));
       final int dz = data.getAltitude(i) - data.getAltitude(i - 1);
       effort[i] = effort[i - 1] + dx / FLAT_SPEED_MPS + Math.max(0, dz) * ASCENT_SECONDS_PER_METER;
-      if (dx >= 30.0)
-        maxGrade = Math.max(maxGrade, Math.abs(dz / dx * 100.0));
+    }
+
+    final List<Hazard> hazards = new ArrayList<>();
+    double maxGrade = 0.0;
+    for (int i = 0; i < size - 1; i++)
+    {
+      int j = i + 1;
+      while (j < size && data.getDistance(j) - data.getDistance(i) < 100.0)
+        j++;
+      if (j >= size)
+        break;
+
+      final double dx = data.getDistance(j) - data.getDistance(i);
+      final double grade = (data.getAltitude(j) - data.getAltitude(i)) / dx * 100.0;
+      maxGrade = Math.max(maxGrade, Math.abs(grade));
+
+      if (Math.abs(grade) >= 15.0)
+      {
+        final double at = (data.getDistance(i) + data.getDistance(j)) / 2.0;
+        if (hazards.isEmpty() || at - hazards.get(hazards.size() - 1).distanceMeters >= 500.0)
+        {
+          hazards.add(new Hazard(at, Math.abs(grade), grade < 0));
+          if (hazards.size() == 5)
+            break;
+        }
+      }
     }
 
     final double totalEffort = Math.max(1.0, effort[size - 1]);
@@ -87,7 +126,6 @@ public final class RouteSafetyAnalysis
         candidates.add(i);
     }
 
-    // Deduplicate broad summits: keep the highest point within 500 m.
     final List<Integer> dedup = new ArrayList<>();
     for (int idx : candidates)
     {
@@ -96,6 +134,7 @@ public final class RouteSafetyAnalysis
         dedup.add(idx);
         continue;
       }
+
       final int prev = dedup.get(dedup.size() - 1);
       if (data.getDistance(idx) - data.getDistance(prev) < 500.0)
       {
@@ -116,6 +155,6 @@ public final class RouteSafetyAnalysis
     }
 
     return new Result(data.getMaxAltitude(), data.getMinAltitude(), data.getTotalAscent(), data.getTotalDescent(),
-                      maxGrade, peaks);
+                      maxGrade, peaks, hazards);
   }
 }
