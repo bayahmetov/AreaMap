@@ -48,4 +48,5 @@
   <string name="areamap_hazard_item">%1$s near %2$.1f km from start · ~%3$.0f%% grade</string>
   <string name="areamap_hazard_ascent">Steep ascent</string>
   <string name="areamap_hazard_descent">Steep descent</string>
+  <string name="areamap_destination_adjusted">Finish was snapped to the nearest routable trail about %1$d m from the selected point.</string>
 </resources>
