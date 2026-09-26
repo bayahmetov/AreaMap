@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="areamap_title">AreaMap</string>
+  <string name="areamap_guide_title">Mountain guide</string>
+  <string name="areamap_guide_intro">Offline quick reference. Save the route and map before leaving coverage.</string>
+  <string name="areamap_guide_lost_title">If you are lost</string>
+  <string name="areamap_guide_lost">Stop moving blindly. Mark your current position, compare it with the route, return only along a clearly known safe segment. If terrain is dangerous, stay in a visible sheltered place.</string>
+  <string name="areamap_guide_injury_title">Injury</string>
+  <string name="areamap_guide_injury">Do not force movement with a suspected fracture, head injury, severe bleeding or chest pain. Keep the person warm, control bleeding with direct pressure and prepare coordinates for rescuers.</string>
+  <string name="areamap_guide_cold_title">Cold and weather</string>
+  <string name="areamap_guide_cold">Add dry layers early, protect from wind and rain, avoid exposed ridges during thunderstorms, and turn back before exhaustion. Wet clothing and wind can cool a person quickly even above freezing.</string>
+  <string name="areamap_guide_sos_title">Emergency</string>
+  <string name="areamap_guide_sos">Call 112 whenever any network is available. The SOS card below contains the latest location known to AreaMap and can be copied or shared.</string>
+  <string name="areamap_sos">SOS card</string>
+  <string name="areamap_dial">Call 112</string>
+  <string name="areamap_share">Share</string>
+  <string name="areamap_close">Close</string>
+  <string name="areamap_no_fix">No location has been recorded yet.</string>
+  <string name="areamap_fix">Coordinates: %1$s\nAccuracy: ±%2$d m\nMeasured: %3$s</string>
+  <string name="areamap_card">AREAMAP SOS\n%1$s</string>
+  <string name="areamap_no_handler">No application can perform this action.</string>
+  <string name="areamap_pace">Pace ~%1$s /km</string>
+  <string name="areamap_pace_live">Pace %1$s/km</string>
+  <string name="areamap_schedule_ahead">ahead %1$d min</string>
+  <string name="areamap_schedule_behind">behind %1$d min</string>
+  <string name="areamap_schedule_on_time">on schedule</string>
+</resources>
