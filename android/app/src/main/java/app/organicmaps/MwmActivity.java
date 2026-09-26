@@ -504,6 +504,9 @@ public class MwmActivity extends BaseMwmFragmentActivity
     mSearchPageViewModel = new ViewModelProvider(this).get(SearchPageViewModel.class);
     mMapButtonsViewModel = new ViewModelProvider(this).get(MapButtonsViewModel.class);
     TrackRecordingService.isRecording().observe(this, recording -> {
+      // A trip can start recording from the AreaMap screen.
+      if (Boolean.TRUE.equals(recording))
+        mMapButtonsViewModel.setTrackRecorderState(true);
       // Recording can be stopped from the notification, tear down the UI when it happens.
       if (Boolean.FALSE.equals(recording)
           && Boolean.TRUE.equals(mMapButtonsViewModel.getTrackRecorderState().getValue()))
@@ -2090,6 +2093,10 @@ public class MwmActivity extends BaseMwmFragmentActivity
     if (id.equals(MAIN_MENU_ID))
     {
       ArrayList<MenuBottomSheetItem> items = new ArrayList<>();
+      items.add(new MenuBottomSheetItem(R.string.areamap_title, R.drawable.ic_track_recording_off, () -> {
+        closeFloatingPanels();
+        startActivity(new Intent(this, app.organicmaps.safety.TripSafetyActivity.class));
+      }));
       items.add(new MenuBottomSheetItem(R.string.placepage_add_place_button, R.drawable.ic_plus,
                                         this::onAddPlaceOptionSelected));
       items.add(new MenuBottomSheetItem(R.string.download_maps, R.drawable.ic_download, getDownloadMapsCounter(),

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:fillViewport="true">
+  <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+      android:orientation="vertical" android:padding="20dp">
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="12dp" android:text="@string/areamap_intro" android:textSize="24sp" />
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="12dp" android:text="@string/areamap_local" android:textSize="16sp" />
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="12dp" android:text="@string/areamap_idle" android:textSize="20sp" android:id="@+id/trip_status" />
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="12dp" android:text="@string/areamap_no_fix" android:textSize="16sp" android:id="@+id/trip_coordinates" />
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="12dp" android:text="@string/areamap_notification_warning" android:textSize="16sp" android:id="@+id/trip_notification_warning" />
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:labelFor="@+id/trip_route" android:text="@string/areamap_route" />
+    <EditText android:id="@id/trip_route" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="48dp" android:layout_marginBottom="12dp" android:inputType="textCapSentences" android:maxLength="120" android:text="" />
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:labelFor="@+id/trip_group" android:text="@string/areamap_group" />
+    <EditText android:id="@id/trip_group" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="48dp" android:layout_marginBottom="12dp" android:inputType="number" android:maxLength="2" android:text="1" />
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:labelFor="@+id/trip_contact" android:text="@string/areamap_contact" />
+    <EditText android:id="@id/trip_contact" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="48dp" android:layout_marginBottom="12dp" android:inputType="phone" android:maxLength="40" android:text="" />
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:labelFor="@+id/trip_hours" android:text="@string/areamap_hours" />
+    <EditText android:id="@id/trip_hours" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="48dp" android:layout_marginBottom="12dp" android:inputType="number" android:maxLength="2" android:text="6" />
+    <Button android:id="@+id/trip_start" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="48dp" android:text="@string/areamap_start" android:layout_marginBottom="8dp" />
+    <Button android:id="@+id/trip_ok" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="48dp" android:text="@string/areamap_ok" android:layout_marginBottom="8dp" />
+    <Button android:id="@+id/trip_rest" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="48dp" android:text="@string/areamap_rest" android:layout_marginBottom="8dp" />
+    <Button android:id="@+id/trip_sos" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="48dp" android:text="@string/areamap_sos" android:layout_marginBottom="8dp" />
+    <Button android:id="@+id/trip_end" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="48dp" android:text="@string/areamap_end" android:layout_marginBottom="8dp" />
+    <Button android:id="@+id/trip_demo" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="48dp" android:text="@string/areamap_demo" android:layout_marginBottom="8dp" />
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="12dp" android:text="@string/areamap_policy" android:textSize="16sp" />
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="12dp" android:text="@string/areamap_credits" android:textSize="14sp" />
+  </LinearLayout>
+</ScrollView>
