@@ -44,4 +44,8 @@
   <string name="areamap_search_articles">Search the guide</string>
   <string name="areamap_articles_title">Articles and first aid</string>
   <string name="areamap_medical_disclaimer">First aid does not replace medical care. For life-threatening emergencies call 112 as soon as any network is available.</string>
+  <string name="areamap_hazards_title">Where to be careful</string>
+  <string name="areamap_hazard_item">%1$s near %2$.1f km from start · ~%3$.0f%% grade</string>
+  <string name="areamap_hazard_ascent">Steep ascent</string>
+  <string name="areamap_hazard_descent">Steep descent</string>
 </resources>
