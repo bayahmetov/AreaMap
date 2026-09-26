@@ -163,6 +163,21 @@
     tools:visibility="visible">
 
     <TextView
+      android:id="@+id/areamap_route_advice"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:textAppearance="@style/MwmTextAppearance.Body3"
+      tools:text="Route-specific advice" />
+
+    <TextView
+      android:id="@+id/areamap_route_peaks"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="@dimen/margin_quarter_plus"
+      android:textAppearance="@style/MwmTextAppearance.Body3"
+      tools:text="Peak 1 · 2 h 10 min · 2400 m" />
+
+    <TextView
       android:id="@+id/areamap_route_warning"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
