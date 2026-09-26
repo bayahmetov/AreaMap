@@ -152,6 +152,70 @@
   </LinearLayout>
 
   <LinearLayout
+    android:id="@+id/areamap_route_panel"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="@dimen/routing_plan_horizontal_padding"
+    android:layout_marginEnd="@dimen/routing_plan_horizontal_padding"
+    android:layout_marginBottom="@dimen/margin_half"
+    android:orientation="vertical"
+    android:visibility="gone"
+    tools:visibility="visible">
+
+    <TextView
+      android:id="@+id/areamap_route_advice"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:textAppearance="@style/MwmTextAppearance.Body3"
+      tools:text="Route-specific advice" />
+
+    <TextView
+      android:id="@+id/areamap_route_peaks"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="@dimen/margin_quarter_plus"
+      android:textAppearance="@style/MwmTextAppearance.Body3"
+      tools:text="Peak 1 · 2 h 10 min · 2400 m" />
+
+    <TextView
+      android:id="@+id/areamap_route_warning"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:textAppearance="@style/MwmTextAppearance.Body3"
+      android:textStyle="bold"
+      tools:text="⚠ Finish after dark" />
+
+    <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="@dimen/margin_half"
+      android:orientation="horizontal">
+
+      <Button
+        android:id="@+id/areamap_route_guide"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="@string/areamap_guide_button" />
+
+      <Button
+        android:id="@+id/areamap_route_sos"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/margin_half"
+        android:layout_weight="1"
+        android:text="@string/areamap_sos" />
+    </LinearLayout>
+
+    <Button
+      android:id="@+id/areamap_route_import"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="@dimen/margin_quarter_plus"
+      android:text="@string/areamap_import" />
+  </LinearLayout>
+
+  <LinearLayout
     android:id="@+id/altitude_chart_container"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"

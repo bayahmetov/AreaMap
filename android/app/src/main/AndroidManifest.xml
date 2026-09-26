@@ -543,6 +543,17 @@
       </intent-filter>
     </service>
 
+    <activity
+        android:name=".safety.TripSafetyActivity"
+        android:label="@string/areamap_title"
+        android:exported="false"
+        android:parentActivityName="app.organicmaps.MwmActivity" />
+
+    <activity
+        android:name=".safety.RouteImportActivity"
+        android:exported="false"
+        android:theme="@style/MwmTheme" />
+
     <service android:name=".location.TrackRecordingService"
       android:foregroundServiceType="location"
       android:exported="false"
