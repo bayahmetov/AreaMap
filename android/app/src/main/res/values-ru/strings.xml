@@ -959,4 +959,84 @@
     <string name="choose_point_on_map_hint">Перемещайте и масштабируйте карту, чтобы установить крестик</string>
     <!-- Track recording notification button: stops the recording and saves the recorded track. -->
     <string name="track_recording_stop_and_save">Остановить и сохранить</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_title">AreaMap · Поход</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_intro">Сопровождение похода офлайн</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_local">Данные сохраняются только на телефоне. Серверный контроль и автоматическая отправка спасателям не подключены. Проверки GPS работают, пока Android поддерживает запись трека.</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_policy">После 15 минут свежих GPS-точек в пределах 50–100 м появится вопрос о состоянии. Через 2 минуты без ответа проверка будет отмечена как пропущенная на телефоне. Эти пороги прототипа не определяют, в безопасности ли вы.</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_route">Маршрут / план похода</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_group">Количество людей (1–99)</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_contact">Контакт / номер для обратной связи</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_hours">Возвращение через (часов, 1–72)</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_start">Начать поход</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_resume">Возобновить сопровождение</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_end">Завершить поход</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_ok">Я в порядке</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_rest">Привал на 15 минут</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_sos">SOS · Карточка помощи</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_dial">Открыть номер 112</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_share">Передать карточку</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_demo">Демо · без отправки и звонков</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_demo_result">Симуляция с короткими таймерами; ваш поход не изменяется.\n\nОстановка → %1$s\nНет ответа → %2$s\nЯ в порядке → %3$s\nНет GPS → %4$s</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_check_channel">Проверки состояния в походе</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_idle">Поход не запущен</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_interrupted">Сопровождение прервано. Возобновите его для продолжения проверок.</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_no_location">Нет свежей точной GPS-точки. Движение неизвестно.</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_resting">Привал · запись GPS продолжается</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_check_in">Вы остановились. Всё в порядке?</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_unanswered">Нет ответа на проверку. Уведомления никому не отправлены.</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_monitoring">Локальное сопровождение включено</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_no_fix">Записанных координат нет. Не подставляйте предполагаемую точку.</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_clock_changed">Время телефона изменилось; проверьте время измерения</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_age">Давность: %d мин</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_fix">Последняя записанная точка: %1$s\nТочность GPS: ±%2$d м\nИзмерено: %3$s\n%4$s</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_card">AreaMap · Данные похода\nМаршрут: %1$s\nЛюдей: %2$s\nКонтакт: %3$s\nПлан возвращения: %4$s\n\n%5$s\n\n%6$s\n\nСообщите получателю, что случилось и какие ориентиры рядом. Открытие номера или передача карточки не подтверждают вызов помощи или получение обращения.</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_notification_body">Откройте AreaMap и выберите «Я в порядке», «Привал» или SOS. Проверка сохраняется только на телефоне.</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_notification_warning">Уведомления отключены. Проверки в фоне могут быть не видны; включите уведомления в настройках Android.</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_permission">Для записи похода нужен доступ к точному местоположению. SOS остаётся доступен.</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_required">Укажите маршрут или план похода</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_invalid_plan">Укажите 1–99 человек и 1–72 часа.</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_existing_recording">Сохраните или остановите текущую запись на карте перед новым походом.</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_end_confirm">Остановить проверки и сохранить записанный трек в разделе «Метки и треки»?</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_no_handler">Подходящее приложение не установлено. Координаты остаются доступны в AreaMap.</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_credits">AreaMap — независимый прототип на основе Organic Maps и OpenStreetMap.</string>
 </resources>

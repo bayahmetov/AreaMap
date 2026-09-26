@@ -948,4 +948,84 @@
     <string name="choose_point_on_map_hint">Move and zoom the map to place the cross</string>
     <!-- Track recording notification button: stops the recording and saves the recorded track. -->
     <string name="track_recording_stop_and_save">Stop and Save</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_title">AreaMap · Trip safety</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_intro">Your offline trip companion</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_local">Saved on this phone only. No server monitoring or automatic messages to rescuers. GPS checks depend on Android keeping track recording running.</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_policy">A check-in appears after 15 minutes of fresh GPS fixes within a 50–100 m area. After 2 minutes without a reply, it is marked unanswered locally. These prototype thresholds do not assess your safety.</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_route">Route / trip plan</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_group">People in the group (1–99)</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_contact">Contact / callback number</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_hours">Return in (hours, 1–72)</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_start">Start trip</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_resume">Resume monitoring</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_end">Finish trip</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_ok">I am OK</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_rest">Rest for 15 minutes</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_sos">SOS · Help card</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_dial">Open 112 dialer</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_share">Share card</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_demo">Demo · no messages or calls</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_demo_result">Simulation with shortened timers; your trip is unchanged.\n\nStop → %1$s\nNo reply → %2$s\nI am OK → %3$s\nGPS unavailable → %4$s</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_check_channel">Trip check-ins</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_idle">No active trip</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_interrupted">Monitoring interrupted. Resume it to continue checks.</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_no_location">No fresh accurate GPS fix. Movement is unknown.</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_resting">Planned rest · GPS recording continues</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_check_in">You have stopped. Are you OK?</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_unanswered">Check-in unanswered. No one has been notified.</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_monitoring">Local monitoring active</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_no_fix">No recorded coordinates. Do not substitute an assumed location.</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_clock_changed">Phone clock changed; verify the measurement time</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_age">Age: %d min</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_fix">Last recorded point: %1$s\nGPS accuracy: ±%2$d m\nMeasured: %3$s\n%4$s</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_card">AreaMap · Trip information\nRoute: %1$s\nPeople: %2$s\nContact: %3$s\nPlanned return: %4$s\n\n%5$s\n\n%6$s\n\nDescribe what happened and nearby landmarks to the recipient. Opening the dialer or sharing this card does not confirm that help was requested or received.</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_notification_body">Open AreaMap and choose I am OK, Rest, or SOS. This check is stored only on your phone.</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_notification_warning">Notifications are disabled. Background check-ins may not be visible; enable notifications in Android settings.</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_permission">Precise location permission is needed to record the trip. SOS is still available.</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_required">Enter a route or trip plan</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_invalid_plan">Enter 1–99 people and 1–72 hours.</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_existing_recording">Save or stop the current map recording before starting a new trip.</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_end_confirm">Stop local checks and save the recorded track to Bookmarks and tracks?</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_no_handler">No compatible app is installed. The coordinates remain available in AreaMap.</string>
+    <!-- AreaMap Android trip safety MVP -->
+    <string name="areamap_credits">AreaMap is an independent prototype based on Organic Maps and OpenStreetMap.</string>
 </resources>
