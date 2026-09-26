@@ -2090,10 +2090,6 @@ public class MwmActivity extends BaseMwmFragmentActivity
     if (id.equals(MAIN_MENU_ID))
     {
       ArrayList<MenuBottomSheetItem> items = new ArrayList<>();
-      items.add(new MenuBottomSheetItem(R.string.areamap_title, R.drawable.ic_track_recording_off, () -> {
-        closeFloatingPanels();
-        startActivity(new Intent(this, app.organicmaps.safety.TripSafetyActivity.class));
-      }));
       items.add(new MenuBottomSheetItem(R.string.placepage_add_place_button, R.drawable.ic_plus,
                                         this::onAddPlaceOptionSelected));
       items.add(new MenuBottomSheetItem(R.string.download_maps, R.drawable.ic_download, getDownloadMapsCounter(),

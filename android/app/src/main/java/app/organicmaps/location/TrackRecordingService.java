@@ -28,7 +28,6 @@ import androidx.lifecycle.MutableLiveData;
 import app.organicmaps.MwmActivity;
 import app.organicmaps.MwmApplication;
 import app.organicmaps.R;
-import app.organicmaps.safety.TripSafety;
 import app.organicmaps.sdk.location.LocationHelper;
 import app.organicmaps.sdk.location.LocationListener;
 import app.organicmaps.sdk.location.LocationUtils;
@@ -143,7 +142,6 @@ public class TrackRecordingService extends Service implements LocationListener
   public void onDestroy()
   {
     Logger.d(TAG);
-    TripSafety.get(this).onServiceStopped();
     mNotificationBuilder = null;
     mWarningBuilder = null;
     // onStartCommand() bails out with stopSelf() when the core is not initialized: Android re-delivers a start
@@ -217,7 +215,6 @@ public class TrackRecordingService extends Service implements LocationListener
       ServiceCompat.startForeground(this, TrackRecordingService.TRACK_REC_NOTIFICATION_ID,
                                     getNotificationBuilder(this).build(), 0);
 
-    TripSafety.get(this).onServiceStarted();
     final LocationHelper locationHelper = MwmApplication.from(this).getLocationHelper();
 
     // Subscribe to location updates. This call is idempotent.
@@ -257,7 +254,6 @@ public class TrackRecordingService extends Service implements LocationListener
   @Override
   public void onLocationUpdateTimeout()
   {
-    TripSafety.get(this).onLocationUnavailable();
     Logger.i(TAG, "Location update timeout");
     mWarningNotification = true;
     // post notification permission is not there but we will not stop the runnable because if
@@ -270,15 +266,8 @@ public class TrackRecordingService extends Service implements LocationListener
   }
 
   @Override
-  public void onLocationDisabled()
-  {
-    TripSafety.get(this).onLocationUnavailable();
-  }
-
-  @Override
   public void onLocationUpdated(@NonNull Location location)
   {
-    TripSafety.get(this).onLocation(location);
     Logger.i(TAG, "Location is being updated in Track Recording service");
 
     if (mWarningNotification)
