@@ -44,4 +44,8 @@
   <string name="areamap_search_articles">Поиск по справочнику</string>
   <string name="areamap_articles_title">Статьи и первая помощь</string>
   <string name="areamap_medical_disclaimer">Первая помощь не заменяет медицинскую помощь. При угрозе жизни вызывайте 112 при первой возможности.</string>
+  <string name="areamap_hazards_title">Где быть осторожнее</string>
+  <string name="areamap_hazard_item">%1$s около %2$.1f км от старта · уклон ~%3$.0f%%</string>
+  <string name="areamap_hazard_ascent">Крутой подъём</string>
+  <string name="areamap_hazard_descent">Крутой спуск</string>
 </resources>
