@@ -504,9 +504,6 @@ public class MwmActivity extends BaseMwmFragmentActivity
     mSearchPageViewModel = new ViewModelProvider(this).get(SearchPageViewModel.class);
     mMapButtonsViewModel = new ViewModelProvider(this).get(MapButtonsViewModel.class);
     TrackRecordingService.isRecording().observe(this, recording -> {
-      // A trip can start recording from the AreaMap screen.
-      if (Boolean.TRUE.equals(recording))
-        mMapButtonsViewModel.setTrackRecorderState(true);
       // Recording can be stopped from the notification, tear down the UI when it happens.
       if (Boolean.FALSE.equals(recording)
           && Boolean.TRUE.equals(mMapButtonsViewModel.getTrackRecorderState().getValue()))
