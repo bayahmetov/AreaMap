@@ -14,6 +14,8 @@ import androidx.lifecycle.DefaultLifecycleObserver;
 import androidx.lifecycle.LifecycleOwner;
 import app.organicmaps.MwmApplication;
 import app.organicmaps.R;
+import app.organicmaps.safety.HikingTiming;
+import app.organicmaps.sdk.Router;
 import app.organicmaps.sdk.routing.RoutingInfo;
 import app.organicmaps.sdk.sound.TtsPlayer;
 import app.organicmaps.sdk.util.StringUtils;
@@ -50,6 +52,10 @@ public class NavMenu implements DefaultLifecycleObserver
   private final Runnable mTtsStateListener = this::refreshTts;
 
   private int currentPeekHeight = 0;
+
+  private long mHikeStartedElapsedMs;
+  private double mHikeTotalMeters;
+  private double mPlannedSecondsPerKm = Double.NaN;
 
   public interface OnMenuSizeChangedListener
   {
@@ -262,6 +268,56 @@ public class NavMenu implements DefaultLifecycleObserver
     mDistanceValue.setText(info.distToTarget.mDistanceStr);
     mDistanceUnits.setText(info.distToTarget.getUnitsStr(mActivity.getApplicationContext()));
     mRouteProgress.setProgressCompat((int) info.completionPercent, true);
+
+    if (Router.get() == Router.Pedestrian)
+      updateHikingTiming(info);
+    else
+      resetHikingTiming();
+  }
+
+  private void updateHikingTiming(@NonNull RoutingInfo info)
+  {
+    final double remainingMeters = HikingTiming.toMeters(info.distToTarget);
+    final double remainingFraction = Math.max(0.01, 1.0 - info.completionPercent / 100.0);
+    final double inferredTotalMeters = remainingMeters / remainingFraction;
+
+    if (mHikeStartedElapsedMs == 0 || info.completionPercent < 1.0
+        || Math.abs(inferredTotalMeters - mHikeTotalMeters) > Math.max(500.0, mHikeTotalMeters * 0.2))
+    {
+      mHikeStartedElapsedMs = android.os.SystemClock.elapsedRealtime();
+      mHikeTotalMeters = inferredTotalMeters;
+      mPlannedSecondsPerKm = HikingTiming.secondsPerKm(info.totalTimeInSeconds, remainingMeters);
+    }
+
+    final double completedMeters = Math.max(0.0, mHikeTotalMeters - remainingMeters);
+    final long elapsedMs = android.os.SystemClock.elapsedRealtime() - mHikeStartedElapsedMs;
+    final double actualPace = elapsedMs > 0 && completedMeters >= 100.0
+                                ? (elapsedMs / 1000.0) / (completedMeters / 1000.0)
+                                : mPlannedSecondsPerKm;
+
+    final String pace = HikingTiming.formatPace(actualPace);
+    final int delta = HikingTiming.scheduleDeltaSeconds(elapsedMs, completedMeters, mPlannedSecondsPerKm);
+    final int minutes = Math.max(1, (int) Math.round(Math.abs(delta) / 60.0));
+    final String schedule;
+    if (Math.abs(delta) < 120)
+      schedule = mActivity.getString(R.string.areamap_schedule_on_time);
+    else if (delta > 0)
+      schedule = mActivity.getString(R.string.areamap_schedule_behind, minutes);
+    else
+      schedule = mActivity.getString(R.string.areamap_schedule_ahead, minutes);
+
+    final String format =
+        android.text.format.DateFormat.is24HourFormat(mTimeMinuteValue.getContext()) ? "HH:mm" : "h:mm a";
+    final LocalTime localTime = LocalTime.now().plusSeconds(info.totalTimeInSeconds);
+    mTimeEstimate.setText(localTime.format(DateTimeFormatter.ofPattern(format)) + " · "
+                          + mActivity.getString(R.string.areamap_pace_live, pace) + " · " + schedule);
+  }
+
+  private void resetHikingTiming()
+  {
+    mHikeStartedElapsedMs = 0;
+    mHikeTotalMeters = 0.0;
+    mPlannedSecondsPerKm = Double.NaN;
   }
 
   public interface NavMenuListener
