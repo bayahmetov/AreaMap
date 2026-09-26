@@ -39,6 +39,11 @@ public class TripSafetyFragment extends BaseMwmFragment
 
     view.findViewById(R.id.trip_sos).setOnClickListener(v -> showSos());
     refreshLastLocation(view);
+    if (requireActivity().getIntent().getBooleanExtra(TripSafetyActivity.EXTRA_SHOW_SOS, false))
+    {
+      requireActivity().getIntent().removeExtra(TripSafetyActivity.EXTRA_SHOW_SOS);
+      view.post(this::showSos);
+    }
   }
 
   @Override
