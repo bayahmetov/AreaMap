@@ -105,6 +105,13 @@ public class RoutingController
   private TransitRouteInfo mCachedTransitRouteInfo;
 
   private boolean mRouteSaved;
+
+  // AreaMap: mountain summits and other POIs are often mapped a few metres away from the routable trail.
+  // On END_POINT_NOT_FOUND in pedestrian mode we probe nearby finish points before surfacing an error.
+  private int mPedestrianFinishSnapAttempt;
+  @Nullable
+  private MapObject mPedestrianOriginalFinish;
+
   private int mInvalidRoutePointsTransactionId;
   private int mRemovingIntermediatePointsTransactionId;
 
@@ -117,6 +124,10 @@ public class RoutingController
       Logger.d(TAG, "onRoutingEvent(resultCode: " + resultCode + ")");
       mLastResultCode = resultCode;
       mLastMissingMaps = missingMaps;
+
+      if (trySnapPedestrianFinish(resultCode, missingMaps))
+        return;
+
       mContainsCachedResult = true;
 
       if (mLastResultCode == ResultCodes.NO_ERROR || resultCode == ResultCodes.NEED_MORE_MAPS)
@@ -134,8 +145,75 @@ public class RoutingController
     }
   };
 
+  private boolean trySnapPedestrianFinish(int resultCode, @Nullable String[] missingMaps)
+  {
+    if (resultCode != ResultCodes.END_POINT_NOT_FOUND || mLastRouterType != Router.Pedestrian
+        || (missingMaps != null && missingMaps.length > 0) || !isPlanning())
+      return false;
+
+    final MapObject finish = getEndPoint();
+    if (finish == null)
+      return false;
+
+    if (mPedestrianOriginalFinish == null)
+      mPedestrianOriginalFinish = finish;
+
+    final double[][] offsets = pedestrianFinishOffsetsMeters();
+    if (mPedestrianFinishSnapAttempt >= offsets.length)
+    {
+      // Restore the real POI so the UI never silently leaves the destination at a failed probe point.
+      replaceRoutePoint(RouteMarkType.Finish, mPedestrianOriginalFinish, 0);
+      mPedestrianFinishSnapAttempt = 0;
+      mPedestrianOriginalFinish = null;
+      return false;
+    }
+
+    final double northMeters = offsets[mPedestrianFinishSnapAttempt][0];
+    final double eastMeters = offsets[mPedestrianFinishSnapAttempt][1];
+    mPedestrianFinishSnapAttempt++;
+
+    final MapObject candidate = offsetPoint(mPedestrianOriginalFinish, northMeters, eastMeters);
+    Logger.i(TAG, "AreaMap: retrying pedestrian finish near POI, attempt " + mPedestrianFinishSnapAttempt);
+    replaceRoutePoint(RouteMarkType.Finish, candidate, 0);
+
+    // Do not expose the intermediate END_POINT_NOT_FOUND to the UI. The next native build callback
+    // either succeeds or advances to the next nearby probe.
+    mContainsCachedResult = false;
+    build();
+    return true;
+  }
+
+  @NonNull
+  private static double[][] pedestrianFinishOffsetsMeters()
+  {
+    // Small radii first. 250 m is the hard cap: enough for summit POIs mapped off the trail,
+    // but small enough that AreaMap does not silently redirect to a distant road.
+    return new double[][] {
+        {30, 0}, {0, 30}, {-30, 0}, {0, -30},
+        {53, 53}, {-53, 53}, {-53, -53}, {53, -53},
+        {100, 0}, {0, 100}, {-100, 0}, {0, -100},
+        {106, 106}, {-106, 106}, {-106, -106}, {106, -106},
+        {200, 0}, {0, 200}, {-200, 0}, {0, -200},
+        {177, 177}, {-177, 177}, {-177, -177}, {177, -177}
+    };
+  }
+
+  @NonNull
+  private static MapObject offsetPoint(@NonNull MapObject original, double northMeters, double eastMeters)
+  {
+    final double earthRadius = 6378137.0;
+    final double latRad = Math.toRadians(original.getLat());
+    final double lat = original.getLat() + Math.toDegrees(northMeters / earthRadius);
+    final double cosLat = Math.max(0.01, Math.cos(latRad));
+    final double lon = original.getLon() + Math.toDegrees(eastMeters / (earthRadius * cosLat));
+
+    return MapObject.createMapObject(MapObject.POI, original.getTitle(), original.getSubtitle(), lat, lon);
+  }
+
   private void onBuiltRoute()
   {
+    mPedestrianFinishSnapAttempt = 0;
+    mPedestrianOriginalFinish = null;
     mCachedRoutingInfo = Framework.nativeGetRouteFollowingInfo();
     if (mLastRouterType == Router.Transit)
       mCachedTransitRouteInfo = Framework.nativeGetTransitRouteInfo();
@@ -522,6 +600,8 @@ public class RoutingController
     Logger.d(TAG, "cancelInternal");
 
     resetPoiPickState();
+    mPedestrianFinishSnapAttempt = 0;
+    mPedestrianOriginalFinish = null;
 
     setBuildState(BuildState.NONE);
     setState(State.NONE);
@@ -891,6 +971,8 @@ public class RoutingController
   private boolean setEndPointInternal(@Nullable MapObject point)
   {
     Logger.d(TAG, "setEndPoint");
+    mPedestrianFinishSnapAttempt = 0;
+    mPedestrianOriginalFinish = null;
     MapObject startPoint = getStartPoint();
     MapObject endPoint = getEndPoint();
     boolean isSamePoint = MapObject.same(endPoint, point);
