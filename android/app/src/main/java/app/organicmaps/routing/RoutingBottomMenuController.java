@@ -501,6 +501,18 @@ final class RoutingBottomMenuController
           if (afterDark)
             advice.append(" ").append(mContext.getString(R.string.areamap_route_advice_night));
 
+          if (!analysis.hazards.isEmpty())
+          {
+            advice.append("\n\n").append(mContext.getString(R.string.areamap_hazards_title));
+            for (RouteSafetyAnalysis.Hazard hazard : analysis.hazards)
+            {
+              final String type = mContext.getString(hazard.descent ? R.string.areamap_hazard_descent
+                                                                   : R.string.areamap_hazard_ascent);
+              advice.append("\n• ").append(mContext.getString(
+                  R.string.areamap_hazard_item, type, hazard.distanceMeters / 1000.0, hazard.gradePercent));
+            }
+          }
+
           mAreaMapAdvice.setText(mContext.getString(
               R.string.areamap_route_advice_prefix, rinfo.distToTarget.toString(mContext),
               analysis.totalAscent, analysis.maxAltitude, advice.toString()));
