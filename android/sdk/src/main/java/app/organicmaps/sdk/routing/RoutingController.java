@@ -57,6 +57,7 @@ public class RoutingController
     default void onPoiPickCompleted() {}
     default void onResetToPlanningState() {}
     default void onBuiltRoute() {}
+    default void onPedestrianDestinationAdjusted(int meters) {}
     default void onDrivingOptionsWarning() {}
 
     default void onCommonBuildError(int lastResultCode, @NonNull String[] lastMissingMaps) {}
@@ -109,6 +110,7 @@ public class RoutingController
   // AreaMap: mountain summits and other POIs are often mapped a few metres away from the routable trail.
   // On END_POINT_NOT_FOUND in pedestrian mode we probe nearby finish points before surfacing an error.
   private int mPedestrianFinishSnapAttempt;
+  private int mPedestrianFinishAdjustedMeters;
   @Nullable
   private MapObject mPedestrianOriginalFinish;
 
@@ -164,6 +166,7 @@ public class RoutingController
       // Restore the real POI so the UI never silently leaves the destination at a failed probe point.
       replaceRoutePoint(RouteMarkType.Finish, mPedestrianOriginalFinish, 0);
       mPedestrianFinishSnapAttempt = 0;
+      mPedestrianFinishAdjustedMeters = 0;
       mPedestrianOriginalFinish = null;
       return false;
     }
@@ -173,6 +176,7 @@ public class RoutingController
     mPedestrianFinishSnapAttempt++;
 
     final MapObject candidate = offsetPoint(mPedestrianOriginalFinish, northMeters, eastMeters);
+    mPedestrianFinishAdjustedMeters = (int) Math.round(Math.hypot(northMeters, eastMeters));
     Logger.i(TAG, "AreaMap: retrying pedestrian finish near POI, attempt " + mPedestrianFinishSnapAttempt);
     replaceRoutePoint(RouteMarkType.Finish, candidate, 0);
 
@@ -212,7 +216,9 @@ public class RoutingController
 
   private void onBuiltRoute()
   {
+    final int adjustedMeters = mPedestrianFinishAdjustedMeters;
     mPedestrianFinishSnapAttempt = 0;
+    mPedestrianFinishAdjustedMeters = 0;
     mPedestrianOriginalFinish = null;
     mCachedRoutingInfo = Framework.nativeGetRouteFollowingInfo();
     if (mLastRouterType == Router.Transit)
@@ -220,7 +226,11 @@ public class RoutingController
     setBuildState(BuildState.BUILT);
     mLastBuildProgress = 100;
     if (mContainer != null)
+    {
       mContainer.onBuiltRoute();
+      if (adjustedMeters > 0)
+        mContainer.onPedestrianDestinationAdjusted(adjustedMeters);
+    }
   }
 
   private final RoutingProgressListener mRoutingProgressListener = progress ->
@@ -601,6 +611,7 @@ public class RoutingController
 
     resetPoiPickState();
     mPedestrianFinishSnapAttempt = 0;
+    mPedestrianFinishAdjustedMeters = 0;
     mPedestrianOriginalFinish = null;
 
     setBuildState(BuildState.NONE);
@@ -972,6 +983,7 @@ public class RoutingController
   {
     Logger.d(TAG, "setEndPoint");
     mPedestrianFinishSnapAttempt = 0;
+    mPedestrianFinishAdjustedMeters = 0;
     mPedestrianOriginalFinish = null;
     MapObject startPoint = getStartPoint();
     MapObject endPoint = getEndPoint();
