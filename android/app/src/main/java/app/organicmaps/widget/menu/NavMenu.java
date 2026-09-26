@@ -315,7 +315,7 @@ public class NavMenu implements DefaultLifecycleObserver
 
     final Location last = MwmApplication.from(mActivity).getLocationHelper().getSavedLocation();
     if (last != null
-        && DarknessUtil.finishesAfterDark(System.currentTimeMillis(), info.totalTimeInSeconds,
+        && DarknessUtil.routeTouchesDarkness(System.currentTimeMillis(), info.totalTimeInSeconds,
                                           last.getLatitude(), last.getLongitude()))
       detail += "\n" + mActivity.getString(R.string.areamap_night_warning_live);
 
