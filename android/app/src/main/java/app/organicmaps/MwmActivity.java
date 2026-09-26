@@ -1443,11 +1443,6 @@ public class MwmActivity extends BaseMwmFragmentActivity
   public void onBuiltRoute()
   {}
 
-  @Override
-  public void onPedestrianDestinationAdjusted(int meters)
-  {
-    Toast.makeText(this, getString(R.string.areamap_destination_adjusted, meters), Toast.LENGTH_LONG).show();
-  }
 
   @Override
   public void onCommonBuildError(int lastResultCode, @NonNull String[] lastMissingMaps)
