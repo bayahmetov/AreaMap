@@ -14,6 +14,7 @@ import androidx.lifecycle.DefaultLifecycleObserver;
 import androidx.lifecycle.LifecycleOwner;
 import app.organicmaps.MwmApplication;
 import app.organicmaps.R;
+import app.organicmaps.safety.DarknessUtil;
 import app.organicmaps.safety.HikingTiming;
 import app.organicmaps.sdk.Router;
 import app.organicmaps.sdk.routing.RoutingInfo;
@@ -309,8 +310,16 @@ public class NavMenu implements DefaultLifecycleObserver
     final String format =
         android.text.format.DateFormat.is24HourFormat(mTimeMinuteValue.getContext()) ? "HH:mm" : "h:mm a";
     final LocalTime localTime = LocalTime.now().plusSeconds(info.totalTimeInSeconds);
-    mTimeEstimate.setText(localTime.format(DateTimeFormatter.ofPattern(format)) + " · "
-                          + mActivity.getString(R.string.areamap_pace_live, pace) + " · " + schedule);
+    String detail = localTime.format(DateTimeFormatter.ofPattern(format)) + " · "
+                    + mActivity.getString(R.string.areamap_pace_live, pace) + " · " + schedule;
+
+    final Location last = MwmApplication.from(mActivity).getLocationHelper().getSavedLocation();
+    if (last != null
+        && DarknessUtil.finishesAfterDark(System.currentTimeMillis(), info.totalTimeInSeconds,
+                                          last.getLatitude(), last.getLongitude()))
+      detail += "\n" + mActivity.getString(R.string.areamap_night_warning_live);
+
+    mTimeEstimate.setText(detail);
   }
 
   private void resetHikingTiming()
