@@ -29,8 +29,6 @@ import app.organicmaps.MwmApplication;
 import app.organicmaps.R;
 import app.organicmaps.safety.DarknessUtil;
 import app.organicmaps.safety.HikingTiming;
-import app.organicmaps.safety.RouteImportActivity;
-import app.organicmaps.safety.RouteSafetyAnalysis;
 import app.organicmaps.safety.TripSafetyActivity;
 import app.organicmaps.sdk.Router;
 import app.organicmaps.sdk.Framework;
@@ -95,10 +93,6 @@ final class RoutingBottomMenuController
   private final View mAreaMapPanel;
   @NonNull
   private final TextView mAreaMapWarning;
-  @NonNull
-  private final TextView mAreaMapAdvice;
-  @NonNull
-  private final TextView mAreaMapPeaks;
 
   @Nullable
   private final TextView mArrival;
@@ -169,15 +163,11 @@ final class RoutingBottomMenuController
     mTimeRuler = rulerTime;
     mAreaMapPanel = altitudeChartFrame.findViewById(R.id.areamap_route_panel);
     mAreaMapWarning = altitudeChartFrame.findViewById(R.id.areamap_route_warning);
-    mAreaMapAdvice = altitudeChartFrame.findViewById(R.id.areamap_route_advice);
-    mAreaMapPeaks = altitudeChartFrame.findViewById(R.id.areamap_route_peaks);
     altitudeChartFrame.findViewById(R.id.areamap_route_guide)
         .setOnClickListener(v -> mContext.startActivity(new Intent(mContext, TripSafetyActivity.class)));
     altitudeChartFrame.findViewById(R.id.areamap_route_sos)
         .setOnClickListener(v -> mContext.startActivity(
             new Intent(mContext, TripSafetyActivity.class).putExtra(TripSafetyActivity.EXTRA_SHOW_SOS, true)));
-    altitudeChartFrame.findViewById(R.id.areamap_route_import)
-        .setOnClickListener(v -> mContext.startActivity(new Intent(mContext, RouteImportActivity.class)));
     mError = error;
     mStart = start;
     mAltitudeChart = altitudeChart;
@@ -481,64 +471,10 @@ final class RoutingBottomMenuController
         final Location location = MwmApplication.from(mContext).getLocationHelper().getSavedLocation();
         final boolean afterDark = location != null
             && DarknessUtil.routeTouchesDarkness(System.currentTimeMillis(), plannedSeconds,
-                                                 location.getLatitude(), location.getLongitude());
+                                              location.getLatitude(), location.getLongitude());
         UiUtils.showIf(afterDark, mAreaMapWarning);
         if (afterDark)
           mAreaMapWarning.setText(R.string.areamap_night_warning);
-
-        if (altitude != null && altitude.getSize() > 1)
-        {
-          final RouteSafetyAnalysis.Result analysis = RouteSafetyAnalysis.analyze(altitude, plannedSeconds);
-          final StringBuilder advice = new StringBuilder();
-          advice.append(mContext.getString(distanceMeters >= 12000.0 ? R.string.areamap_route_advice_long
-                                                                     : R.string.areamap_route_advice_short));
-          if (analysis.totalAscent >= 800)
-            advice.append(" ").append(mContext.getString(R.string.areamap_route_advice_climb));
-          if (analysis.maxAltitude >= 2500)
-            advice.append(" ").append(mContext.getString(R.string.areamap_route_advice_high));
-          if (analysis.maxGradePercent >= 15.0)
-            advice.append(" ").append(mContext.getString(R.string.areamap_route_advice_steep));
-          if (afterDark)
-            advice.append(" ").append(mContext.getString(R.string.areamap_route_advice_night));
-
-          if (!analysis.hazards.isEmpty())
-          {
-            advice.append("\n\n").append(mContext.getString(R.string.areamap_hazards_title));
-            for (RouteSafetyAnalysis.Hazard hazard : analysis.hazards)
-            {
-              final String type = mContext.getString(hazard.descent ? R.string.areamap_hazard_descent
-                                                                   : R.string.areamap_hazard_ascent);
-              advice.append("\n• ").append(mContext.getString(
-                  R.string.areamap_hazard_item, type, hazard.distanceMeters / 1000.0, hazard.gradePercent));
-            }
-          }
-
-          mAreaMapAdvice.setText(mContext.getString(
-              R.string.areamap_route_advice_prefix, rinfo.distToTarget.toString(mContext),
-              analysis.totalAscent, analysis.maxAltitude, advice.toString()));
-
-          final StringBuilder peaks = new StringBuilder(mContext.getString(R.string.areamap_peaks_title));
-          if (analysis.peaks.isEmpty())
-            peaks.append("\n").append(mContext.getString(R.string.areamap_no_peaks));
-          else
-          {
-            int number = 1;
-            for (RouteSafetyAnalysis.Peak peak : analysis.peaks)
-            {
-              final CharSequence eta = Utils.formatRoutingTime(mContext, peak.etaSeconds,
-                                                               R.dimen.text_size_routing_number);
-              peaks.append("\n").append(mContext.getString(
-                  R.string.areamap_peak_item, number++, eta.toString(), peak.altitudeMeters,
-                  peak.distanceMeters / 1000.0));
-            }
-          }
-          mAreaMapPeaks.setText(peaks.toString());
-        }
-        else
-        {
-          mAreaMapAdvice.setText("");
-          mAreaMapPeaks.setText("");
-        }
       }
       else
       {

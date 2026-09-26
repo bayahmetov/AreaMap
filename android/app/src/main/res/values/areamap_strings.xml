@@ -27,25 +27,4 @@
   <string name="areamap_guide_button">Guide</string>
   <string name="areamap_night_warning">⚠ Estimated finish is after dark</string>
   <string name="areamap_night_warning_live">⚠ Finish after dark</string>
-  <string name="areamap_route_specific_title">Advice for this route</string>
-  <string name="areamap_peaks_title">Peak timings</string>
-  <string name="areamap_peak_item">Peak %1$d · ~%2$s from start · %3$d m · %4$.1f km</string>
-  <string name="areamap_no_peaks">No distinct local summits were detected in the elevation profile.</string>
-  <string name="areamap_import">Import GPX / KML</string>
-  <string name="areamap_import_success">Route imported into AreaMap bookmarks and tracks.</string>
-  <string name="areamap_import_failed">Could not import the route file.</string>
-  <string name="areamap_route_advice_short">Short route: carry normal water reserve, a charged phone and a wind layer.</string>
-  <string name="areamap_route_advice_long">Long route: take extra water/food, a power bank, headlamp and leave a time reserve for the return.</string>
-  <string name="areamap_route_advice_climb">Large ascent: take a warm layer, wind/rain protection, extra food and start earlier.</string>
-  <string name="areamap_route_advice_high">Above 2500 m: expect colder/windier conditions and watch for altitude illness; do not keep ascending if symptoms worsen.</string>
-  <string name="areamap_route_advice_steep">Steep sections detected: be especially careful on descents, wet ground, scree and when tired.</string>
-  <string name="areamap_route_advice_night">Part of the route is expected to be in darkness: a headlamp is essential; start earlier or shorten the route.</string>
-  <string name="areamap_route_advice_prefix">%1$s · +%2$d m · max %3$d m. %4$s</string>
-  <string name="areamap_search_articles">Search the guide</string>
-  <string name="areamap_articles_title">Articles and first aid</string>
-  <string name="areamap_medical_disclaimer">First aid does not replace medical care. For life-threatening emergencies call 112 as soon as any network is available.</string>
-  <string name="areamap_hazards_title">Where to be careful</string>
-  <string name="areamap_hazard_item">%1$s near %2$.1f km from start · ~%3$.0f%% grade</string>
-  <string name="areamap_hazard_ascent">Steep ascent</string>
-  <string name="areamap_hazard_descent">Steep descent</string>
 </resources>

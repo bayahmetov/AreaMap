@@ -27,25 +27,4 @@
   <string name="areamap_guide_button">Справочник</string>
   <string name="areamap_night_warning">⚠ По расчёту маршрут закончится после наступления темноты</string>
   <string name="areamap_night_warning_live">⚠ Финиш после наступления темноты</string>
-  <string name="areamap_route_specific_title">Советы по этому маршруту</string>
-  <string name="areamap_peaks_title">Тайминги по вершинам</string>
-  <string name="areamap_peak_item">Пик %1$d · ~%2$s от старта · %3$d м · %4$.1f км</string>
-  <string name="areamap_no_peaks">Выраженных локальных вершин на профиле не найдено.</string>
-  <string name="areamap_import">Импорт GPX / KML</string>
-  <string name="areamap_import_success">Маршрут импортирован в метки и треки AreaMap.</string>
-  <string name="areamap_import_failed">Не удалось импортировать файл маршрута.</string>
-  <string name="areamap_route_advice_short">Короткий маршрут: обычный запас воды, заряженный телефон и слой от ветра.</string>
-  <string name="areamap_route_advice_long">Длинный маршрут: возьмите дополнительную воду/еду, пауэрбанк, фонарь и заложите запас времени на возвращение.</string>
-  <string name="areamap_route_advice_climb">Большой набор высоты: тёплый слой, защита от ветра/осадков, запас еды и более ранний старт.</string>
-  <string name="areamap_route_advice_high">Высота выше 2500 м: учитывайте холод, ветер и симптомы высотной болезни; не продолжайте набор высоты при ухудшении самочувствия.</string>
-  <string name="areamap_route_advice_steep">Есть крутые участки: особенно осторожно на спуске, мокром грунте, осыпях и при усталости.</string>
-  <string name="areamap_route_advice_night">Часть маршрута по расчёту попадёт в темноту: фонарь обязателен, лучше сдвинуть старт раньше или сократить маршрут.</string>
-  <string name="areamap_route_advice_prefix">%1$s · +%2$d м · максимум %3$d м. %4$s</string>
-  <string name="areamap_search_articles">Поиск по справочнику</string>
-  <string name="areamap_articles_title">Статьи и первая помощь</string>
-  <string name="areamap_medical_disclaimer">Первая помощь не заменяет медицинскую помощь. При угрозе жизни вызывайте 112 при первой возможности.</string>
-  <string name="areamap_hazards_title">Где быть осторожнее</string>
-  <string name="areamap_hazard_item">%1$s около %2$.1f км от старта · уклон ~%3$.0f%%</string>
-  <string name="areamap_hazard_ascent">Крутой подъём</string>
-  <string name="areamap_hazard_descent">Крутой спуск</string>
 </resources>
