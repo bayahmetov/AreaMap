@@ -24,4 +24,7 @@
   <string name="areamap_schedule_ahead">опережение %1$d мин</string>
   <string name="areamap_schedule_behind">отставание %1$d мин</string>
   <string name="areamap_schedule_on_time">по графику</string>
+  <string name="areamap_guide_button">Справочник</string>
+  <string name="areamap_night_warning">⚠ По расчёту маршрут закончится после наступления темноты</string>
+  <string name="areamap_night_warning_live">⚠ Финиш после наступления темноты</string>
 </resources>
