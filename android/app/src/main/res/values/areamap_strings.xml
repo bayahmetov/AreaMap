@@ -24,4 +24,7 @@
   <string name="areamap_schedule_ahead">ahead %1$d min</string>
   <string name="areamap_schedule_behind">behind %1$d min</string>
   <string name="areamap_schedule_on_time">on schedule</string>
+  <string name="areamap_guide_button">Guide</string>
+  <string name="areamap_night_warning">⚠ Estimated finish is after dark</string>
+  <string name="areamap_night_warning_live">⚠ Finish after dark</string>
 </resources>
