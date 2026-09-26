@@ -48,4 +48,5 @@
   <string name="areamap_hazard_item">%1$s около %2$.1f км от старта · уклон ~%3$.0f%%</string>
   <string name="areamap_hazard_ascent">Крутой подъём</string>
   <string name="areamap_hazard_descent">Крутой спуск</string>
+  <string name="areamap_destination_adjusted">Финиш привязан к ближайшей тропе примерно в %1$d м от выбранной точки.</string>
 </resources>
