@@ -470,7 +470,7 @@ final class RoutingBottomMenuController
         UiUtils.show(mAreaMapPanel);
         final Location location = MwmApplication.from(mContext).getLocationHelper().getSavedLocation();
         final boolean afterDark = location != null
-            && DarknessUtil.finishesAfterDark(System.currentTimeMillis(), plannedSeconds,
+            && DarknessUtil.routeTouchesDarkness(System.currentTimeMillis(), plannedSeconds,
                                               location.getLatitude(), location.getLongitude());
         UiUtils.showIf(afterDark, mAreaMapWarning);
         if (afterDark)
