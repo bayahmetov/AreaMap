@@ -1443,7 +1443,6 @@ public class MwmActivity extends BaseMwmFragmentActivity
   public void onBuiltRoute()
   {}
 
-
   @Override
   public void onCommonBuildError(int lastResultCode, @NonNull String[] lastMissingMaps)
   {
