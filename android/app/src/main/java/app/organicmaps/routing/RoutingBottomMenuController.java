@@ -24,6 +24,8 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 import app.organicmaps.MwmActivity;
 import app.organicmaps.R;
+import app.organicmaps.safety.HikingTiming;
+import app.organicmaps.sdk.Router;
 import app.organicmaps.sdk.Framework;
 import app.organicmaps.sdk.bookmarks.data.DistanceAndAzimut;
 import app.organicmaps.sdk.routing.RouteAltitudeData;
@@ -439,12 +441,30 @@ final class RoutingBottomMenuController
     else
     {
       UiUtils.show(mTimeElevationLine);
-      mTime.setText(spanned);
+      if (Router.get() == Router.Pedestrian)
+      {
+        final RouteAltitudeData altitude = Framework.nativeGetRouteAltitudeData();
+        final double ascent = altitude == null ? 0.0 : altitude.getTotalAscent();
+        final double distanceMeters = HikingTiming.toMeters(rinfo.distToTarget);
+        final int plannedSeconds = HikingTiming.conservativeSeconds(rinfo.totalTimeInSeconds, distanceMeters, ascent);
+        final String pace = HikingTiming.formatPace(HikingTiming.secondsPerKm(plannedSeconds, distanceMeters));
+        mTime.setText(TextUtils.concat(spanned, "\n", mContext.getString(R.string.areamap_pace, pace)));
+      }
+      else
+        mTime.setText(spanned);
     }
 
     if (mArrival != null)
     {
-      String arrivalTime = Utils.formatArrivalTime(rinfo.totalTimeInSeconds);
+      int arrivalSeconds = rinfo.totalTimeInSeconds;
+      if (Router.get() == Router.Pedestrian)
+      {
+        final RouteAltitudeData altitude = Framework.nativeGetRouteAltitudeData();
+        final double ascent = altitude == null ? 0.0 : altitude.getTotalAscent();
+        arrivalSeconds = HikingTiming.conservativeSeconds(rinfo.totalTimeInSeconds,
+                                                          HikingTiming.toMeters(rinfo.distToTarget), ascent);
+      }
+      String arrivalTime = Utils.formatArrivalTime(arrivalSeconds);
       mArrival.setText(arrivalTime);
     }
   }
