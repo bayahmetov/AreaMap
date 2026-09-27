@@ -72,6 +72,8 @@ public class TripSafetyFragment extends BaseMwmFragment
     view.findViewById(R.id.active_trip_resend)
         .setOnClickListener(v -> TripReportSender.shareToTelegram(requireActivity(), mSos.startReport()));
     view.findViewById(R.id.active_trip_finish).setOnClickListener(v -> confirmManualReturn());
+    view.findViewById(R.id.schedule_demo_notification)
+        .setOnClickListener(v -> TripScheduleNotifier.postDemo(requireContext()));
     refreshLastLocation(view);
     refreshActiveTrip(view);
 
