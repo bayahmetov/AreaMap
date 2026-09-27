@@ -128,4 +128,9 @@
   <string name="areamap_back">Назад</string>
   <string name="areamap_trip_route_summary">%1$s → %2$s\n%3$.1f км · ~%4$s\nОжидаемый финиш: %5$s</string>
   <string name="areamap_trip_checkpoint_preview">%1$d. %2$s · ~%3$s · %4$.1f км%5$s</string>
+  <string name="areamap_return_detected_title">Похоже, вы вернулись к старту</string>
+  <string name="areamap_return_detected_message">AreaMap увидел, что вы покидали зону старта и снова оказались примерно в радиусе 150 м. Подтверждайте только если поход действительно завершён.\n\n%1$s</string>
+  <string name="areamap_not_returned_yet">Ещё нет</string>
+  <string name="areamap_finish_and_send">Завершить и отправить возвращение</string>
+  <string name="areamap_trip_completed">Поход отмечен как завершённый.</string>
 </resources>
