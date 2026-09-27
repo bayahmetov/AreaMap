@@ -98,6 +98,8 @@ final class RoutingBottomMenuController
   @NonNull
   private final TextView mAreaMapAdvice;
   @NonNull
+  private final TextView mAreaMapCheckpoints;
+  @NonNull
   private final TextView mAreaMapPeaks;
 
   @Nullable
@@ -170,11 +172,13 @@ final class RoutingBottomMenuController
     mAreaMapPanel = altitudeChartFrame.findViewById(R.id.areamap_route_panel);
     mAreaMapWarning = altitudeChartFrame.findViewById(R.id.areamap_route_warning);
     mAreaMapAdvice = altitudeChartFrame.findViewById(R.id.areamap_route_advice);
+    mAreaMapCheckpoints = altitudeChartFrame.findViewById(R.id.areamap_route_checkpoints);
     mAreaMapPeaks = altitudeChartFrame.findViewById(R.id.areamap_route_peaks);
     altitudeChartFrame.findViewById(R.id.areamap_route_details).setOnClickListener(v -> {
       new com.google.android.material.dialog.MaterialAlertDialogBuilder(mContext)
           .setTitle(R.string.areamap_route_specific_title)
-          .setMessage(TextUtils.concat(mAreaMapAdvice.getText(), "\n\n", mAreaMapPeaks.getText()))
+          .setMessage(TextUtils.concat(mAreaMapAdvice.getText(), "\n\n", mAreaMapCheckpoints.getText(),
+                                       "\n\n", mAreaMapPeaks.getText()))
           .setPositiveButton(R.string.areamap_close, null)
           .show();
     });
@@ -526,6 +530,20 @@ final class RoutingBottomMenuController
               R.string.areamap_route_advice_prefix, rinfo.distToTarget.toString(mContext),
               analysis.totalAscent, analysis.maxAltitude, advice.toString()));
 
+          final StringBuilder checkpoints =
+              new StringBuilder(mContext.getString(R.string.areamap_checkpoints_title));
+          int checkpointNumber = 1;
+          for (RouteSafetyAnalysis.Checkpoint checkpoint : analysis.checkpoints)
+          {
+            final CharSequence eta = Utils.formatRoutingTime(mContext, checkpoint.etaSeconds,
+                                                             R.dimen.text_size_routing_number);
+            checkpoints.append("\n").append(mContext.getString(
+                R.string.areamap_checkpoint_item, checkpointNumber++, eta.toString(),
+                checkpoint.distanceMeters / 1000.0, checkpoint.altitudeMeters));
+          }
+          mAreaMapCheckpoints.setText(checkpoints.toString());
+          UiUtils.show(mAreaMapCheckpoints);
+
           final StringBuilder peaks = new StringBuilder(mContext.getString(R.string.areamap_peaks_title));
           if (analysis.peaks.isEmpty())
             peaks.append("\n").append(mContext.getString(R.string.areamap_no_peaks));
@@ -546,6 +564,8 @@ final class RoutingBottomMenuController
         else
         {
           mAreaMapAdvice.setText("");
+          mAreaMapCheckpoints.setText("");
+          UiUtils.hide(mAreaMapCheckpoints);
           mAreaMapPeaks.setText("");
         }
       }
