@@ -702,14 +702,7 @@ public class MwmActivity extends BaseMwmFragmentActivity
         startActivity(new Intent(this, app.organicmaps.safety.TripSafetyActivity.class)
                           .putExtra(app.organicmaps.safety.TripSafetyActivity.EXTRA_SHOW_SOS, true)));
     nav.findViewById(R.id.areamap_nav_guides).setOnClickListener(v ->
-        startActivity(new Intent(this, app.organicmaps.safety.TripSafetyActivity.class)));
-
-    nav.findViewById(R.id.areamap_search_pill).setOnClickListener(v -> searchAction.performClick());
-    nav.findViewById(R.id.areamap_quick_route).setOnClickListener(v -> routeAction.performClick());
-    nav.findViewById(R.id.areamap_quick_trip).setOnClickListener(v -> tripAction.performClick());
-    nav.findViewById(R.id.areamap_quick_sos).setOnClickListener(v -> sosAction.performClick());
-    nav.findViewById(R.id.areamap_quick_gpx).setOnClickListener(v ->
-        startActivity(new Intent(this, app.organicmaps.safety.RouteImportActivity.class)));
+        startActivity(new Intent(this, app.organicmaps.safety.GuideListActivity.class)));
     nav.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) -> {
       if (b - t != ob - ot)
         refreshAreaMapBottomNav();
