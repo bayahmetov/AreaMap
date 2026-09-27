@@ -4,20 +4,21 @@
   <style name="MwmWidget"/>
 
   <style name="AreaMap.ActionButton" parent="Widget.MaterialComponents.Button">
-    <item name="cornerRadius">18dp</item>
-    <item name="android:minHeight">52dp</item>
+    <item name="cornerRadius">16dp</item>
+    <item name="android:minHeight">54dp</item>
     <item name="android:textAllCaps">false</item>
     <item name="android:textSize">15sp</item>
-    <item name="android:paddingStart">16dp</item>
-    <item name="android:paddingEnd">16dp</item>
-    <item name="backgroundTint">#237E64</item>
-    <item name="android:textColor">@android:color/white</item>
+    <item name="android:textStyle">bold</item>
+    <item name="android:paddingStart">18dp</item>
+    <item name="android:paddingEnd">18dp</item>
+    <item name="backgroundTint">@color/areamap_green</item>
+    <item name="android:textColor">@color/areamap_bg</item>
   </style>
 
   <style name="AreaMap.SecondaryButton" parent="AreaMap.ActionButton">
-    <item name="backgroundTint">?cardBackground</item>
-    <item name="android:textColor">?android:attr/textColorPrimary</item>
-    <item name="strokeColor">?dividerHorizontal</item>
+    <item name="backgroundTint">@color/areamap_surface_2</item>
+    <item name="android:textColor">@color/areamap_text</item>
+    <item name="strokeColor">@color/areamap_stroke</item>
     <item name="strokeWidth">1dp</item>
   </style>
 
@@ -28,38 +29,37 @@
   <style name="AreaMap.BottomNavItem" parent="">
     <item name="android:layout_width">0dp</item>
     <item name="android:layout_height">wrap_content</item>
-    <item name="android:minHeight">64dp</item>
+    <item name="android:minHeight">66dp</item>
     <item name="android:layout_weight">1</item>
     <item name="android:gravity">center</item>
     <item name="android:orientation">vertical</item>
     <item name="android:clickable">true</item>
     <item name="android:focusable">true</item>
     <item name="android:foreground">?attr/selectableItemBackgroundBorderless</item>
-    <item name="android:paddingTop">5dp</item>
-    <item name="android:paddingBottom">4dp</item>
+    <item name="android:paddingTop">8dp</item>
+    <item name="android:paddingBottom">6dp</item>
   </style>
 
   <style name="AreaMap.BottomNavIcon" parent="">
-    <item name="android:layout_width">24dp</item>
-    <item name="android:layout_height">24dp</item>
+    <item name="android:layout_width">25dp</item>
+    <item name="android:layout_height">25dp</item>
     <item name="android:scaleType">centerInside</item>
-    <item name="android:tint">?attr/iconTint</item>
+    <item name="android:tint">@color/areamap_text_secondary</item>
   </style>
 
   <style name="AreaMap.BottomNavLabel" parent="MwmTextAppearance.Body3">
     <item name="android:layout_width">wrap_content</item>
     <item name="android:layout_height">wrap_content</item>
-    <item name="android:layout_marginTop">2dp</item>
+    <item name="android:layout_marginTop">3dp</item>
     <item name="android:textSize">11sp</item>
-    <item name="android:textColor">?android:attr/textColorPrimary</item>
+    <item name="android:textColor">@color/areamap_text_secondary</item>
     <item name="android:maxLines">1</item>
   </style>
 
   <style name="AreaMap.HomeCard" parent="">
-    <item name="android:layout_width">220dp</item>
+    <item name="android:layout_width">match_parent</item>
     <item name="android:layout_height">wrap_content</item>
-    <item name="android:minHeight">154dp</item>
-    <item name="android:layout_marginEnd">12dp</item>
+    <item name="android:minHeight">142dp</item>
     <item name="android:clickable">true</item>
     <item name="android:focusable">true</item>
     <item name="android:foreground">?attr/selectableItemBackground</item>
@@ -81,8 +81,8 @@
   <style name="AreaMap.HomeCardTitle" parent="">
     <item name="android:layout_width">match_parent</item>
     <item name="android:layout_height">wrap_content</item>
-    <item name="android:textColor">@color/white_primary</item>
-    <item name="android:textSize">19sp</item>
+    <item name="android:textColor">@color/areamap_text</item>
+    <item name="android:textSize">18sp</item>
     <item name="android:textStyle">bold</item>
   </style>
 
@@ -90,15 +90,15 @@
     <item name="android:layout_width">match_parent</item>
     <item name="android:layout_height">wrap_content</item>
     <item name="android:layout_marginTop">5dp</item>
-    <item name="android:textColor">@color/white_secondary</item>
-    <item name="android:textSize">14sp</item>
+    <item name="android:textColor">@color/areamap_text_secondary</item>
+    <item name="android:textSize">13sp</item>
   </style>
 
   <style name="AreaMap.HomeCardMeta" parent="">
     <item name="android:layout_width">match_parent</item>
     <item name="android:layout_height">wrap_content</item>
-    <item name="android:layout_marginTop">16dp</item>
-    <item name="android:textColor">@color/white_lightest</item>
+    <item name="android:layout_marginTop">14dp</item>
+    <item name="android:textColor">@color/areamap_text_muted</item>
     <item name="android:textSize">12sp</item>
   </style>
 
