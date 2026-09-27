@@ -147,7 +147,7 @@
   <string name="areamap_schedule_channel">График похода AreaMap</string>
   <string name="areamap_schedule_channel_description">Офлайн-уведомления, если зарегистрированный поход начинает отставать от запланированного графика.</string>
   <string name="areamap_schedule_delay_title">Вы отстаёте от графика примерно на %1$d мин</string>
-  <string name="areamap_schedule_checkpoint_target">Следующий чекпоинт %1$d был запланирован на %2$s.</string>
+  <string name="areamap_schedule_checkpoint_target">Следующий чекпоинт %1$d · по плану %2$s.</string>
   <string name="areamap_schedule_finish_target">Прибытие к конечной точке планировалось на %1$s.</string>
   <string name="areamap_schedule_delay_body">%1$s Новый прогноз возвращения к старту: %2$s.</string>
   <string name="areamap_schedule_demo_title">Демо уведомлений</string>
