@@ -19,6 +19,7 @@ import app.organicmaps.safety.HikingTiming;
 import app.organicmaps.safety.TripSafety;
 import app.organicmaps.sdk.Router;
 import app.organicmaps.sdk.routing.RoutingInfo;
+import app.organicmaps.sdk.routing.RoutingController;
 import app.organicmaps.sdk.sound.TtsPlayer;
 import app.organicmaps.sdk.util.StringUtils;
 import app.organicmaps.util.Graphics;
