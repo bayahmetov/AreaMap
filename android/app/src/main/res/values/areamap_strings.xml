@@ -30,7 +30,7 @@
   <string name="areamap_route_specific_title">Advice for this route</string>
   <string name="areamap_peaks_title">Peak timings</string>
   <string name="areamap_checkpoints_title">Route checkpoints</string>
-  <string name="areamap_checkpoint_item">Checkpoint %1$d · ~%2$s from start · %3$.1f km · %4$d m</string>
+  <string name="areamap_checkpoint_item">Checkpoint %1$d · ~%2$s from start · %3$s · %4$.1f km · %5$d m</string>
   <string name="areamap_peak_item">Peak %1$d · ~%2$s from start · %3$d m · %4$.1f km</string>
   <string name="areamap_no_peaks">No distinct local summits were detected in the elevation profile.</string>
   <string name="areamap_import">Import GPX / KML</string>
