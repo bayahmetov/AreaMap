@@ -105,4 +105,27 @@
   <string name="areamap_report_last_fix">Последняя геопозиция: %1$s</string>
   <string name="areamap_duration_minutes">%1$d мин</string>
   <string name="areamap_duration_hours_minutes">%1$d ч %2$d мин</string>
+  <string name="areamap_start_mode_title">Как начать маршрут?</string>
+  <string name="areamap_start_mode_message">Можно запустить зарегистрированный поход с передачей данных или демо-режим без отправки. Для зарегистрированного похода нужны контактные данные и отдельное подтверждение перед отправкой.</string>
+  <string name="areamap_start_registered">Зарегистрировать и начать</string>
+  <string name="areamap_start_demo">Демо без отправки</string>
+  <string name="areamap_demo_notice">Демо-режим: навигация запускается как обычно, но личные данные и маршрут никуда не отправляются.</string>
+  <string name="areamap_trip_registration_title">Регистрация похода</string>
+  <string name="areamap_trip_name">Имя и фамилия</string>
+  <string name="areamap_trip_phone">Номер телефона</string>
+  <string name="areamap_trip_group_size">Количество людей</string>
+  <string name="areamap_trip_emergency_name">Имя экстренного контакта</string>
+  <string name="areamap_trip_emergency_phone">Телефон экстренного контакта</string>
+  <string name="areamap_trip_consent">Я подтверждаю передачу этих контактных данных, маршрута, ожидаемого времени финиша и чекпоинтов для этого похода.</string>
+  <string name="areamap_continue">Продолжить</string>
+  <string name="areamap_required_field">Обязательное поле</string>
+  <string name="areamap_phone_error">Введите корректный номер телефона</string>
+  <string name="areamap_group_error">Укажите минимум 1 человека</string>
+  <string name="areamap_consent_required">Подтвердите отправку данных похода, чтобы продолжить.</string>
+  <string name="areamap_confirm_send_title">Подтвердите отправку</string>
+  <string name="areamap_confirm_send_body">%1$s · %2$s\nГруппа: %3$d чел.\nЭкстренный контакт: %4$s · %5$s</string>
+  <string name="areamap_confirm_and_start">Подтвердить, отправить и начать</string>
+  <string name="areamap_back">Назад</string>
+  <string name="areamap_trip_route_summary">%1$s → %2$s\n%3$.1f км · ~%4$s\nОжидаемый финиш: %5$s</string>
+  <string name="areamap_trip_checkpoint_preview">%1$d. %2$s · ~%3$s · %4$.1f км%5$s</string>
 </resources>
