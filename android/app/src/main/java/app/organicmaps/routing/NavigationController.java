@@ -56,6 +56,7 @@ public class NavigationController implements TrafficManager.TrafficCallback, Nav
   private final View mNextTurnContainer;
 
   private final NavMenu mNavMenu;
+  private boolean mTripSheetShownForSession;
   View.OnClickListener mOnSettingsClickListener;
   View.OnClickListener mOnVoiceSettingsClickListener;
   View.OnClickListener mOnTripReturnClickListener;
@@ -201,13 +202,25 @@ public class NavigationController implements TrafficManager.TrafficCallback, Nav
   {
     if (show && !UiUtils.isVisible(mFrame))
     {
-      collapseNavMenu();
+      final boolean registeredHike = Router.get() == Router.Pedestrian
+          && app.organicmaps.safety.TripSafety.get(mFrame.getContext()).hasActiveTrip();
+      if (registeredHike && !mTripSheetShownForSession)
+      {
+        mNavMenu.expandNavBottomSheet();
+        mTripSheetShownForSession = true;
+      }
+      else
+        collapseNavMenu();
+
       // Seed the panel from the already-built route so it isn't empty until the first GPS fix arrives.
       update(RoutingController.get().getCachedRoutingInfo());
     }
     UiUtils.showIf(show, mFrame);
     if (!show)
+    {
       mMapButtonsViewModel.setTopHeaderHeight(0);
+      mTripSheetShownForSession = false;
+    }
   }
 
   public boolean isNavMenuCollapsed()
