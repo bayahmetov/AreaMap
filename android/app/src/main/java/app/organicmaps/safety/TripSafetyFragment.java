@@ -20,6 +20,8 @@ import androidx.core.view.ViewCompat;
 import app.organicmaps.MwmApplication;
 import app.organicmaps.R;
 import app.organicmaps.base.BaseMwmFragment;
+import app.organicmaps.location.TrackRecordingService;
+import app.organicmaps.sdk.location.TrackRecorder;
 import app.organicmaps.util.WindowInsetUtils.PaddingInsetsListener;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import java.util.List;
@@ -67,7 +69,11 @@ public class TripSafetyFragment extends BaseMwmFragment
         .setOnClickListener(v -> startActivity(new Intent(requireContext(), RouteImportActivity.class)));
 
     view.findViewById(R.id.trip_sos).setOnClickListener(v -> showSos());
+    view.findViewById(R.id.active_trip_resend)
+        .setOnClickListener(v -> TripReportSender.shareToTelegram(requireActivity(), mSos.startReport()));
+    view.findViewById(R.id.active_trip_finish).setOnClickListener(v -> confirmManualReturn());
     refreshLastLocation(view);
+    refreshActiveTrip(view);
 
     if (requireActivity().getIntent().getBooleanExtra(TripSafetyActivity.EXTRA_SHOW_SOS, false))
     {
@@ -109,7 +115,51 @@ public class TripSafetyFragment extends BaseMwmFragment
     super.onResume();
     final View view = getView();
     if (view != null)
+    {
       refreshLastLocation(view);
+      refreshActiveTrip(view);
+    }
+  }
+
+  private void refreshActiveTrip(@NonNull View view)
+  {
+    final View section = view.findViewById(R.id.active_trip_section);
+    if (!mSos.hasActiveTrip())
+    {
+      section.setVisibility(View.GONE);
+      return;
+    }
+    section.setVisibility(View.VISIBLE);
+    ((TextView) view.findViewById(R.id.active_trip_summary)).setText(mSos.activeTripSummary());
+  }
+
+  private void confirmManualReturn()
+  {
+    if (!mSos.hasActiveTrip())
+      return;
+    new MaterialAlertDialogBuilder(requireContext())
+        .setTitle(R.string.areamap_manual_return_title)
+        .setMessage(R.string.areamap_manual_return_message)
+        .setNegativeButton(R.string.cancel, null)
+        .setPositiveButton(R.string.areamap_finish_and_send, (dialog, which) -> finishTrip())
+        .show();
+  }
+
+  private void finishTrip()
+  {
+    final boolean stopOwnedRecording = mSos.ownsTrackRecording();
+    final String report = mSos.returnReport();
+    mSos.completeTrip();
+    if (stopOwnedRecording && TrackRecorder.nativeIsTrackRecordingEnabled())
+    {
+      TrackRecorder.saveAndStop();
+      TrackRecordingService.stopService(requireContext());
+    }
+    TripReportSender.shareToTelegram(requireActivity(), report);
+    Toast.makeText(requireContext(), R.string.areamap_trip_completed, Toast.LENGTH_LONG).show();
+    final View view = getView();
+    if (view != null)
+      refreshActiveTrip(view);
   }
 
   private void refreshLastLocation(@NonNull View view)
