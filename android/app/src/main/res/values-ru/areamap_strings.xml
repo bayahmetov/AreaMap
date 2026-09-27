@@ -165,6 +165,7 @@
   <string name="areamap_nav_checkpoint_eta">Чекпоинт %1$d · по плану %2$s</string>
   <string name="areamap_nav_destination_eta">Конечная точка · по плану %1$s</string>
   <string name="areamap_nav_return_eta">Возвращение к старту · примерно %1$s</string>
+  <string name="areamap_nav_demo_return_eta">Если идти обратно тем же путём · вернётесь примерно в %1$s</string>
   <string name="areamap_nav_return_unknown">Прогноз возвращения появится после запуска зарегистрированного похода.</string>
   <string name="areamap_nav_no_registered_trip">Запустите зарегистрированный поход, чтобы видеть чекпоинты и время возвращения.</string>
   <string name="areamap_trip_im_ok">Я в порядке</string>
