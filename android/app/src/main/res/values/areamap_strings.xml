@@ -82,7 +82,7 @@
   <string name="areamap_open_sos">Open SOS card</string>
   <string name="areamap_send_trip_report">Send trip report</string>
   <string name="areamap_no_active_trip">No registered trip is active.</string>
-  <string name="areamap_active_trip_summary">%1$s → %2$s\nStarted: %3$s\nExpected finish: %4$s</string>
+  <string name="areamap_active_trip_summary">%1$s → %2$s\nStarted: %3$s\nExpected destination: %4$s\nExpected back at start: %5$s</string>
   <string name="areamap_route_start">Start</string>
   <string name="areamap_route_finish">Finish</string>
   <string name="areamap_report_start_header">AREAMAP · DCHS DEMO · TRIP START</string>
@@ -93,8 +93,10 @@
   <string name="areamap_report_emergency">Emergency contact: %1$s · %2$s</string>
   <string name="areamap_report_route">Route: %1$s → %2$s</string>
   <string name="areamap_report_start_time">Start: %1$s</string>
-  <string name="areamap_report_finish_time">Expected finish: %1$s · ~%2$s</string>
-  <string name="areamap_report_distance">Distance: %1$.1f km</string>
+  <string name="areamap_report_finish_time">Expected destination: %1$s · ~%2$s one way</string>
+  <string name="areamap_report_return_plan">Return on the same trail: ~%1$s · expected back at start %2$s</string>
+  <string name="areamap_report_distance">One-way distance: %1$.1f km</string>
+  <string name="areamap_report_round_trip_distance">Approx. round trip: %1$.1f km</string>
   <string name="areamap_report_start_point">Start coordinates: %1$s</string>
   <string name="areamap_report_finish_point">Finish coordinates: %1$s</string>
   <string name="areamap_report_checkpoints">Checkpoints:</string>
@@ -116,7 +118,7 @@
   <string name="areamap_trip_group_size">People in the group</string>
   <string name="areamap_trip_emergency_name">Emergency contact name</string>
   <string name="areamap_trip_emergency_phone">Emergency contact phone</string>
-  <string name="areamap_trip_consent">I confirm that these contact details, the route, expected finish time and checkpoints may be sent for this trip.</string>
+  <string name="areamap_trip_consent">I confirm that these contact details, the route, expected destination/return times and checkpoints may be sent for this trip.</string>
   <string name="areamap_continue">Continue</string>
   <string name="areamap_required_field">Required field</string>
   <string name="areamap_phone_error">Enter a valid phone number</string>
@@ -126,7 +128,7 @@
   <string name="areamap_confirm_send_body">%1$s · %2$s\nGroup: %3$d\nEmergency: %4$s · %5$s</string>
   <string name="areamap_confirm_and_start">Confirm, send and start</string>
   <string name="areamap_back">Back</string>
-  <string name="areamap_trip_route_summary">%1$s → %2$s\n%3$.1f km · ~%4$s\nExpected finish: %5$s</string>
+  <string name="areamap_trip_route_summary">%1$s → %2$s\n%3$.1f km one way · ~%4$s\nExpected destination: %5$s\nReturn on same trail: ~%6$s\nExpected back at start: %7$s</string>
   <string name="areamap_trip_checkpoint_preview">%1$d. %2$s · ~%3$s · %4$.1f km%5$s</string>
   <string name="areamap_return_detected_title">Back near the start?</string>
   <string name="areamap_return_detected_message">AreaMap detected that you left the start area and are now back within about 150 m. Confirm only when the trip is actually finished.\n\n%1$s</string>
@@ -138,4 +140,8 @@
   <string name="areamap_manual_return">I am back · finish trip</string>
   <string name="areamap_manual_return_title">Confirm return</string>
   <string name="areamap_manual_return_message">Use this only when the group has actually returned and the trip can be closed. A return report will be prepared for the DCHS demo channel.</string>
+  <string name="areamap_return_estimate">Return ~%1$s · back at start ~%2$s</string>
+  <string name="areamap_telegram_sending">Sending trip data to Telegram…</string>
+  <string name="areamap_telegram_sent">Trip data sent to Telegram.</string>
+  <string name="areamap_telegram_failed">Could not send automatically. Opening share fallback.</string>
 </resources>
