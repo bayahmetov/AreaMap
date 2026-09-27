@@ -43,6 +43,7 @@
           android:layout_width="match_parent"
           android:layout_height="wrap_content"
           android:text="@string/areamap_active_trip_title"
+          android:textColor="@color/areamap_text"
           android:textSize="18sp"
           android:textStyle="bold" />
 
@@ -51,7 +52,7 @@
           android:layout_width="match_parent"
           android:layout_height="wrap_content"
           android:layout_marginTop="6dp"
-          android:textColor="?android:attr/textColorSecondary"
+          android:textColor="@color/areamap_text_secondary"
           android:textSize="13sp" />
 
       <com.google.android.material.button.MaterialButton
@@ -84,6 +85,7 @@
           android:layout_width="match_parent"
           android:layout_height="wrap_content"
           android:text="@string/areamap_schedule_demo_title"
+          android:textColor="@color/areamap_text"
           android:textSize="18sp"
           android:textStyle="bold" />
 
@@ -92,7 +94,7 @@
           android:layout_height="wrap_content"
           android:layout_marginTop="6dp"
           android:text="@string/areamap_schedule_demo_description"
-          android:textColor="?android:attr/textColorSecondary"
+          android:textColor="@color/areamap_text_secondary"
           android:textSize="13sp" />
 
       <com.google.android.material.button.MaterialButton
@@ -126,6 +128,7 @@
         android:layout_marginTop="16dp"
         android:textSize="20sp"
         android:text="@string/areamap_articles_title"
+        android:textColor="@color/areamap_text"
         android:textStyle="bold" />
 
     <TextView
@@ -134,7 +137,7 @@
         android:layout_marginTop="4dp"
         android:textSize="12sp"
         android:lineSpacingExtra="3dp"
-        android:textColor="?android:attr/textColorSecondary"
+        android:textColor="@color/areamap_text_secondary"
         android:text="@string/areamap_medical_disclaimer" />
 
     <LinearLayout
@@ -159,7 +162,7 @@
         android:layout_marginTop="20dp"
         android:textIsSelectable="true"
         android:textSize="13sp"
-        android:textColor="?android:attr/textColorSecondary" />
+        android:textColor="@color/areamap_text_secondary" />
 
     <com.google.android.material.button.MaterialButton
         style="@style/AreaMap.ActionButton"
