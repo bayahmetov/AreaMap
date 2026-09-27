@@ -410,7 +410,9 @@ public class MwmActivity extends BaseMwmFragmentActivity
     // Match the pre-refactor flow: clear any prior interactive search + API points before starting.
     SearchEngine.INSTANCE.cancel();
 
-    final String lang = locale != null ? locale : Language.getKeyboardLocale(this);
+    final String selectedAppLanguage = app.organicmaps.safety.AreaMapLocale.selectedTag(this);
+    final String lang = locale != null ? locale
+        : (!selectedAppLanguage.isEmpty() ? selectedAppLanguage : Language.getKeyboardLocale(this));
     final Location loc = MwmApplication.from(this).getLocationHelper().getSavedLocation();
     final boolean hasLocation = loc != null;
     final double lat = hasLocation ? loc.getLatitude() : 0;
