@@ -1673,9 +1673,16 @@ public class MwmActivity extends BaseMwmFragmentActivity
                        .setPositiveButton(R.string.accept,
                                           (dlg, which) -> {
                                             Config.acceptRoutingDisclaimer();
-                                            closeFloatingPanels();
-                                            setFullscreen(false);
-                                            RoutingController.get().start();
+                                            final Fragment fragment = getSupportFragmentManager()
+                                                .findFragmentByTag(RoutingPlanFragment.TAG);
+                                            if (fragment instanceof RoutingPlanFragment plan)
+                                              plan.onRoutingStart();
+                                            else
+                                            {
+                                              closeFloatingPanels();
+                                              setFullscreen(false);
+                                              RoutingController.get().start();
+                                            }
                                           })
                        .setOnDismissListener(dialog -> mAlertDialog = null)
                        .show();
