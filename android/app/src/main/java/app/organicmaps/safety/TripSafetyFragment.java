@@ -52,6 +52,10 @@ public class TripSafetyFragment extends BaseMwmFragment
     view.findViewById(R.id.active_trip_finish).setOnClickListener(v -> confirmManualReturn());
     view.findViewById(R.id.schedule_demo_notification)
         .setOnClickListener(v -> showScheduleDemo());
+    view.findViewById(R.id.language_change)
+        .setOnClickListener(v -> AreaMapLocale.showPicker(requireActivity()));
+    ((TextView) view.findViewById(R.id.language_current)).setText(
+        getString(R.string.areamap_language_current, AreaMapLocale.selectedLabel(requireContext())));
 
     refreshLastLocation(view);
     refreshActiveTrip(view);
@@ -86,6 +90,8 @@ public class TripSafetyFragment extends BaseMwmFragment
     {
       refreshLastLocation(view);
       refreshActiveTrip(view);
+      ((TextView) view.findViewById(R.id.language_current)).setText(
+          getString(R.string.areamap_language_current, AreaMapLocale.selectedLabel(requireContext())));
     }
   }
 
