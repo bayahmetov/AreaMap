@@ -131,6 +131,8 @@ public final class TripSafety
         .putBoolean("trip_return_prompt_dismissed", false)
         .putBoolean("trip_owns_track_recording", ownsTrackRecording)
         .putInt("trip_schedule_alert_bucket", 0)
+        .putInt("trip_timing_offset_seconds", 0)
+        .putLong("trip_last_ok", 0)
         .apply();
   }
 
@@ -155,6 +157,50 @@ public final class TripSafety
     mPrefs.edit().putBoolean("trip_return_prompt_dismissed", true).apply();
   }
 
+  public void markImOk()
+  {
+    mPrefs.edit()
+        .putLong("trip_last_ok", System.currentTimeMillis())
+        .putInt("trip_schedule_alert_bucket", 0)
+        .apply();
+  }
+
+  public void addBreakMinutes(int minutes)
+  {
+    if (!hasActiveTrip() || minutes <= 0)
+      return;
+
+    final int seconds = minutes * 60;
+    mPrefs.edit()
+        .putInt("trip_timing_offset_seconds", mPrefs.getInt("trip_timing_offset_seconds", 0) + seconds)
+        .putLong("trip_planned_finish", mPrefs.getLong("trip_planned_finish", 0) + seconds * 1000L)
+        .putLong("trip_planned_return", mPrefs.getLong("trip_planned_return", 0) + seconds * 1000L)
+        .putInt("trip_schedule_alert_bucket", 0)
+        .apply();
+  }
+
+  @NonNull
+  public String navigationCheckpointSummary(double completionPercent)
+  {
+    if (!hasActiveTrip())
+      return mContext.getString(R.string.areamap_nav_no_registered_trip);
+
+    final double progress = Math.max(0.0, Math.min(1.0, completionPercent / 100.0));
+    final NextCheckpoint next = findNextCheckpoint(progress);
+    if (next.number <= 0)
+      return mContext.getString(R.string.areamap_nav_destination_eta, formatClock(next.plannedAtMillis));
+    return mContext.getString(R.string.areamap_nav_checkpoint_eta, next.number, formatClock(next.plannedAtMillis));
+  }
+
+  @NonNull
+  public String navigationReturnSummary()
+  {
+    if (!hasActiveTrip())
+      return mContext.getString(R.string.areamap_nav_return_unknown);
+    return mContext.getString(R.string.areamap_nav_return_eta,
+                              formatClock(mPrefs.getLong("trip_planned_return", 0)));
+  }
+
   public void completeTrip()
   {
     mPrefs.edit()
@@ -163,6 +209,7 @@ public final class TripSafety
         .putBoolean("trip_return_prompt_dismissed", false)
         .putBoolean("trip_owns_track_recording", false)
         .putInt("trip_schedule_alert_bucket", 0)
+        .putInt("trip_timing_offset_seconds", 0)
         .apply();
   }
 
@@ -281,7 +328,8 @@ public final class TripSafety
       return;
 
     final double progress = Math.max(0.0, Math.min(1.0, info.completionPercent / 100.0));
-    final long elapsedSeconds = Math.max(0L, (now - startedAt) / 1000L);
+    final long elapsedSeconds = Math.max(0L, (now - startedAt) / 1000L
+                                               - mPrefs.getInt("trip_timing_offset_seconds", 0));
     final long plannedElapsedSeconds = Math.round(plannedSeconds * progress);
     final int delayMinutes = (int) Math.max(0L, (elapsedSeconds - plannedElapsedSeconds) / 60L);
 
@@ -332,6 +380,7 @@ public final class TripSafety
     final double totalDistance = parseDouble("trip_distance");
     final double completedDistance = totalDistance * progress;
     final long startedAt = mPrefs.getLong("trip_started_at", 0);
+    final long timingOffsetMs = mPrefs.getInt("trip_timing_offset_seconds", 0) * 1000L;
     final String encoded = mPrefs.getString("trip_checkpoints", "");
     if (!encoded.isEmpty())
     {
@@ -350,7 +399,7 @@ public final class TripSafety
           final int etaSeconds = Integer.parseInt(fields[0]);
           final double distanceMeters = Double.parseDouble(fields[1]);
           if (distanceMeters > completedDistance + 50.0)
-            return new NextCheckpoint(number, startedAt + etaSeconds * 1000L);
+            return new NextCheckpoint(number, startedAt + etaSeconds * 1000L + timingOffsetMs);
         }
         catch (NumberFormatException ignored) {}
         number++;
