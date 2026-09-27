@@ -916,7 +916,7 @@ public class SearchFragment extends Fragment implements SearchListener, Categori
     mSearchRunning = true;
     hideShimmer();
     updateFrames();
-    mSearchAdapter.refreshData(withKnownPlaces(results));
+    mSearchAdapter.refreshData(results);
     mToolbarController.showProgress(true);
   }
 
