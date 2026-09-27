@@ -787,11 +787,11 @@ public class MwmActivity extends BaseMwmFragmentActivity
     final boolean searching = Boolean.TRUE.equals(mSearchPageViewModel.getSearchEnabled().getValue());
     final boolean compactSearch = Integer.valueOf(BottomSheetBehavior.STATE_COLLAPSED)
         .equals(mSearchPageViewModel.getSearchPageLastState().getValue());
-    final boolean show = visible && !isFullscreen() && (!searching || compactSearch)
-        && mPlacePageViewModel.getMapObject().getValue() == null;
     final MapButtonsController.LayoutMode mode =
         mMapButtonsViewModel == null ? null : mMapButtonsViewModel.getLayoutMode().getValue();
     final boolean navigating = mode == MapButtonsController.LayoutMode.navigation;
+    final boolean show = visible && (!isFullscreen() || navigating) && (!searching || compactSearch)
+        && mPlacePageViewModel.getMapObject().getValue() == null;
 
     UiUtils.showIf(show, nav);
 
