@@ -155,4 +155,5 @@
   <string name="areamap_schedule_demo_button">Показать тестовое отставание</string>
   <string name="areamap_schedule_demo_sent">Тестовое уведомление графика отправлено.</string>
   <string name="areamap_schedule_demo_permission">Уведомления AreaMap выключены. Разрешите уведомления и попробуйте снова.</string>
+  <string name="areamap_schedule_demo_permission_request">Разрешите уведомления, затем нажмите кнопку демо ещё раз.</string>
 </resources>
