@@ -625,7 +625,7 @@ public class MwmActivity extends BaseMwmFragmentActivity
       View areaMapNav = findViewById(R.id.areamap_bottom_nav);
       if (areaMapNav != null && areaMapNav.getLayoutParams() instanceof ViewGroup.MarginLayoutParams params)
       {
-        params.bottomMargin = dimen(this, R.dimen.margin_half) + mNavBarHeight;
+        params.bottomMargin = mNavBarHeight;
         areaMapNav.setLayoutParams(params);
         refreshAreaMapBottomNav();
       }
@@ -779,8 +779,8 @@ public class MwmActivity extends BaseMwmFragmentActivity
       final boolean show = visible && !isFullscreen() && (!searching || compactSearch)
           && mPlacePageViewModel.getMapObject().getValue() == null;
       UiUtils.showIf(show, nav);
-      final int reserve = show ? Math.max(nav.getHeight(), Math.round(76 * getResources().getDisplayMetrics().density))
-          + mNavBarHeight + dimen(this, R.dimen.margin_base) : 0;
+      final int reserve = show ? Math.max(nav.getHeight(), Math.round(72 * getResources().getDisplayMetrics().density))
+          + mNavBarHeight : 0;
       for (int id : new int[] {R.id.search_container_fragment, R.id.map_buttons})
       {
         final View content = findViewById(id);
