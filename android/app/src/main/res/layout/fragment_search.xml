@@ -28,7 +28,7 @@
           android:layout_height="wrap_content" />
     </LinearLayout>
 
-    <androidx.core.widget.NestedScrollView
+    <ScrollView
       android:id="@+id/areamap_home_frame"
       android:layout_width="match_parent"
       android:layout_height="0dp"
@@ -36,7 +36,6 @@
       android:background="@color/areamap_surface"
       android:clipToPadding="false"
       android:fillViewport="true"
-      android:nestedScrollingEnabled="true"
       android:overScrollMode="never"
       android:paddingBottom="48dp"
       android:visibility="gone">
@@ -213,7 +212,7 @@
           <TextView style="@style/AreaMap.HomeCardAction" android:text="@string/areamap_open_sos" android:textColor="@color/areamap_red" />
         </LinearLayout>
       </LinearLayout>
-    </androidx.core.widget.NestedScrollView>
+    </ScrollView>
 
     <!-- Tabs -->
     <LinearLayout
