@@ -796,8 +796,8 @@ public class MwmActivity extends BaseMwmFragmentActivity
     // tall/inset-aware docks almost disappear on real phones.
     final int dockHeight =
         Math.max(nav.getHeight(), Math.round(72 * getResources().getDisplayMetrics().density));
-    final int sunkOffset = Math.round(22 * getResources().getDisplayMetrics().density);
-    final float targetTranslation = show ? Math.min(sunkOffset, dockHeight / 3f) : 0f;
+    final int sunkOffset = Math.round(12 * getResources().getDisplayMetrics().density);
+    final float targetTranslation = show ? Math.min(sunkOffset, dockHeight / 5f) : 0f;
     nav.animate().cancel();
     nav.animate().translationY(targetTranslation).setDuration(180).start();
 
