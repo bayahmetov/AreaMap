@@ -133,4 +133,9 @@
   <string name="areamap_not_returned_yet">Ещё нет</string>
   <string name="areamap_finish_and_send">Завершить и отправить возвращение</string>
   <string name="areamap_trip_completed">Поход отмечен как завершённый.</string>
+  <string name="areamap_active_trip_title">Зарегистрированный поход</string>
+  <string name="areamap_resend_trip_report">Отправить данные похода ещё раз</string>
+  <string name="areamap_manual_return">Я вернулся · завершить поход</string>
+  <string name="areamap_manual_return_title">Подтвердите возвращение</string>
+  <string name="areamap_manual_return_message">Нажимайте только когда группа действительно вернулась и поход можно закрыть. AreaMap подготовит сообщение о возвращении для демо-канала ДЧС.</string>
 </resources>
