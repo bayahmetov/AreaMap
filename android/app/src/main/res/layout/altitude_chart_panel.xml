@@ -178,6 +178,15 @@
       tools:text="Route-specific advice" />
 
     <TextView
+      android:id="@+id/areamap_route_checkpoints"
+      android:visibility="gone"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="@dimen/margin_quarter_plus"
+      android:textAppearance="@style/MwmTextAppearance.Body3"
+      tools:text="Checkpoint 1 · 1 h 15 min · 4.2 km" />
+
+    <TextView
       android:id="@+id/areamap_route_peaks"
       android:visibility="gone"
       android:layout_width="match_parent"
