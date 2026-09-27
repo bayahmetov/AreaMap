@@ -203,7 +203,7 @@ public class SearchFragment extends Fragment implements SearchListener, Categori
   private final Observer<Integer> mMyPositionModeObserver = mode -> updatePickerRowsIfPicking();
   private boolean mSearchRunning;
   @NonNull
-  private List<String> mSearchVariants = List.of();
+  private List<String> mSearchVariants = new ArrayList<>();
   private int mSearchVariantIndex = 0;
   private long mActiveSearchTimestamp = 0;
   @NonNull
