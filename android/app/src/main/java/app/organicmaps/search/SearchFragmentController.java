@@ -12,6 +12,7 @@ import android.view.ViewOutlineProvider;
 import android.widget.FrameLayout;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -83,7 +84,7 @@ public class SearchFragmentController extends Fragment implements SearchFragment
           showSearchSheet(lastState);
         }
         else if (mBottomSheetBehavior.getState() == BottomSheetBehavior.STATE_HIDDEN)
-          showSearchSheet(BottomSheetBehavior.STATE_EXPANDED);
+          showSearchSheet(BottomSheetBehavior.STATE_HALF_EXPANDED);
       }
       else
       {
@@ -203,7 +204,7 @@ public class SearchFragmentController extends Fragment implements SearchFragment
         ThemeUtils.getResource(requireContext(), androidx.appcompat.R.attr.actionBarSize));
 
     float topRadius = getResources().getDimension(R.dimen.bottom_sheet_corner_radius);
-    int surface = MaterialColors.getColor(mSearchPageContainer, com.google.android.material.R.attr.colorSurface);
+    int surface = ContextCompat.getColor(requireContext(), R.color.areamap_surface);
     mSearchPageContainer.setBackgroundColor(surface);
     mSearchPageContainer.setOutlineProvider(new ViewOutlineProvider() {
       @Override
