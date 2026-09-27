@@ -195,6 +195,50 @@
         </LinearLayout>
 
         <LinearLayout
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:layout_marginTop="12dp"
+          android:baselineAligned="false"
+          android:orientation="horizontal">
+
+          <LinearLayout
+            android:id="@+id/areamap_guides_first_aid_card"
+            android:layout_width="0dp"
+            android:layout_height="180dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="6dp"
+            android:background="@drawable/bg_areamap_feed_card_sos"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground"
+            android:gravity="bottom"
+            android:orientation="vertical"
+            android:padding="16dp">
+            <TextView style="@style/AreaMap.HomeCardTitle" android:text="@string/areamap_guide_first_aid_title" />
+            <TextView style="@style/AreaMap.HomeCardSubtitle" android:text="@string/areamap_home_guide_first_aid_summary" />
+            <TextView style="@style/AreaMap.HomeCardAction" android:text="@string/areamap_open_guides" />
+          </LinearLayout>
+
+          <LinearLayout
+            android:id="@+id/areamap_guides_storm_card"
+            android:layout_width="0dp"
+            android:layout_height="180dp"
+            android:layout_weight="1"
+            android:layout_marginStart="6dp"
+            android:background="@drawable/bg_areamap_feed_card_warn"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground"
+            android:gravity="bottom"
+            android:orientation="vertical"
+            android:padding="16dp">
+            <TextView style="@style/AreaMap.HomeCardTitle" android:text="@string/areamap_guide_storm_title" />
+            <TextView style="@style/AreaMap.HomeCardSubtitle" android:text="@string/areamap_home_guide_storm_summary" />
+            <TextView style="@style/AreaMap.HomeCardAction" android:text="@string/areamap_open_guides" />
+          </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
           android:id="@+id/areamap_home_sos_card"
           android:layout_width="match_parent"
           android:layout_height="wrap_content"
