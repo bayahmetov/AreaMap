@@ -63,7 +63,7 @@ public final class TripStartFlow
         .setNegativeButton(R.string.cancel, null)
         .setPositiveButton(R.string.areamap_continue, null)
         .create();
-    dialog.setOnShowListener(ignored -> dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+    dialog.setOnShowListener(ignored -> dialog.getButton(android.content.DialogInterface.BUTTON_POSITIVE).setOnClickListener(v -> {
       final String personName = name.getText().toString().trim();
       final String personPhone = phone.getText().toString().trim();
       final String contactName = emergencyName.getText().toString().trim();
