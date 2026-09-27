@@ -202,9 +202,8 @@ public class NavigationController implements TrafficManager.TrafficCallback, Nav
   {
     if (show && !UiUtils.isVisible(mFrame))
     {
-      final boolean registeredHike = Router.get() == Router.Pedestrian
-          && app.organicmaps.safety.TripSafety.get(mFrame.getContext()).hasActiveTrip();
-      if (registeredHike && !mTripSheetShownForSession)
+      final boolean hiking = Router.get() == Router.Pedestrian;
+      if (hiking && !mTripSheetShownForSession)
       {
         mNavMenu.expandNavBottomSheet();
         mTripSheetShownForSession = true;
