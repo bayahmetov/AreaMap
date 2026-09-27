@@ -144,4 +144,15 @@
   <string name="areamap_telegram_sending">Sending trip data to Telegram…</string>
   <string name="areamap_telegram_sent">Trip data sent to Telegram.</string>
   <string name="areamap_telegram_failed">Could not send automatically. Opening share fallback.</string>
+  <string name="areamap_schedule_channel">AreaMap trip schedule</string>
+  <string name="areamap_schedule_channel_description">Offline alerts when a registered hike falls behind its planned timing.</string>
+  <string name="areamap_schedule_delay_title">You are ~%1$d min behind schedule</string>
+  <string name="areamap_schedule_checkpoint_target">Next checkpoint %1$d was planned for %2$s.</string>
+  <string name="areamap_schedule_finish_target">Destination was planned for %1$s.</string>
+  <string name="areamap_schedule_delay_body">%1$s New estimated return to start: %2$s.</string>
+  <string name="areamap_schedule_demo_title">Notification demo</string>
+  <string name="areamap_schedule_demo_description">Shows a sample “18 minutes behind” system notification without moving or waiting for a real checkpoint.</string>
+  <string name="areamap_schedule_demo_button">Show test delay notification</string>
+  <string name="areamap_schedule_demo_sent">Test schedule notification sent.</string>
+  <string name="areamap_schedule_demo_permission">Notifications are disabled for AreaMap. Allow notifications and try again.</string>
 </resources>
