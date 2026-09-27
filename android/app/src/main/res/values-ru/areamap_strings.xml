@@ -29,6 +29,8 @@
   <string name="areamap_night_warning_live">⚠ Финиш после наступления темноты</string>
   <string name="areamap_route_specific_title">Советы по этому маршруту</string>
   <string name="areamap_peaks_title">Тайминги по вершинам</string>
+  <string name="areamap_checkpoints_title">Чекпоинты маршрута</string>
+  <string name="areamap_checkpoint_item">Чекпоинт %1$d · ~%2$s от старта · %3$.1f км · %4$d м</string>
   <string name="areamap_peak_item">Пик %1$d · ~%2$s от старта · %3$d м · %4$.1f км</string>
   <string name="areamap_no_peaks">Выраженных локальных вершин на профиле не найдено.</string>
   <string name="areamap_import">Импорт GPX / KML</string>
