@@ -483,17 +483,24 @@ final class RoutingBottomMenuController
       {
         final RouteAltitudeData altitude = Framework.nativeGetRouteAltitudeData();
         final double ascent = altitude == null ? 0.0 : altitude.getTotalAscent();
+        final double reverseAscent = altitude == null ? ascent : altitude.getTotalDescent();
         final double distanceMeters = HikingTiming.toMeters(rinfo.distToTarget);
         final int plannedSeconds = HikingTiming.conservativeSeconds(rinfo.totalTimeInSeconds, distanceMeters, ascent);
+        final int returnSeconds =
+            Math.max(rinfo.totalTimeInSeconds, HikingTiming.estimateSeconds(distanceMeters, reverseAscent));
+        final int roundTripSeconds = plannedSeconds + returnSeconds;
         final String pace = HikingTiming.formatPace(HikingTiming.secondsPerKm(plannedSeconds, distanceMeters));
         mTime.setText(TextUtils.concat(
             Utils.formatRoutingTime(mContext, plannedSeconds, R.dimen.text_size_routing_number),
-            " · ", rinfo.distToTarget.toString(mContext), "\n", mContext.getString(R.string.areamap_pace, pace)));
+            " · ", rinfo.distToTarget.toString(mContext), "\n", mContext.getString(R.string.areamap_pace, pace),
+            "\n", mContext.getString(R.string.areamap_return_estimate,
+                Utils.formatRoutingTime(mContext, returnSeconds, R.dimen.text_size_body_3).toString(),
+                Utils.formatArrivalTime(roundTripSeconds))));
 
         UiUtils.show(mAreaMapPanel);
         final Location location = MwmApplication.from(mContext).getLocationHelper().getSavedLocation();
         final boolean afterDark = location != null
-            && DarknessUtil.routeTouchesDarkness(System.currentTimeMillis(), plannedSeconds,
+            && DarknessUtil.routeTouchesDarkness(System.currentTimeMillis(), roundTripSeconds,
                                                  location.getLatitude(), location.getLongitude());
         UiUtils.showIf(afterDark, mAreaMapWarning);
         if (afterDark)
