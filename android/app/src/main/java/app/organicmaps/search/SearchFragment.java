@@ -20,7 +20,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator;
@@ -67,7 +66,7 @@ public class SearchFragment extends Fragment implements SearchListener, Categori
   private final LastPosition mLastPosition = new LastPosition();
   private SearchFragmentListener mSearchFragmentListener;
   private View mResultsFrame;
-  private NestedScrollView mHomeFrame;
+  private View mHomeFrame;
   @Nullable
   private RecyclerView mResults;
   private int mNavH = 0;
@@ -982,8 +981,6 @@ public class SearchFragment extends Fragment implements SearchListener, Categori
 
     if (mResults != null)
       ViewCompat.setNestedScrollingEnabled(mResults, hasQuery);
-    if (mHomeFrame != null)
-      ViewCompat.setNestedScrollingEnabled(mHomeFrame, !hasQuery);
 
     if (mTabAdapter != null)
     {
