@@ -57,7 +57,8 @@
 
   <style name="AreaMap.HomeCard" parent="">
     <item name="android:layout_width">220dp</item>
-    <item name="android:layout_height">154dp</item>
+    <item name="android:layout_height">wrap_content</item>
+    <item name="android:minHeight">154dp</item>
     <item name="android:layout_marginEnd">12dp</item>
     <item name="android:clickable">true</item>
     <item name="android:focusable">true</item>
@@ -68,7 +69,8 @@
 
   <style name="AreaMap.HomeWideCard" parent="">
     <item name="android:layout_width">match_parent</item>
-    <item name="android:layout_height">132dp</item>
+    <item name="android:layout_height">wrap_content</item>
+    <item name="android:minHeight">132dp</item>
     <item name="android:clickable">true</item>
     <item name="android:focusable">true</item>
     <item name="android:foreground">?attr/selectableItemBackground</item>
