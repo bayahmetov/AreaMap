@@ -60,6 +60,12 @@
   <string name="areamap_hike_page_title">Поход</string>
   <string name="areamap_hike_page_subtitle">Активный поход, импорт GPX, уведомления по графику и инструменты безопасности.</string>
   <string name="areamap_hike_gpx_summary">Откройте импортированный трек или добавьте GPX-файл для офлайн-похода.</string>
+  <string name="areamap_language_title">Язык</string>
+  <string name="areamap_language_current">Сейчас: %1$s</string>
+  <string name="areamap_language_change">Сменить язык</string>
+  <string name="areamap_language_system">Как в системе</string>
+  <string name="areamap_language_russian">Русский</string>
+  <string name="areamap_language_english">English</string>
   <string name="areamap_quick_route">Построить</string>
   <string name="areamap_quick_gpx">Импорт GPX</string>
   <string name="areamap_search_hint">Куда идём?</string>
