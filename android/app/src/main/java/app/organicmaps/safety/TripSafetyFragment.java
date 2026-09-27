@@ -25,6 +25,7 @@ import app.organicmaps.R;
 import app.organicmaps.base.BaseMwmFragment;
 import app.organicmaps.location.TrackRecordingService;
 import app.organicmaps.sdk.location.TrackRecorder;
+import app.organicmaps.sdk.routing.RoutingController;
 import app.organicmaps.util.WindowInsetUtils.PaddingInsetsListener;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import java.util.List;
@@ -169,6 +170,8 @@ public class TripSafetyFragment extends BaseMwmFragment
     final boolean stopOwnedRecording = mSos.ownsTrackRecording();
     final String report = mSos.returnReport();
     mSos.completeTrip();
+    if (RoutingController.get().isNavigating())
+      RoutingController.get().cancel();
     if (stopOwnedRecording && TrackRecorder.nativeIsTrackRecordingEnabled())
     {
       TrackRecorder.saveAndStop();
