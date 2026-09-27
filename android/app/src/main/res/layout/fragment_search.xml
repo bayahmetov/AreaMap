@@ -278,9 +278,11 @@
         android:background="?dividerHorizontal" />
     </LinearLayout>
     <FrameLayout
+      android:id="@+id/search_results_host"
       android:layout_width="match_parent"
       android:layout_height="0dp"
-      android:layout_weight="1">
+      android:layout_weight="1"
+      android:visibility="gone">
       <androidx.viewpager.widget.ViewPager
         android:id="@+id/pages"
         style="@style/MwmWidget.Floating"
