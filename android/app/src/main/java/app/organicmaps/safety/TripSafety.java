@@ -111,7 +111,9 @@ public final class TripSafety
         .putString("trip_id", "AM-" + tripId)
         .putLong("trip_started_at", now)
         .putLong("trip_planned_finish", now + plan.plannedSeconds * 1000L)
+        .putLong("trip_planned_return", now + (plan.plannedSeconds + plan.returnSeconds) * 1000L)
         .putInt("trip_planned_seconds", plan.plannedSeconds)
+        .putInt("trip_return_seconds", plan.returnSeconds)
         .putString("trip_start_title", plan.startTitle)
         .putString("trip_finish_title", plan.finishTitle)
         .putString("trip_start_lat", Double.toString(plan.startLat))
@@ -169,7 +171,8 @@ public final class TripSafety
         mPrefs.getString("trip_start_title", mContext.getString(R.string.areamap_route_start)),
         mPrefs.getString("trip_finish_title", mContext.getString(R.string.areamap_route_finish)),
         formatTime(mPrefs.getLong("trip_started_at", 0)),
-        formatTime(mPrefs.getLong("trip_planned_finish", 0)));
+        formatTime(mPrefs.getLong("trip_planned_finish", 0)),
+        formatTime(mPrefs.getLong("trip_planned_return", 0)));
   }
 
   @NonNull
@@ -215,7 +218,12 @@ public final class TripSafety
     out.append(mContext.getString(R.string.areamap_report_finish_time,
                                   formatTime(mPrefs.getLong("trip_planned_finish", 0)),
                                   formatDuration(mPrefs.getInt("trip_planned_seconds", 0)))).append('\n');
+    out.append(mContext.getString(R.string.areamap_report_return_plan,
+                                  formatDuration(mPrefs.getInt("trip_return_seconds", 0)),
+                                  formatTime(mPrefs.getLong("trip_planned_return", 0)))).append('\n');
     out.append(mContext.getString(R.string.areamap_report_distance, distanceMeters / 1000.0)).append('\n');
+    out.append(mContext.getString(R.string.areamap_report_round_trip_distance, distanceMeters * 2.0 / 1000.0))
+       .append('\n');
     out.append(mContext.getString(R.string.areamap_report_start_point,
                                   point("trip_start_lat", "trip_start_lon"))).append('\n');
     out.append(mContext.getString(R.string.areamap_report_finish_point,
