@@ -6,18 +6,93 @@ import android.content.Intent;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import app.organicmaps.R;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Prototype DCHS transport.
  *
- * For now the app hands the already-confirmed report to Telegram. A production integration should
- * replace this class with a server-side relay; a Telegram bot token must never be shipped in the APK.
+ * This demo intentionally supports hard-coded Telegram credentials. Replace both constants below
+ * for a temporary prototype only. For production, move the token behind a server-side relay.
  */
 public final class TripReportSender
 {
+  // TODO prototype only: paste the temporary bot token and destination chat id here.
+  private static final String TELEGRAM_BOT_TOKEN = "PUT_TEMP_BOT_TOKEN_HERE";
+  private static final String TELEGRAM_CHAT_ID = "PUT_CHAT_ID_HERE";
+
   private TripReportSender() {}
 
   public static void shareToTelegram(@NonNull Activity activity, @NonNull String report)
+  {
+    if (!isBotConfigured())
+    {
+      shareWithTelegramApp(activity, report);
+      return;
+    }
+
+    Toast.makeText(activity, R.string.areamap_telegram_sending, Toast.LENGTH_SHORT).show();
+    new Thread(() -> {
+      boolean success = false;
+      try
+      {
+        final URL url = new URL("https://api.telegram.org/bot" + TELEGRAM_BOT_TOKEN + "/sendMessage");
+        final HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setConnectTimeout(10000);
+        connection.setReadTimeout(10000);
+        connection.setRequestMethod("POST");
+        connection.setDoOutput(true);
+        connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
+
+        final String body =
+            "chat_id=" + encode(TELEGRAM_CHAT_ID) + "&text=" + encode(report) + "&disable_web_page_preview=true";
+        final byte[] bytes = body.getBytes(StandardCharsets.UTF_8);
+        connection.setFixedLengthStreamingMode(bytes.length);
+        try (OutputStream output = connection.getOutputStream())
+        {
+          output.write(bytes);
+        }
+
+        final int code = connection.getResponseCode();
+        success = code >= 200 && code < 300;
+        connection.disconnect();
+      }
+      catch (Exception ignored)
+      {
+        success = false;
+      }
+
+      final boolean sent = success;
+      activity.runOnUiThread(() -> {
+        if (activity.isFinishing() || activity.isDestroyed())
+          return;
+        if (sent)
+          Toast.makeText(activity, R.string.areamap_telegram_sent, Toast.LENGTH_LONG).show();
+        else
+        {
+          Toast.makeText(activity, R.string.areamap_telegram_failed, Toast.LENGTH_LONG).show();
+          shareWithTelegramApp(activity, report);
+        }
+      });
+    }, "AreaMapTelegramReport").start();
+  }
+
+  private static boolean isBotConfigured()
+  {
+    return !TELEGRAM_BOT_TOKEN.startsWith("PUT_") && !TELEGRAM_CHAT_ID.startsWith("PUT_")
+        && !TELEGRAM_BOT_TOKEN.trim().isEmpty() && !TELEGRAM_CHAT_ID.trim().isEmpty();
+  }
+
+  @NonNull
+  private static String encode(@NonNull String value) throws Exception
+  {
+    return URLEncoder.encode(value, StandardCharsets.UTF_8.name());
+  }
+
+  private static void shareWithTelegramApp(@NonNull Activity activity, @NonNull String report)
   {
     final Intent telegram = new Intent(Intent.ACTION_SEND)
         .setType("text/plain")
