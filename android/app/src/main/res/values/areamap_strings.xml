@@ -161,6 +161,9 @@
   <string name="areamap_manual_return">I am back · finish trip</string>
   <string name="areamap_manual_return_title">Confirm return</string>
   <string name="areamap_manual_return_message">Use this only when the group has actually returned and the trip can be closed. A return report will be prepared for the DCHS demo channel.</string>
+  <string name="areamap_demo_finish_title">Finish demo hike?</string>
+  <string name="areamap_demo_finish_message">This route is running in preview mode, so no return report will be sent.</string>
+  <string name="areamap_finish_trip">Finish hike</string>
   <string name="areamap_nav_trip_status_title">Trip status</string>
   <string name="areamap_nav_checkpoint_eta">Checkpoint %1$d · planned %2$s</string>
   <string name="areamap_nav_destination_eta">Destination · planned %1$s</string>
