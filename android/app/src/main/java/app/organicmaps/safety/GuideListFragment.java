@@ -36,6 +36,7 @@ public class GuideListFragment extends BaseMwmFragment
     requireActivity().setTitle(R.string.areamap_nav_guides);
 
     mArticles = view.findViewById(R.id.guide_articles);
+    view.findViewById(R.id.guide_language).setOnClickListener(v -> AreaMapLocale.showPicker(requireActivity()));
     mAllArticles = GuideArticles.all(requireContext());
     render("");
 
