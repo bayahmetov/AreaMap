@@ -29,7 +29,6 @@ import app.organicmaps.util.ThemeUtils;
 import app.organicmaps.widget.placepage.PlacePageUtils;
 import app.organicmaps.widget.placepage.PlacePageViewModel;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
-import com.google.android.material.color.MaterialColors;
 
 public class SearchFragmentController extends Fragment implements SearchFragment.SearchFragmentListener
 {
