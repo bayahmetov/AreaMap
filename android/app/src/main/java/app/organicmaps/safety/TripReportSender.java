@@ -22,7 +22,7 @@ import java.nio.charset.StandardCharsets;
 public final class TripReportSender
 {
   // Prototype destination.
-  private static final String TELEGRAM_CHAT_ID = "5581444104";
+  private static final String TELEGRAM_CHAT_ID = "-5581444104";
 
   private TripReportSender() {}
 
