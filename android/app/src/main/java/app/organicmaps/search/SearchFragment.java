@@ -33,6 +33,9 @@ import app.organicmaps.R;
 import app.organicmaps.downloader.CountrySuggestFragment;
 import app.organicmaps.maplayer.MapButtonsViewModel;
 import app.organicmaps.routing.RoutePointLabels;
+import app.organicmaps.safety.AreaMapLocale;
+import app.organicmaps.safety.GuideArticleActivity;
+import app.organicmaps.safety.TripSafetyActivity;
 import app.organicmaps.sdk.Framework;
 import app.organicmaps.sdk.bookmarks.data.MapObject;
 import app.organicmaps.sdk.downloader.MapManager;
@@ -64,6 +67,8 @@ public class SearchFragment extends Fragment implements SearchListener, Categori
   private final LastPosition mLastPosition = new LastPosition();
   private SearchFragmentListener mSearchFragmentListener;
   private View mResultsFrame;
+  private View mHomeFrame;
+  private View mSearchResultsHost;
   @Nullable
   private RecyclerView mResults;
   private int mNavH = 0;
@@ -173,10 +178,10 @@ public class SearchFragment extends Fragment implements SearchListener, Categori
       if (state != BottomSheetBehavior.STATE_HIDDEN)
         setupTabsIfNeeded();
 
-      if (state != BottomSheetBehavior.STATE_EXPANDED)
+      // Explore is a browse screen first: expanding it must not steal focus and open the IME.
+      // The keyboard appears only after the user taps the search field.
+      if (state != BottomSheetBehavior.STATE_EXPANDED || !mToolbarController.hasQuery())
         mToolbarController.deactivate();
-      else if (!mToolbarController.hasQuery())
-        activateToolbar();
     }
   };
   @SuppressWarnings("NullableProblems")
@@ -200,6 +205,17 @@ public class SearchFragment extends Fragment implements SearchListener, Categori
   // observer instance, so a fresh lambda would stack up another observer on each foreground.
   private final Observer<Integer> mMyPositionModeObserver = mode -> updatePickerRowsIfPicking();
   private boolean mSearchRunning;
+  @NonNull
+  private List<String> mSearchVariants = new ArrayList<>();
+  private int mSearchVariantIndex = 0;
+  private long mActiveSearchTimestamp = 0;
+  @NonNull
+  private String mSearchLocale = "";
+  private boolean mSearchHasLocation = false;
+  private double mSearchLat = 0;
+  private double mSearchLon = 0;
+  @Nullable
+  private SearchResult[] mCurrentSearchResults;
 
   private static boolean doShowDownloadSuggest()
   {
@@ -235,8 +251,13 @@ public class SearchFragment extends Fragment implements SearchListener, Categori
     final boolean hasQuery = mToolbarController.hasQuery();
 
     UiUtils.showIf(hasQuery, mResultsFrame);
-    UiUtils.showIf(!hasQuery, mTabFrame);
-    UiUtils.showIf(!hasQuery, mPager);
+    // The home feed and the legacy/results host both used layout_weight=1. If the results host
+    // stays laid out while browsing, it steals half the sheet and visually clips the Explore feed.
+    UiUtils.showIf(hasQuery, mSearchResultsHost);
+    // AreaMap uses the empty search state as its home feed. History/categories remain available
+    // through the regular menu, while the expanded sheet presents destinations and safety guides.
+    UiUtils.showIf(!hasQuery, mHomeFrame);
+    UiUtils.hide(mTabFrame, mPager);
     updatePickerRows();
     if (hasQuery)
       hideDownloadSuggest();
@@ -434,6 +455,8 @@ public class SearchFragment extends Fragment implements SearchListener, Categori
     mToolbarController = new ToolbarController(view);
     mTabLayout = root.findViewById(R.id.tabs);
     mTabFrame = root.findViewById(R.id.tab_frame);
+    mHomeFrame = root.findViewById(R.id.areamap_home_frame);
+    mSearchResultsHost = root.findViewById(R.id.search_results_host);
     mPickerActions = root.findViewById(R.id.picker_actions);
     mSearchIcon = root.findViewById(R.id.search_icon);
     mSearchIconWidth = mSearchIcon.getLayoutParams().width;
@@ -441,6 +464,28 @@ public class SearchFragment extends Fragment implements SearchListener, Categori
     mYourLocation.setOnClickListener(v -> onYourLocationClicked());
     root.findViewById(R.id.choose_on_map).setOnClickListener(v -> mSearchFragmentListener.onChooseOnMapClicked());
     mResultsFrame = root.findViewById(R.id.results_frame);
+
+    root.findViewById(R.id.areamap_destination_furmanov)
+        .setOnClickListener(v -> setQuery(getString(R.string.areamap_destination_furmanov_title), false));
+    root.findViewById(R.id.areamap_destination_bao)
+        .setOnClickListener(v -> setQuery(getString(R.string.areamap_destination_bao_title), false));
+    root.findViewById(R.id.areamap_destination_kimasar)
+        .setOnClickListener(v -> setQuery(getString(R.string.areamap_destination_kimasar_title), false));
+    root.findViewById(R.id.areamap_guides_card).setOnClickListener(v ->
+        startActivity(new Intent(requireContext(), GuideArticleActivity.class)
+                          .putExtra(GuideArticleActivity.EXTRA_ARTICLE_INDEX, 7)));
+    root.findViewById(R.id.areamap_guides_weather_card).setOnClickListener(v ->
+        startActivity(new Intent(requireContext(), GuideArticleActivity.class)
+                          .putExtra(GuideArticleActivity.EXTRA_ARTICLE_INDEX, 3)));
+    root.findViewById(R.id.areamap_guides_first_aid_card).setOnClickListener(v ->
+        startActivity(new Intent(requireContext(), GuideArticleActivity.class)
+                          .putExtra(GuideArticleActivity.EXTRA_ARTICLE_INDEX, 0)));
+    root.findViewById(R.id.areamap_guides_storm_card).setOnClickListener(v ->
+        startActivity(new Intent(requireContext(), GuideArticleActivity.class)
+                          .putExtra(GuideArticleActivity.EXTRA_ARTICLE_INDEX, 8)));
+    root.findViewById(R.id.areamap_home_sos_card).setOnClickListener(v ->
+        startActivity(new Intent(requireContext(), TripSafetyActivity.class)
+                         .putExtra(TripSafetyActivity.EXTRA_SHOW_SOS, true)));
     mResults = mResultsFrame.findViewById(R.id.recycler);
     setRecyclerScrollListener(mResults);
     ViewCompat.setOnApplyWindowInsetsListener(mResults, (v, insets) -> {
@@ -694,6 +739,77 @@ public class SearchFragment extends Fragment implements SearchListener, Categori
     SearchEngine.INSTANCE.selectResult(resultIndex);
   }
 
+  private boolean shouldTryAnotherVariant()
+  {
+    if (isCategory() || mSearchVariantIndex + 1 >= mSearchVariants.size())
+      return false;
+    if (mCurrentSearchResults == null || mCurrentSearchResults.length == 0)
+      return true;
+
+    final String originalQuery = getQuery();
+    if (mSearchVariantIndex == 0 && SearchQueryVariants.hasAlias(originalQuery))
+      return true;
+
+    final String qualityQuery = mSearchVariantIndex < mSearchVariants.size()
+        ? mSearchVariants.get(mSearchVariantIndex) : originalQuery;
+    final List<String> tokens = SearchQueryVariants.significantTokens(qualityQuery);
+    if (tokens.isEmpty())
+      return false;
+
+    int bestMatches = 0;
+    final int limit = Math.min(8, mCurrentSearchResults.length);
+    for (int i = 0; i < limit; i++)
+    {
+      final SearchResult result = mCurrentSearchResults[i];
+      final StringBuilder haystack = new StringBuilder(SearchQueryVariants.normalize(result.name));
+      if (result.description != null)
+      {
+        haystack.append(' ').append(SearchQueryVariants.normalize(result.description.localizedFeatureType));
+        haystack.append(' ').append(SearchQueryVariants.normalize(result.description.region));
+      }
+      int matches = 0;
+      for (String token : tokens)
+        if (haystack.indexOf(token) >= 0)
+          matches++;
+      bestMatches = Math.max(bestMatches, matches);
+    }
+
+    if (tokens.size() >= 2)
+      return bestMatches < Math.min(2, tokens.size());
+    // A one-word Cyrillic/Kazakh name may be stored in Latin (or vice versa). If the top results do
+    // not contain the actual name, try the next generated spelling instead of accepting street noise.
+    return bestMatches == 0;
+  }
+
+  private boolean startSearchVariant(int index)
+  {
+    if (index < 0 || index >= mSearchVariants.size())
+      return false;
+
+    mSearchVariantIndex = index;
+    mCurrentSearchResults = null;
+    mActiveSearchTimestamp = System.nanoTime();
+    final boolean started = SearchEngine.INSTANCE.searchInteractive(
+        mSearchVariants.get(index), isCategory(), mSearchLocale, mActiveSearchTimestamp,
+        true /* isMapAndTable */, mSearchHasLocation, mSearchLat, mSearchLon);
+    if (!started)
+      return false;
+
+    mSearchRunning = true;
+    mToolbarController.showProgress(true);
+    if (index > 0)
+    {
+      // Keep the fallback transparent: the user's original query stays in the field while the local
+      // Organic Maps index is retried with a spelling/type/language variant.
+      mSearchAdapter.clear();
+      UiUtils.show(mShimmerView);
+      mShimmerView.startShimmer();
+    }
+    updateResultsPlaceholder();
+    updateFrames();
+    return true;
+  }
+
   private void onSearchEnd()
   {
     if (mSearchRunning && isAdded())
@@ -747,44 +863,55 @@ public class SearchFragment extends Fragment implements SearchListener, Categori
     final SearchRequest request = mSearchViewModel.getPendingRequest();
     // Locale applies only to this initial query; consume the request so later manual edits fall
     // back to the keyboard locale.
-    String locale =
-        (request != null && request.locale != null) ? request.locale : Language.getKeyboardLocale(requireContext());
+    final String selectedAppLanguage = AreaMapLocale.selectedTag(requireContext());
+    mSearchLocale = (request != null && request.locale != null)
+        ? request.locale
+        : (!selectedAppLanguage.isEmpty() ? selectedAppLanguage : Language.getKeyboardLocale(requireContext()));
     mSearchViewModel.clearPendingRequest();
 
+    mSearchVariants = SearchQueryVariants.build(getQuery());
+    mSearchVariantIndex = 0;
+    mSearchHasLocation = hasLocation;
+    mSearchLat = lat;
+    mSearchLon = lon;
+    mCurrentSearchResults = null;
+
     SearchEngine.INSTANCE.setQuery(getQuery());
-    boolean started = SearchEngine.INSTANCE.searchInteractive(getQuery(), isCategory(), locale, System.nanoTime(),
-                                                              true /* isMapAndTable */, hasLocation, lat, lon);
-    if (!started)
+    if (mSearchVariants.isEmpty() || !startSearchVariant(0))
     {
       stopSearch();
       return;
     }
-
-    mSearchRunning = true;
-    mToolbarController.showProgress(true);
-    updateResultsPlaceholder();
 
     if (mSearchAdapter.getItemCount() == 0)
     {
       UiUtils.show(mShimmerView);
       mShimmerView.startShimmer();
     }
-
-    updateFrames();
   }
 
   @Override
   public void onResultsUpdate(@NonNull SearchResult[] results, long timestamp)
   {
-    if (!isAdded() || !mToolbarController.hasQuery())
+    if (!isAdded() || !mToolbarController.hasQuery() || timestamp != mActiveSearchTimestamp)
       return;
 
+    mCurrentSearchResults = results;
     refreshSearchResults(results);
   }
 
   @Override
   public void onResultsEnd(long timestamp)
   {
+    if (!isAdded() || timestamp != mActiveSearchTimestamp)
+      return;
+
+    if (shouldTryAnotherVariant())
+    {
+      SearchEngine.INSTANCE.cancel();
+      if (startSearchVariant(mSearchVariantIndex + 1))
+        return;
+    }
     onSearchEnd();
   }
 
@@ -860,17 +987,20 @@ public class SearchFragment extends Fragment implements SearchListener, Categori
     final boolean hasQuery = mToolbarController.hasQuery();
     final int activeTab = mPager.getCurrentItem();
 
-    // updateFrames() runs on every keystroke and every results batch — but the nested-scrolling
-    // flags only flip on hasQuery / activeTab transitions, so cache the last pair and skip the
-    // sheet requestLayout() when nothing changed.
-    if (mNestedScrollingSyncedHasQuery != null && mNestedScrollingSyncedActiveTab != null
-        && hasQuery == mNestedScrollingSyncedHasQuery && activeTab == mNestedScrollingSyncedActiveTab)
-      return;
+    // Re-apply on every mode/layout pass. The Explore feed is a NestedScrollView while the legacy
+    // history/category pages live in a hidden ViewPager, so cached flags can otherwise leave a hidden
+    // RecyclerView registered as the bottom sheet's scrolling child after the pager is created.
     mNestedScrollingSyncedHasQuery = hasQuery;
     mNestedScrollingSyncedActiveTab = activeTab;
 
     if (mResults != null)
       ViewCompat.setNestedScrollingEnabled(mResults, hasQuery);
+
+    // The AreaMap Explore feed is a NestedScrollView. It must own nested scrolling while
+    // the search box is empty, otherwise the bottom sheet intercepts the swipe and the
+    // "For your hike" cards below the fold can never be reached on shorter screens/with IME open.
+    if (mHomeFrame != null)
+      ViewCompat.setNestedScrollingEnabled(mHomeFrame, !hasQuery);
 
     if (mTabAdapter != null)
     {
@@ -881,7 +1011,7 @@ public class SearchFragment extends Fragment implements SearchListener, Categori
           continue;
         RecyclerView rv = f.getView().findViewById(R.id.recycler);
         if (rv != null)
-          ViewCompat.setNestedScrollingEnabled(rv, !hasQuery && i == activeTab);
+          ViewCompat.setNestedScrollingEnabled(rv, false);
       }
     }
 

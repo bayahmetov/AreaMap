@@ -44,7 +44,7 @@
     android:orientation="horizontal"
     android:baselineAligned="false"
     android:gravity="center_vertical"
-    android:background="@drawable/bg_search_rounded_rect"
+    android:background="@drawable/bg_areamap_search_input"
     android:paddingHorizontal="@dimen/margin_half"
     android:layout_marginStart="@dimen/margin_half"
     android:layout_marginEnd="@dimen/margin_half"
@@ -57,7 +57,7 @@
       app:srcCompat="@drawable/ic_search"
       android:scaleType="center"
       android:importantForAccessibility="no"
-      app:tint="?attr/textSearchField" />
+      app:tint="@color/areamap_text_secondary" />
     <ImageView
       android:id="@+id/back"
       android:layout_width="@dimen/place_page_icon_size"
@@ -85,7 +85,7 @@
         android:gravity="center_vertical"
         app:endIconMode="custom"
         app:endIconDrawable="@drawable/ic_close_rounded"
-        app:endIconTint="?attr/textSearchField"
+        app:endIconTint="@color/areamap_text_secondary"
         style="@style/MwmTextAppearance.Toolbar.Search"
         app:boxBackgroundMode="none"
         app:hintEnabled="false">
@@ -96,7 +96,9 @@
           android:layout_height="match_parent"
           android:minHeight="0dp"
           android:saveEnabled="false"
-          android:hint="@string/search"
+          android:hint="@string/areamap_search_hint"
+          android:textColor="@color/areamap_text"
+          android:textColorHint="@color/areamap_text_muted"
           android:imeOptions="actionSearch|flagNoExtractUi"
           android:inputType="text"
           android:singleLine="true"

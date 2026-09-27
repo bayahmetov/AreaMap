@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:fillViewport="true">
+
+  <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:orientation="vertical"
+      android:paddingStart="24dp"
+      android:paddingEnd="24dp"
+      android:paddingTop="8dp"
+      android:paddingBottom="8dp">
+
+    <TextView
+        android:id="@+id/trip_registration_summary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="?android:attr/textColorSecondary"
+        android:textSize="14sp"
+        android:lineSpacingExtra="3dp" />
+
+    <androidx.appcompat.widget.AppCompatEditText
+        android:id="@+id/trip_registration_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:hint="@string/areamap_trip_name"
+        android:inputType="textPersonName"
+        android:maxLines="1"
+        android:singleLine="true" />
+
+    <androidx.appcompat.widget.AppCompatEditText
+        android:id="@+id/trip_registration_phone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:hint="@string/areamap_trip_phone"
+        android:inputType="phone"
+        android:maxLines="1"
+        android:singleLine="true" />
+
+    <androidx.appcompat.widget.AppCompatEditText
+        android:id="@+id/trip_registration_group_size"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:hint="@string/areamap_trip_group_size"
+        android:inputType="number"
+        android:maxLines="1"
+        android:singleLine="true" />
+
+    <androidx.appcompat.widget.AppCompatEditText
+        android:id="@+id/trip_registration_emergency_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:hint="@string/areamap_trip_emergency_name"
+        android:inputType="textPersonName"
+        android:maxLines="1"
+        android:singleLine="true" />
+
+    <androidx.appcompat.widget.AppCompatEditText
+        android:id="@+id/trip_registration_emergency_phone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:hint="@string/areamap_trip_emergency_phone"
+        android:inputType="phone"
+        android:maxLines="1"
+        android:singleLine="true" />
+
+    <CheckBox
+        android:id="@+id/trip_registration_consent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="@string/areamap_trip_consent"
+        android:textSize="13sp" />
+  </LinearLayout>
+</ScrollView>

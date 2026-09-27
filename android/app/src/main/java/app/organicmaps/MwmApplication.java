@@ -121,6 +121,7 @@ public class MwmApplication extends Application implements Application.ActivityL
   public void onCreate()
   {
     super.onCreate();
+    app.organicmaps.safety.AreaMapLocale.applySaved(this);
     Logger.i(TAG, "Initializing application");
 
     sInstance = this;
@@ -130,6 +131,7 @@ public class MwmApplication extends Application implements Application.ActivityL
                                    BuildConfig.VERSION_CODE, BuildConfig.VERSION_NAME);
 
     DownloaderNotifier.createNotificationChannel(this);
+    app.organicmaps.safety.TripScheduleNotifier.createNotificationChannel(this);
     initNavigationService();
     // Mirror navigation start/stop to a paired Wear OS device from the routing state owner, so every
     // trigger is covered (phone UI, Android Auto, notification stop). No-op unless the Google Wear

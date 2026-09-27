@@ -56,6 +56,7 @@
           android:hyphenationFrequency="fullFast"
           android:maxLines="@integer/pp_title_lines"
           android:textAppearance="@style/MwmTextAppearance.Title"
+          android:textColor="@color/areamap_text"
           tools:background="#C0800000"
           tools:ignore="UnusedAttribute"
           tools:text="Title" />
@@ -86,6 +87,7 @@
         android:fontFamily="@string/robotoMedium"
         android:maxLines="@integer/pp_title_lines"
         android:textAppearance="@style/MwmTextAppearance.Body1"
+        android:textColor="@color/areamap_text_secondary"
         tools:background="#C0800000"
         tools:ignore="UnusedAttribute"
         tools:text="Secondary Title" />
@@ -99,6 +101,7 @@
         android:ellipsize="end"
         android:fontFamily="@font/organic_maps_emoji"
         android:textAppearance="@style/MwmTextAppearance.Body3"
+        android:textColor="@color/areamap_text_secondary"
         tools:background="#300000F0"
         tools:text="Subtitle, very very very very very very very long" />
 
@@ -109,6 +112,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/margin_quarter"
         android:textAppearance="@style/MwmTextAppearance.Body3"
+        android:textColor="@color/areamap_text_muted"
         tools:background="#60000000"
         tools:text="Lenina str, 10" />
 
@@ -195,7 +199,7 @@
           android:layout_gravity="center"
           android:scaleType="center"
           app:srcCompat="@drawable/ic_direction_pagepreview"
-          app:tint="?colorAccent" />
+          app:tint="@color/areamap_green" />
 
         <LinearLayout
           android:layout_width="wrap_content"

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="areamap_toggle_preview">Развернуть или свернуть маршрут</string>
+  <string name="areamap_route_details">Подробнее · рельеф и тайминги</string>
+  <string name="areamap_follow_track">Идти по GPX-треку</string>
+  <string name="areamap_gpx_preview">%1$.1f км · примерно %2$d ч %3$d мин</string>
+  <string name="areamap_gpx_explanation">Ведение по исходной линии: остаток пути, оценка времени и расстояние до трека. Без подсказок поворотов и автоматического перестроения. Ведение работает в открытом приложении; после закрытия повторно откройте GPX. Время приблизительное; без высот оно может быть занижено.</string>
+  <string name="areamap_gpx_unsupported">Файл передан для импорта на карту. Ведение пока поддерживает GPX с одним непрерывным сегментом до 20 000 точек. KML, KMZ и файлы с несколькими сегментами можно просматривать на карте.</string>
+  <string name="areamap_track_stop">Завершить</string>
+  <string name="areamap_track_waiting">Ждём актуальное и точное местоположение…</string>
+  <string name="areamap_track_off_course">До трека примерно %1$.0f м. Сверьтесь с картой.</string>
+  <string name="areamap_track_arrived">Вы рядом с концом трека.</string>
+  <string name="areamap_track_progress">Осталось %1$.1f км · примерно %2$d ч %3$d мин</string>
+</resources>

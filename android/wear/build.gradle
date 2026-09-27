@@ -11,9 +11,10 @@ android {
 
     defaultConfig {
         applicationId rootProject.ext.appId
-        // Keep the Wear artifact version code unique from the phone app while preserving
-        // the same base Organic Maps version code for Google Play multi-form-factor uploads.
-        versionCode rootProject.ext.versionCode * 10 + 1
+        // Keep the Wear artifact version code unique from the phone app without multiplying
+        // the date-based app version code. Multiplying by 10 can overflow Android's signed
+        // 32-bit versionCode range (2,147,483,647) for current 2026 builds.
+        versionCode rootProject.ext.versionCode + 1
         versionName rootProject.ext.versionName
         minSdk 26
     }

@@ -1,0 +1,182 @@
+package app.organicmaps.safety;
+
+import android.Manifest;
+import android.content.ActivityNotFoundException;
+import android.content.Intent;
+import android.location.Location;
+import android.net.Uri;
+import android.os.Build;
+import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.TextView;
+import android.widget.Toast;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
+import androidx.core.view.ViewCompat;
+import app.organicmaps.MwmApplication;
+import app.organicmaps.R;
+import app.organicmaps.base.BaseMwmFragment;
+import app.organicmaps.location.TrackRecordingService;
+import app.organicmaps.sdk.location.TrackRecorder;
+import app.organicmaps.sdk.routing.RoutingController;
+import app.organicmaps.util.WindowInsetUtils.PaddingInsetsListener;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+
+public class TripSafetyFragment extends BaseMwmFragment
+{
+  private TripSafety mSos;
+
+  @Nullable
+  @Override
+  public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle state)
+  {
+    return inflater.inflate(R.layout.fragment_trip_safety, container, false);
+  }
+
+  @Override
+  public void onViewCreated(@NonNull View view, @Nullable Bundle state)
+  {
+    super.onViewCreated(view, state);
+    ViewCompat.setOnApplyWindowInsetsListener(view, PaddingInsetsListener.excludeTop());
+    requireActivity().setTitle(R.string.areamap_nav_trip);
+    mSos = TripSafety.get(requireContext());
+
+    view.findViewById(R.id.guide_import)
+        .setOnClickListener(v -> startActivity(new Intent(requireContext(), RouteImportActivity.class)));
+    view.findViewById(R.id.trip_sos).setOnClickListener(v -> showSos());
+    view.findViewById(R.id.active_trip_resend)
+        .setOnClickListener(v -> TripReportSender.shareToTelegram(requireActivity(), mSos.startReport()));
+    view.findViewById(R.id.active_trip_finish).setOnClickListener(v -> confirmManualReturn());
+    view.findViewById(R.id.schedule_demo_notification)
+        .setOnClickListener(v -> showScheduleDemo());
+    view.findViewById(R.id.language_change)
+        .setOnClickListener(v -> AreaMapLocale.showPicker(requireActivity()));
+    ((TextView) view.findViewById(R.id.language_current)).setText(
+        getString(R.string.areamap_language_current, AreaMapLocale.selectedLabel(requireContext())));
+
+    refreshLastLocation(view);
+    refreshActiveTrip(view);
+
+    if (requireActivity().getIntent().getBooleanExtra(TripSafetyActivity.EXTRA_SHOW_SOS, false))
+    {
+      requireActivity().getIntent().removeExtra(TripSafetyActivity.EXTRA_SHOW_SOS);
+      view.post(this::showSos);
+    }
+  }
+
+  private void showScheduleDemo()
+  {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+        && ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.POST_NOTIFICATIONS)
+           != android.content.pm.PackageManager.PERMISSION_GRANTED)
+    {
+      ActivityCompat.requestPermissions(requireActivity(),
+                                        new String[] {Manifest.permission.POST_NOTIFICATIONS}, 9042);
+      Toast.makeText(requireContext(), R.string.areamap_schedule_demo_permission_request, Toast.LENGTH_LONG).show();
+      return;
+    }
+    TripScheduleNotifier.postDemo(requireContext());
+  }
+
+  @Override
+  public void onResume()
+  {
+    super.onResume();
+    final View view = getView();
+    if (view != null)
+    {
+      refreshLastLocation(view);
+      refreshActiveTrip(view);
+      ((TextView) view.findViewById(R.id.language_current)).setText(
+          getString(R.string.areamap_language_current, AreaMapLocale.selectedLabel(requireContext())));
+    }
+  }
+
+  private void refreshActiveTrip(@NonNull View view)
+  {
+    final View section = view.findViewById(R.id.active_trip_section);
+    if (!mSos.hasActiveTrip())
+    {
+      section.setVisibility(View.GONE);
+      return;
+    }
+    section.setVisibility(View.VISIBLE);
+    ((TextView) view.findViewById(R.id.active_trip_summary)).setText(mSos.activeTripSummary());
+  }
+
+  private void confirmManualReturn()
+  {
+    if (!mSos.hasActiveTrip())
+      return;
+    new MaterialAlertDialogBuilder(requireContext())
+        .setTitle(R.string.areamap_manual_return_title)
+        .setMessage(R.string.areamap_manual_return_message)
+        .setNegativeButton(R.string.cancel, null)
+        .setPositiveButton(R.string.areamap_finish_and_send, (dialog, which) -> finishTrip())
+        .show();
+  }
+
+  private void finishTrip()
+  {
+    final boolean stopOwnedRecording = mSos.ownsTrackRecording();
+    final String report = mSos.returnReport();
+    mSos.completeTrip();
+    if (RoutingController.get().isNavigating())
+      RoutingController.get().cancel();
+    if (stopOwnedRecording && TrackRecorder.nativeIsTrackRecordingEnabled())
+    {
+      TrackRecorder.saveAndStop();
+      TrackRecordingService.stopService(requireContext());
+    }
+    TripReportSender.shareToTelegram(requireActivity(), report);
+    Toast.makeText(requireContext(), R.string.areamap_trip_completed, Toast.LENGTH_LONG).show();
+    final View view = getView();
+    if (view != null)
+      refreshActiveTrip(view);
+  }
+
+  private void refreshLastLocation(@NonNull View view)
+  {
+    final Location last = MwmApplication.from(requireContext()).getLocationHelper().getSavedLocation();
+    if (last != null)
+      mSos.save(last);
+    ((TextView) view.findViewById(R.id.trip_coordinates)).setText(mSos.coordinates());
+  }
+
+  private void showSos()
+  {
+    final Location last = MwmApplication.from(requireContext()).getLocationHelper().getSavedLocation();
+    if (last != null)
+      mSos.save(last);
+
+    new MaterialAlertDialogBuilder(requireContext())
+        .setTitle(R.string.areamap_sos)
+        .setMessage(mSos.card())
+        .setNegativeButton(R.string.areamap_close, null)
+        .setPositiveButton(R.string.areamap_dial,
+                           (dialog, which) -> openIntent(new Intent(Intent.ACTION_DIAL, Uri.parse("tel:112"))))
+        .setNeutralButton(R.string.areamap_share,
+                          (dialog, which) -> {
+                            final Intent send = new Intent(Intent.ACTION_SEND)
+                                                    .setType("text/plain")
+                                                    .putExtra(Intent.EXTRA_TEXT, mSos.card());
+                            openIntent(Intent.createChooser(send, getString(R.string.areamap_share)));
+                          })
+        .show();
+  }
+
+  private void openIntent(@NonNull Intent intent)
+  {
+    try
+    {
+      startActivity(intent);
+    }
+    catch (ActivityNotFoundException e)
+    {
+      Toast.makeText(requireContext(), R.string.areamap_no_handler, Toast.LENGTH_LONG).show();
+    }
+  }
+}

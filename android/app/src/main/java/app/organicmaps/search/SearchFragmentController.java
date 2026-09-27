@@ -12,6 +12,7 @@ import android.view.ViewOutlineProvider;
 import android.widget.FrameLayout;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -28,7 +29,6 @@ import app.organicmaps.util.ThemeUtils;
 import app.organicmaps.widget.placepage.PlacePageUtils;
 import app.organicmaps.widget.placepage.PlacePageViewModel;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
-import com.google.android.material.color.MaterialColors;
 
 public class SearchFragmentController extends Fragment implements SearchFragment.SearchFragmentListener
 {
@@ -203,7 +203,7 @@ public class SearchFragmentController extends Fragment implements SearchFragment
         ThemeUtils.getResource(requireContext(), androidx.appcompat.R.attr.actionBarSize));
 
     float topRadius = getResources().getDimension(R.dimen.bottom_sheet_corner_radius);
-    int surface = MaterialColors.getColor(mSearchPageContainer, com.google.android.material.R.attr.colorSurface);
+    int surface = ContextCompat.getColor(requireContext(), R.color.areamap_surface);
     mSearchPageContainer.setBackgroundColor(surface);
     mSearchPageContainer.setOutlineProvider(new ViewOutlineProvider() {
       @Override
@@ -366,13 +366,13 @@ public class SearchFragmentController extends Fragment implements SearchFragment
   @Override
   public void onSearchClicked()
   {
-    showSearchSheet(BottomSheetBehavior.STATE_HALF_EXPANDED);
+    showSearchSheet(BottomSheetBehavior.STATE_EXPANDED);
   }
 
   @Override
   public void onQuerySubmitted()
   {
-    showSearchSheet(BottomSheetBehavior.STATE_COLLAPSED);
+    showSearchSheet(BottomSheetBehavior.STATE_EXPANDED);
   }
 
   @Override
@@ -395,6 +395,7 @@ public class SearchFragmentController extends Fragment implements SearchFragment
     // Dismiss the keyboard on every programmatic close path (X button, back, place page, forceCloseSearchFragment).
     // Otherwise the IME inset lingers and the routing panel re-appearing underneath gets pushed down by it.
     InputUtils.hideKeyboard(mSearchPageContainer);
+    mBottomSheetBehavior.setDraggable(true);
     mBottomSheetBehavior.setHideable(true);
     mBottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
   }
@@ -406,5 +407,8 @@ public class SearchFragmentController extends Fragment implements SearchFragment
   {
     mBottomSheetBehavior.setState(state);
     mBottomSheetBehavior.setHideable(false);
+    // Explore/search is a full-page sheet now. Lock the sheet itself while expanded so vertical
+    // gestures belong to its NestedScrollView/RecyclerView instead of getting captured as sheet drags.
+    mBottomSheetBehavior.setDraggable(state != BottomSheetBehavior.STATE_EXPANDED);
   }
 }

@@ -201,3 +201,23 @@ For inquiries about white-labeling or using our servers for your products, pleas
 **legal@organicmaps.app**
 
 Thank you!
+Executing tasks: [:app:assembleFdroidDebug] in project C:\ProgProjects\AreaMap\android
+
+
+cd /c/ProgProjects/AreaMap
+
+for module in app sdk libs/car libs/downloader libs/routing; do
+  for locale in HK MO; do
+    for name in strings.xml types_strings.xml; do
+      file="android/$module/src/main/res/values-zh-r$locale/$name"
+      if [ -f "$file" ] && [ ! -L "$file" ] && [ "$(cat "$file")" = "../values-zh-rTW/$name" ]; then
+        cp "android/$module/src/main/res/values-zh-rTW/$name" "$file" || exit 1
+      fi
+    done
+  done
+done
+
+For more on this, please refer to https://docs.gradle.org/9.6.0/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD FAILED in 3m 1s
+254 actionable tasks: 214 executed, 40 from cache

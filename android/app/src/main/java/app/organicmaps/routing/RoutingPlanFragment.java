@@ -29,6 +29,8 @@ import app.organicmaps.sdk.routing.RoutingInfo;
 import app.organicmaps.sdk.routing.RoutingOptions;
 import app.organicmaps.sdk.routing.TransitRouteInfo;
 import app.organicmaps.settings.DrivingOptionsActivity;
+import app.organicmaps.safety.TripPlan;
+import app.organicmaps.safety.TripStartFlow;
 import app.organicmaps.util.UiUtils;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -143,6 +145,12 @@ public class RoutingPlanFragment extends Fragment implements View.OnLayoutChange
 
     setInsets();
     setupBottomSheetBehavior();
+    final View handle = mFrame.findViewById(R.id.pull_icon_container);
+    handle.setMinimumHeight(Math.round(32 * getResources().getDisplayMetrics().density));
+    handle.setContentDescription(getString(R.string.areamap_toggle_preview));
+    handle.setOnClickListener(v -> mSheetBehavior.setState(
+        mSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED
+            ? BottomSheetBehavior.STATE_COLLAPSED : BottomSheetBehavior.STATE_EXPANDED));
 
     mSheetVisible.addSource(mViewModel.getShowRoutingBottomSheet(), show -> updateSheetVisible());
     mSheetVisible.addSource(mViewModel.getIsPlacePageActive(), active -> updateSheetVisible());
@@ -304,8 +312,12 @@ public class RoutingPlanFragment extends Fragment implements View.OnLayoutChange
     // none), while setMaxHeight caps a long list to scroll inside the sheet instead of covering the map.
     final boolean stepsVisible = mTransitStepsView.getVisibility() == View.VISIBLE;
     final int chartHeader = stepsVisible ? mTransitStepsView.getTop() : mChartPanel.getHeight();
-    final int peekHeight =
+    final int desiredHeight =
         mRoutingTypesContainer.getHeight() + chartHeader + mBottomButtonsMaxHeight + mPeekHeightMargins;
+    // Advice and large font sizes must not turn the collapsed state into a full-screen sheet.
+    final int compactHeight = Math.round(260 * getResources().getDisplayMetrics().density);
+    final int peekHeight = parentHeight > 0
+        ? Math.min(desiredHeight, Math.min(compactHeight, parentHeight / 2)) : compactHeight;
     mSheetBehavior.setPeekHeight(peekHeight);
   }
 
@@ -438,6 +450,21 @@ public class RoutingPlanFragment extends Fragment implements View.OnLayoutChange
     if (!mRoutingPlanController.showRoutingDisclaimer())
       return;
 
+    if (Router.get() == Router.Pedestrian)
+    {
+      final TripPlan plan = TripPlan.current();
+      if (plan != null)
+      {
+        TripStartFlow.show(requireActivity(), plan, this::startNavigationNow, this::startNavigationNow);
+        return;
+      }
+    }
+
+    startNavigationNow();
+  }
+
+  private void startNavigationNow()
+  {
     mRoutingPlanController.closeFloatingPanels();
     mRoutingPlanController.setFullscreen(false);
     RoutingController.get().start();

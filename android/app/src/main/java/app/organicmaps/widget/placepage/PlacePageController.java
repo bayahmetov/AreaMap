@@ -682,6 +682,9 @@ public class PlacePageController
       }
       else
       {
+        // Keep the destination action visible even when secondary actions overflow into More.
+        if (needToShowRoutingButtons)
+          buttons.add(PlacePageButtons.ButtonType.ROUTE_TO);
         if (needToShowRoutingButtons)
           buttons.add(PlacePageButtons.ButtonType.ROUTE_FROM);
 
@@ -705,7 +708,6 @@ public class PlacePageController
 
         if (needToShowRoutingButtons)
         {
-          buttons.add(PlacePageButtons.ButtonType.ROUTE_TO);
           if (RoutingController.get().isStopPointAllowed())
             buttons.add(mapObject.isBookmark() ? PlacePageButtons.ButtonType.BOOKMARK_DELETE
                                                : PlacePageButtons.ButtonType.BOOKMARK_SAVE);

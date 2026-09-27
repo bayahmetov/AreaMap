@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  android:layout_width="match_parent" android:layout_height="wrap_content"
+  android:layout_margin="12dp" android:orientation="vertical"
+  android:background="@drawable/bg_areamap_surface" android:padding="16dp"
+  android:elevation="6dp" android:visibility="gone">
+  <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:orientation="horizontal" android:gravity="center_vertical">
+    <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+      android:layout_weight="1" android:text="@string/areamap_follow_track"
+      android:textSize="18sp" android:textStyle="bold" android:textColor="?android:attr/textColorPrimary" />
+    <com.google.android.material.button.MaterialButton android:id="@+id/areamap_track_stop"
+      style="@style/AreaMap.SecondaryButton" android:layout_width="wrap_content"
+      android:layout_height="wrap_content" android:text="@string/areamap_track_stop" />
+  </LinearLayout>
+  <TextView android:id="@+id/areamap_track_status" android:layout_width="match_parent"
+    android:layout_height="wrap_content" android:textSize="15sp"
+    android:textColor="?android:attr/textColorPrimary" android:lineSpacingExtra="4dp"
+    android:accessibilityLiveRegion="polite" />
+</LinearLayout>
