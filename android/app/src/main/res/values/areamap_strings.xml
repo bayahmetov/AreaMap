@@ -133,4 +133,9 @@
   <string name="areamap_not_returned_yet">Not yet</string>
   <string name="areamap_finish_and_send">Finish and send return</string>
   <string name="areamap_trip_completed">Trip marked as returned.</string>
+  <string name="areamap_active_trip_title">Registered trip</string>
+  <string name="areamap_resend_trip_report">Send trip data again</string>
+  <string name="areamap_manual_return">I am back · finish trip</string>
+  <string name="areamap_manual_return_title">Confirm return</string>
+  <string name="areamap_manual_return_message">Use this only when the group has actually returned and the trip can be closed. A return report will be prepared for the DCHS demo channel.</string>
 </resources>
