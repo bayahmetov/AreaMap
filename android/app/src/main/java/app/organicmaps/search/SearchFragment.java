@@ -731,10 +731,15 @@ public class SearchFragment extends Fragment implements SearchListener, Categori
     if (mCurrentSearchResults == null || mCurrentSearchResults.length == 0)
       return true;
 
-    final String query = getQuery();
-    final List<String> tokens = SearchQueryVariants.significantTokens(query);
+    final String originalQuery = getQuery();
+    if (mSearchVariantIndex == 0 && SearchQueryVariants.hasAlias(originalQuery))
+      return true;
+
+    final String qualityQuery = mSearchVariantIndex < mSearchVariants.size()
+        ? mSearchVariants.get(mSearchVariantIndex) : originalQuery;
+    final List<String> tokens = SearchQueryVariants.significantTokens(qualityQuery);
     if (tokens.isEmpty())
-      return SearchQueryVariants.hasAlias(query);
+      return false;
 
     int bestMatches = 0;
     final int limit = Math.min(8, mCurrentSearchResults.length);
@@ -754,11 +759,9 @@ public class SearchFragment extends Fragment implements SearchListener, Categori
       bestMatches = Math.max(bestMatches, matches);
     }
 
-    if (SearchQueryVariants.hasAlias(query))
-      return bestMatches < tokens.size();
     if (tokens.size() >= 2)
-      return bestMatches < 2;
-    return SearchQueryVariants.hasGenericType(query) && bestMatches == 0;
+      return bestMatches < Math.min(2, tokens.size());
+    return SearchQueryVariants.hasGenericType(qualityQuery) && bestMatches == 0;
   }
 
   private boolean startSearchVariant(int index)
