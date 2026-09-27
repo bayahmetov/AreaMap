@@ -997,7 +997,7 @@ public class SearchFragment extends Fragment implements SearchListener, Categori
           continue;
         RecyclerView rv = f.getView().findViewById(R.id.recycler);
         if (rv != null)
-          ViewCompat.setNestedScrollingEnabled(rv, !hasQuery && i == activeTab);
+          ViewCompat.setNestedScrollingEnabled(rv, false);
       }
     }
 
