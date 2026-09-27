@@ -51,9 +51,11 @@
     <item name="android:layout_width">wrap_content</item>
     <item name="android:layout_height">wrap_content</item>
     <item name="android:layout_marginTop">3dp</item>
-    <item name="android:textSize">11sp</item>
+    <item name="android:textSize">10sp</item>
     <item name="android:textColor">@color/areamap_text_secondary</item>
     <item name="android:maxLines">1</item>
+    <item name="android:ellipsize">end</item>
+    <item name="android:includeFontPadding">false</item>
   </style>
 
   <style name="AreaMap.HomeCard" parent="">
@@ -82,8 +84,11 @@
     <item name="android:layout_width">match_parent</item>
     <item name="android:layout_height">wrap_content</item>
     <item name="android:textColor">@color/areamap_text</item>
-    <item name="android:textSize">18sp</item>
+    <item name="android:textSize">17sp</item>
     <item name="android:textStyle">bold</item>
+    <item name="android:maxLines">2</item>
+    <item name="android:ellipsize">end</item>
+    <item name="android:includeFontPadding">false</item>
   </style>
 
   <style name="AreaMap.HomeCardSubtitle" parent="">
@@ -91,24 +96,31 @@
     <item name="android:layout_height">wrap_content</item>
     <item name="android:layout_marginTop">5dp</item>
     <item name="android:textColor">@color/areamap_text_secondary</item>
-    <item name="android:textSize">13sp</item>
+    <item name="android:textSize">12sp</item>
+    <item name="android:maxLines">3</item>
+    <item name="android:ellipsize">end</item>
+    <item name="android:includeFontPadding">false</item>
   </style>
 
   <style name="AreaMap.HomeCardMeta" parent="">
     <item name="android:layout_width">match_parent</item>
     <item name="android:layout_height">wrap_content</item>
-    <item name="android:layout_marginTop">14dp</item>
+    <item name="android:layout_marginTop">12dp</item>
     <item name="android:textColor">@color/areamap_text_muted</item>
-    <item name="android:textSize">12sp</item>
+    <item name="android:textSize">11sp</item>
+    <item name="android:maxLines">2</item>
+    <item name="android:ellipsize">end</item>
   </style>
 
   <style name="AreaMap.HomeCardAction" parent="">
     <item name="android:layout_width">match_parent</item>
     <item name="android:layout_height">wrap_content</item>
-    <item name="android:layout_marginTop">16dp</item>
+    <item name="android:layout_marginTop">12dp</item>
     <item name="android:textColor">#8BE7B7</item>
-    <item name="android:textSize">13sp</item>
+    <item name="android:textSize">12sp</item>
     <item name="android:textStyle">bold</item>
+    <item name="android:maxLines">1</item>
+    <item name="android:ellipsize">end</item>
   </style>
 
   <style name="MwmWidget.MapButton" parent="Theme.Material3.Dark">
