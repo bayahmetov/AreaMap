@@ -974,12 +974,9 @@ public class SearchFragment extends Fragment implements SearchListener, Categori
     final boolean hasQuery = mToolbarController.hasQuery();
     final int activeTab = mPager.getCurrentItem();
 
-    // updateFrames() runs on every keystroke and every results batch — but the nested-scrolling
-    // flags only flip on hasQuery / activeTab transitions, so cache the last pair and skip the
-    // sheet requestLayout() when nothing changed.
-    if (mNestedScrollingSyncedHasQuery != null && mNestedScrollingSyncedActiveTab != null
-        && hasQuery == mNestedScrollingSyncedHasQuery && activeTab == mNestedScrollingSyncedActiveTab)
-      return;
+    // Re-apply on every mode/layout pass. The Explore feed is a NestedScrollView while the legacy
+    // history/category pages live in a hidden ViewPager, so cached flags can otherwise leave a hidden
+    // RecyclerView registered as the bottom sheet's scrolling child after the pager is created.
     mNestedScrollingSyncedHasQuery = hasQuery;
     mNestedScrollingSyncedActiveTab = activeTab;
 
