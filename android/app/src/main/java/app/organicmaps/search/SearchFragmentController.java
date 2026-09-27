@@ -388,6 +388,13 @@ public class SearchFragmentController extends Fragment implements SearchFragment
     ((MwmActivity) requireActivity()).showPositionChooserForRoutePoint();
   }
 
+  @Override
+  public void onKnownPlaceSelected(@NonNull MapObject mapObject)
+  {
+    hideSearchSheet();
+    mPlacePageViewModel.setMapObject(mapObject);
+  }
+
   // The sheet is kept non-hideable while visible so a swipe can't dismiss it. Re-enable hideable here so
   // this programmatic close is the only path to STATE_HIDDEN (setState(HIDDEN) is rejected when !hideable).
   private void hideSearchSheet()
