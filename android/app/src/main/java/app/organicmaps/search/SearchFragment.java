@@ -20,6 +20,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator;
@@ -33,6 +34,7 @@ import app.organicmaps.R;
 import app.organicmaps.downloader.CountrySuggestFragment;
 import app.organicmaps.maplayer.MapButtonsViewModel;
 import app.organicmaps.routing.RoutePointLabels;
+import app.organicmaps.safety.GuideArticleActivity;
 import app.organicmaps.safety.TripSafetyActivity;
 import app.organicmaps.sdk.Framework;
 import app.organicmaps.sdk.bookmarks.data.MapObject;
@@ -65,7 +67,7 @@ public class SearchFragment extends Fragment implements SearchListener, Categori
   private final LastPosition mLastPosition = new LastPosition();
   private SearchFragmentListener mSearchFragmentListener;
   private View mResultsFrame;
-  private View mHomeFrame;
+  private NestedScrollView mHomeFrame;
   @Nullable
   private RecyclerView mResults;
   private int mNavH = 0;
@@ -464,10 +466,12 @@ public class SearchFragment extends Fragment implements SearchListener, Categori
         .setOnClickListener(v -> setQuery(getString(R.string.areamap_destination_bao_title), false));
     root.findViewById(R.id.areamap_destination_kimasar)
         .setOnClickListener(v -> setQuery("Кимасар", false));
-    View.OnClickListener guidesListener = v ->
-        startActivity(new Intent(requireContext(), TripSafetyActivity.class));
-    root.findViewById(R.id.areamap_guides_card).setOnClickListener(guidesListener);
-    root.findViewById(R.id.areamap_guides_weather_card).setOnClickListener(guidesListener);
+    root.findViewById(R.id.areamap_guides_card).setOnClickListener(v ->
+        startActivity(new Intent(requireContext(), GuideArticleActivity.class)
+                          .putExtra(GuideArticleActivity.EXTRA_ARTICLE_INDEX, 7)));
+    root.findViewById(R.id.areamap_guides_weather_card).setOnClickListener(v ->
+        startActivity(new Intent(requireContext(), GuideArticleActivity.class)
+                          .putExtra(GuideArticleActivity.EXTRA_ARTICLE_INDEX, 3)));
     root.findViewById(R.id.areamap_home_sos_card).setOnClickListener(v ->
         startActivity(new Intent(requireContext(), TripSafetyActivity.class)
                          .putExtra(TripSafetyActivity.EXTRA_SHOW_SOS, true)));
@@ -981,6 +985,8 @@ public class SearchFragment extends Fragment implements SearchListener, Categori
 
     if (mResults != null)
       ViewCompat.setNestedScrollingEnabled(mResults, hasQuery);
+    if (mHomeFrame != null)
+      ViewCompat.setNestedScrollingEnabled(mHomeFrame, !hasQuery);
 
     if (mTabAdapter != null)
     {
