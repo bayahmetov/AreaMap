@@ -7,13 +7,9 @@ import android.location.Location;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
@@ -28,13 +24,10 @@ import app.organicmaps.sdk.location.TrackRecorder;
 import app.organicmaps.sdk.routing.RoutingController;
 import app.organicmaps.util.WindowInsetUtils.PaddingInsetsListener;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import java.util.List;
 
 public class TripSafetyFragment extends BaseMwmFragment
 {
   private TripSafety mSos;
-  private LinearLayout mArticles;
-  private List<GuideArticles.Article> mAllArticles;
 
   @Nullable
   @Override
@@ -48,36 +41,18 @@ public class TripSafetyFragment extends BaseMwmFragment
   {
     super.onViewCreated(view, state);
     ViewCompat.setOnApplyWindowInsetsListener(view, PaddingInsetsListener.excludeTop());
+    requireActivity().setTitle(R.string.areamap_nav_trip);
     mSos = TripSafety.get(requireContext());
-
-    mArticles = view.findViewById(R.id.guide_articles);
-    mAllArticles = GuideArticles.all();
-    renderArticles("");
-
-    final EditText search = view.findViewById(R.id.guide_search);
-    search.addTextChangedListener(new TextWatcher() {
-      @Override
-      public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
-      @Override
-      public void onTextChanged(CharSequence s, int start, int before, int count)
-      {
-        renderArticles(s == null ? "" : s.toString());
-      }
-
-      @Override
-      public void afterTextChanged(Editable s) {}
-    });
 
     view.findViewById(R.id.guide_import)
         .setOnClickListener(v -> startActivity(new Intent(requireContext(), RouteImportActivity.class)));
-
     view.findViewById(R.id.trip_sos).setOnClickListener(v -> showSos());
     view.findViewById(R.id.active_trip_resend)
         .setOnClickListener(v -> TripReportSender.shareToTelegram(requireActivity(), mSos.startReport()));
     view.findViewById(R.id.active_trip_finish).setOnClickListener(v -> confirmManualReturn());
     view.findViewById(R.id.schedule_demo_notification)
         .setOnClickListener(v -> showScheduleDemo());
+
     refreshLastLocation(view);
     refreshActiveTrip(view);
 
@@ -100,33 +75,6 @@ public class TripSafetyFragment extends BaseMwmFragment
       return;
     }
     TripScheduleNotifier.postDemo(requireContext());
-  }
-
-  private void renderArticles(@NonNull String query)
-  {
-    mArticles.removeAllViews();
-    for (GuideArticles.Article article : mAllArticles)
-    {
-      if (!article.matches(query))
-        continue;
-
-      final View card = getLayoutInflater().inflate(R.layout.areamap_guide_card, mArticles, false);
-      ((TextView) card.findViewById(R.id.article_title)).setText(article.title);
-      ((TextView) card.findViewById(R.id.article_summary)).setText(article.tags);
-      card.setOnClickListener(v -> openArticle(article));
-      mArticles.addView(card);
-    }
-  }
-
-  private void openArticle(@NonNull GuideArticles.Article article)
-  {
-    final View content = getLayoutInflater().inflate(R.layout.areamap_article, null);
-    ((TextView) content.findViewById(R.id.article_body)).setText(article.body);
-    new MaterialAlertDialogBuilder(requireContext())
-        .setTitle(article.title)
-        .setView(content)
-        .setPositiveButton(R.string.areamap_close, null)
-        .show();
   }
 
   @Override
