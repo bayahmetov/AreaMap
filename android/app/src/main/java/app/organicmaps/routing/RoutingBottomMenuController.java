@@ -537,8 +537,9 @@ final class RoutingBottomMenuController
           {
             final CharSequence eta = Utils.formatRoutingTime(mContext, checkpoint.etaSeconds,
                                                              R.dimen.text_size_routing_number);
+            final String arrival = Utils.formatArrivalTime(checkpoint.etaSeconds);
             checkpoints.append("\n").append(mContext.getString(
-                R.string.areamap_checkpoint_item, checkpointNumber++, eta.toString(),
+                R.string.areamap_checkpoint_item, checkpointNumber++, eta.toString(), arrival,
                 checkpoint.distanceMeters / 1000.0, checkpoint.altitudeMeters));
           }
           mAreaMapCheckpoints.setText(checkpoints.toString());
