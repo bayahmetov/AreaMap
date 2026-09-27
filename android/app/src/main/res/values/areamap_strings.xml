@@ -147,7 +147,7 @@
   <string name="areamap_schedule_channel">AreaMap trip schedule</string>
   <string name="areamap_schedule_channel_description">Offline alerts when a registered hike falls behind its planned timing.</string>
   <string name="areamap_schedule_delay_title">You are ~%1$d min behind schedule</string>
-  <string name="areamap_schedule_checkpoint_target">Next checkpoint %1$d was planned for %2$s.</string>
+  <string name="areamap_schedule_checkpoint_target">Next checkpoint %1$d · planned %2$s.</string>
   <string name="areamap_schedule_finish_target">Destination was planned for %1$s.</string>
   <string name="areamap_schedule_delay_body">%1$s New estimated return to start: %2$s.</string>
   <string name="areamap_schedule_demo_title">Notification demo</string>
