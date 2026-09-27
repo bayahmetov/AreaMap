@@ -22,6 +22,20 @@ public final class RouteSafetyAnalysis
     }
   }
 
+  public static final class Checkpoint
+  {
+    public final double distanceMeters;
+    public final int altitudeMeters;
+    public final int etaSeconds;
+
+    Checkpoint(double distanceMeters, int altitudeMeters, int etaSeconds)
+    {
+      this.distanceMeters = distanceMeters;
+      this.altitudeMeters = altitudeMeters;
+      this.etaSeconds = etaSeconds;
+    }
+  }
+
   public static final class Hazard
   {
     public final double distanceMeters;
@@ -44,10 +58,11 @@ public final class RouteSafetyAnalysis
     public final int totalDescent;
     public final double maxGradePercent;
     @NonNull public final List<Peak> peaks;
+    @NonNull public final List<Checkpoint> checkpoints;
     @NonNull public final List<Hazard> hazards;
 
     Result(int maxAltitude, int minAltitude, int totalAscent, int totalDescent, double maxGradePercent,
-           @NonNull List<Peak> peaks, @NonNull List<Hazard> hazards)
+           @NonNull List<Peak> peaks, @NonNull List<Checkpoint> checkpoints, @NonNull List<Hazard> hazards)
     {
       this.maxAltitude = maxAltitude;
       this.minAltitude = minAltitude;
@@ -55,6 +70,7 @@ public final class RouteSafetyAnalysis
       this.totalDescent = totalDescent;
       this.maxGradePercent = maxGradePercent;
       this.peaks = peaks;
+      this.checkpoints = checkpoints;
       this.hazards = hazards;
     }
   }
@@ -70,7 +86,7 @@ public final class RouteSafetyAnalysis
     final int size = data.getSize();
     if (size < 2)
       return new Result(data.getMaxAltitude(), data.getMinAltitude(), data.getTotalAscent(), data.getTotalDescent(),
-                        0.0, Collections.emptyList(), Collections.emptyList());
+                        0.0, Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
 
     final double[] effort = new double[size];
     for (int i = 1; i < size; i++)
@@ -145,6 +161,18 @@ public final class RouteSafetyAnalysis
         dedup.add(idx);
     }
 
+    final List<Checkpoint> checkpoints = new ArrayList<>();
+    final int checkpointCount = Math.min(5, Math.max(1, plannedSeconds / (75 * 60)));
+    for (int number = 1; number <= checkpointCount; number++)
+    {
+      final double targetEffort = totalEffort * number / (checkpointCount + 1.0);
+      int idx = 1;
+      while (idx < size - 1 && effort[idx] < targetEffort)
+        idx++;
+      final int eta = (int) Math.round(plannedSeconds * (effort[idx] / totalEffort));
+      checkpoints.add(new Checkpoint(data.getDistance(idx), data.getAltitude(idx), Math.max(60, eta)));
+    }
+
     final List<Peak> peaks = new ArrayList<>();
     for (int idx : dedup)
     {
@@ -155,6 +183,6 @@ public final class RouteSafetyAnalysis
     }
 
     return new Result(data.getMaxAltitude(), data.getMinAltitude(), data.getTotalAscent(), data.getTotalDescent(),
-                      maxGrade, peaks, hazards);
+                      maxGrade, peaks, checkpoints, hazards);
   }
 }
