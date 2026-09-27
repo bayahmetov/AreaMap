@@ -16,12 +16,12 @@ import java.nio.charset.StandardCharsets;
 /**
  * Prototype DCHS transport.
  *
- * This demo intentionally supports hard-coded Telegram credentials. Replace both constants below
- * for a temporary prototype only. For production, move the token behind a server-side relay.
+ * Prototype delivery for the AreaMap demo. The destination is fixed in this build and the private
+ * demo key is injected from ignored local.properties.
  */
 public final class TripReportSender
 {
-  // TODO prototype only: paste the temporary bot token and destination chat id here.
+  // Prototype destination.
   private static final String TELEGRAM_CHAT_ID = "5581444104";
 
   private TripReportSender() {}
