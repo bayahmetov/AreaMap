@@ -5,6 +5,7 @@ import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
+import app.organicmaps.BuildConfig;
 import app.organicmaps.R;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
@@ -21,7 +22,6 @@ import java.nio.charset.StandardCharsets;
 public final class TripReportSender
 {
   // TODO prototype only: paste the temporary bot token and destination chat id here.
-  private static final String TELEGRAM_BOT_TOKEN = "PUT_TEMP_BOT_TOKEN_HERE";
   private static final String TELEGRAM_CHAT_ID = "5581444104";
 
   private TripReportSender() {}
@@ -39,7 +39,7 @@ public final class TripReportSender
       boolean success = false;
       try
       {
-        final URL url = new URL("https://api.telegram.org/bot" + TELEGRAM_BOT_TOKEN + "/sendMessage");
+        final URL url = new URL("https://api.telegram.org/bot" + BuildConfig.AREAMAP_DEMO_KEY + "/sendMessage");
         final HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setConnectTimeout(10000);
         connection.setReadTimeout(10000);
@@ -82,8 +82,7 @@ public final class TripReportSender
 
   private static boolean isBotConfigured()
   {
-    return !TELEGRAM_BOT_TOKEN.startsWith("PUT_") && !TELEGRAM_CHAT_ID.startsWith("PUT_")
-        && !TELEGRAM_BOT_TOKEN.trim().isEmpty() && !TELEGRAM_CHAT_ID.trim().isEmpty();
+    return !BuildConfig.AREAMAP_DEMO_KEY.trim().isEmpty() && !TELEGRAM_CHAT_ID.trim().isEmpty();
   }
 
   @NonNull
