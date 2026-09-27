@@ -7,12 +7,14 @@
   android:layout_width="match_parent"
   android:layout_height="wrap_content"
   android:orientation="vertical"
+  android:background="@color/areamap_surface"
   tools:showIn="@layout/layout_nav">
 
   <LinearLayout
     android:id="@+id/line_frame"
     android:gravity="center_vertical"
     android:orientation="vertical"
+    android:background="@color/areamap_surface"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:clickable="true"
@@ -51,6 +53,7 @@
     android:layout_height="@dimen/nav_menu_content_height"
     android:gravity="center_vertical"
     android:orientation="horizontal"
+    android:background="@color/areamap_surface"
     android:paddingStart="@dimen/nav_bottom_gap"
     android:paddingEnd="@dimen/nav_bottom_gap"
     tools:background="#300000FF">
