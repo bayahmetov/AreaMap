@@ -177,10 +177,10 @@ public class SearchFragment extends Fragment implements SearchListener, Categori
       if (state != BottomSheetBehavior.STATE_HIDDEN)
         setupTabsIfNeeded();
 
-      if (state != BottomSheetBehavior.STATE_EXPANDED)
+      // Explore is a browse screen first: expanding it must not steal focus and open the IME.
+      // The keyboard appears only after the user taps the search field.
+      if (state != BottomSheetBehavior.STATE_EXPANDED || !mToolbarController.hasQuery())
         mToolbarController.deactivate();
-      else if (!mToolbarController.hasQuery())
-        activateToolbar();
     }
   };
   @SuppressWarnings("NullableProblems")
