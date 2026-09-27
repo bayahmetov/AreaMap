@@ -144,4 +144,15 @@
   <string name="areamap_telegram_sending">Отправляем данные похода в Telegram…</string>
   <string name="areamap_telegram_sent">Данные похода отправлены в Telegram.</string>
   <string name="areamap_telegram_failed">Автоматически отправить не удалось. Открываем обычную отправку.</string>
+  <string name="areamap_schedule_channel">График похода AreaMap</string>
+  <string name="areamap_schedule_channel_description">Офлайн-уведомления, если зарегистрированный поход начинает отставать от запланированного графика.</string>
+  <string name="areamap_schedule_delay_title">Вы отстаёте от графика примерно на %1$d мин</string>
+  <string name="areamap_schedule_checkpoint_target">Следующий чекпоинт %1$d был запланирован на %2$s.</string>
+  <string name="areamap_schedule_finish_target">Прибытие к конечной точке планировалось на %1$s.</string>
+  <string name="areamap_schedule_delay_body">%1$s Новый прогноз возвращения к старту: %2$s.</string>
+  <string name="areamap_schedule_demo_title">Демо уведомлений</string>
+  <string name="areamap_schedule_demo_description">Показывает тестовое системное уведомление «отставание 18 минут» без движения и ожидания настоящего чекпоинта.</string>
+  <string name="areamap_schedule_demo_button">Показать тестовое отставание</string>
+  <string name="areamap_schedule_demo_sent">Тестовое уведомление графика отправлено.</string>
+  <string name="areamap_schedule_demo_permission">Уведомления AreaMap выключены. Разрешите уведомления и попробуйте снова.</string>
 </resources>
