@@ -165,6 +165,7 @@
   <string name="areamap_nav_checkpoint_eta">Checkpoint %1$d · planned %2$s</string>
   <string name="areamap_nav_destination_eta">Destination · planned %1$s</string>
   <string name="areamap_nav_return_eta">Expected back at start · %1$s</string>
+  <string name="areamap_nav_demo_return_eta">If you return the same way · back around %1$s</string>
   <string name="areamap_nav_return_unknown">Return estimate appears after a registered hike starts.</string>
   <string name="areamap_nav_no_registered_trip">Start a registered hike to track checkpoints and return time.</string>
   <string name="areamap_trip_im_ok">I’m OK</string>
