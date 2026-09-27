@@ -42,12 +42,10 @@ import app.organicmaps.sdk.location.LocationState;
 import app.organicmaps.sdk.routing.RouteMarkType;
 import app.organicmaps.sdk.routing.RoutingController;
 import app.organicmaps.sdk.search.SearchEngine;
-import app.organicmaps.sdk.search.Popularity;
 import app.organicmaps.sdk.search.SearchListener;
 import app.organicmaps.sdk.search.SearchRecents;
 import app.organicmaps.sdk.search.SearchResult;
 import app.organicmaps.sdk.util.Config;
-import app.organicmaps.sdk.util.Distance;
 import app.organicmaps.sdk.util.Language;
 import app.organicmaps.sdk.util.SharedPropertiesUtils;
 import app.organicmaps.util.UiUtils;
@@ -88,8 +86,6 @@ public class SearchFragment extends Fragment implements SearchListener, Categori
 
   // Matches the zoom the deep-link handlers use when centering on a single place.
   private static final int PICKED_POINT_ZOOM = 16;
-  private static final double BAO_LAT = 43.0507;
-  private static final double BAO_LON = 76.9855;
 
   // Debouncer for runSearch() — collapses bursts of keystrokes into a single engine invocation.
   // searchInteractive() fans out to both SearchInViewport + EverywhereSearch internally, so the
@@ -206,6 +202,17 @@ public class SearchFragment extends Fragment implements SearchListener, Categori
   // observer instance, so a fresh lambda would stack up another observer on each foreground.
   private final Observer<Integer> mMyPositionModeObserver = mode -> updatePickerRowsIfPicking();
   private boolean mSearchRunning;
+  @NonNull
+  private List<String> mSearchVariants = List.of();
+  private int mSearchVariantIndex = 0;
+  private long mActiveSearchTimestamp = 0;
+  @NonNull
+  private String mSearchLocale = "";
+  private boolean mSearchHasLocation = false;
+  private double mSearchLat = 0;
+  private double mSearchLon = 0;
+  @Nullable
+  private SearchResult[] mCurrentSearchResults;
 
   private static boolean doShowDownloadSuggest()
   {
@@ -453,7 +460,8 @@ public class SearchFragment extends Fragment implements SearchListener, Categori
 
     root.findViewById(R.id.areamap_destination_furmanov)
         .setOnClickListener(v -> setQuery("Пик Фурманова", false));
-    root.findViewById(R.id.areamap_destination_bao).setOnClickListener(v -> openBao());
+    root.findViewById(R.id.areamap_destination_bao)
+        .setOnClickListener(v -> setQuery(getString(R.string.areamap_destination_bao_title), false));
     root.findViewById(R.id.areamap_destination_kimasar)
         .setOnClickListener(v -> setQuery("Кимасар", false));
     View.OnClickListener guidesListener = v ->
@@ -697,15 +705,6 @@ public class SearchFragment extends Fragment implements SearchListener, Categori
     SearchEngine.INSTANCE.setQuery(query);
     mToolbarController.deactivate();
 
-    if (isBaoResult(result) && !RoutingController.get().isWaitingPoiPick())
-    {
-      Framework.nativeSetViewportCenter(result.lat, result.lon, PICKED_POINT_ZOOM);
-      mSearchFragmentListener.onKnownPlaceSelected(
-          MapObject.createMapObject(MapObject.SEARCH, getString(R.string.areamap_destination_bao_title),
-                                    getString(R.string.areamap_bao_type), result.lat, result.lon));
-      return;
-    }
-
     // The pick is armed, so commit into its slot instead of selecting the result and opening a place page
     // that asks the user to confirm the choice they just made.
     final RoutingController controller = RoutingController.get();
@@ -722,61 +721,73 @@ public class SearchFragment extends Fragment implements SearchListener, Categori
       return;
     }
 
-    final int engineIndex = isBaoQuery(query) ? resultIndex - 1 : resultIndex;
-    if (engineIndex >= 0)
-      SearchEngine.INSTANCE.selectResult(engineIndex);
+    SearchEngine.INSTANCE.selectResult(resultIndex);
   }
 
-  private void openBao()
+  private boolean shouldTryAnotherVariant()
   {
-    Framework.nativeSetViewportCenter(BAO_LAT, BAO_LON, PICKED_POINT_ZOOM);
-    mSearchFragmentListener.onKnownPlaceSelected(
-        MapObject.createMapObject(MapObject.SEARCH, getString(R.string.areamap_destination_bao_title),
-                                  getString(R.string.areamap_bao_type), BAO_LAT, BAO_LON));
-  }
-
-  private boolean isBaoQuery(@Nullable String query)
-  {
-    if (query == null)
+    if (isCategory() || mSearchVariantIndex + 1 >= mSearchVariants.size())
       return false;
-    final String normalized = query.trim().toLowerCase(java.util.Locale.ROOT).replace('ё', 'е');
-    return normalized.equals("бао")
-        || normalized.contains("большое алматинское озеро")
-        || normalized.contains("big almaty lake");
-  }
+    if (mCurrentSearchResults == null || mCurrentSearchResults.length == 0)
+      return true;
 
-  private boolean isBaoResult(@NonNull SearchResult result)
-  {
-    return Math.abs(result.lat - BAO_LAT) < 0.00001 && Math.abs(result.lon - BAO_LON) < 0.00001;
-  }
+    final String query = getQuery();
+    final List<String> tokens = SearchQueryVariants.significantTokens(query);
+    if (tokens.isEmpty())
+      return SearchQueryVariants.hasAlias(query);
 
-  @NonNull
-  private SearchResult[] withKnownPlaces(@NonNull SearchResult[] results)
-  {
-    if (!isBaoQuery(getQuery()))
-      return results;
-
-    final SearchResult.Description description = new SearchResult.Description(
-        getString(R.string.areamap_bao_type), getString(R.string.areamap_bao_region),
-        new Distance(-1, "", (byte) 0), "", SearchResult.OPEN_NOW_UNKNOWN, 0, 0, true);
-    final SearchResult bao = new SearchResult(
-        getString(R.string.areamap_destination_bao_title), description, BAO_LAT, BAO_LON,
-        new int[0], new int[0], Popularity.defaultInstance());
-    final SearchResult[] merged = new SearchResult[results.length + 1];
-    merged[0] = bao;
-    System.arraycopy(results, 0, merged, 1, results.length);
-    return merged;
-  }
-
-  private static boolean containsCyrillic(@NonNull String query)
-  {
-    for (int i = 0; i < query.length(); i++)
+    int bestMatches = 0;
+    final int limit = Math.min(8, mCurrentSearchResults.length);
+    for (int i = 0; i < limit; i++)
     {
-      final char c = query.charAt(i);
-      if ((c >= '\u0400' && c <= '\u04FF') || (c >= '\u0500' && c <= '\u052F'))
-        return true;
+      final SearchResult result = mCurrentSearchResults[i];
+      final StringBuilder haystack = new StringBuilder(SearchQueryVariants.normalize(result.name));
+      if (result.description != null)
+      {
+        haystack.append(' ').append(SearchQueryVariants.normalize(result.description.localizedFeatureType));
+        haystack.append(' ').append(SearchQueryVariants.normalize(result.description.region));
+      }
+      int matches = 0;
+      for (String token : tokens)
+        if (haystack.indexOf(token) >= 0)
+          matches++;
+      bestMatches = Math.max(bestMatches, matches);
     }
-    return false;
+
+    if (SearchQueryVariants.hasAlias(query))
+      return bestMatches < tokens.size();
+    if (tokens.size() >= 2)
+      return bestMatches < 2;
+    return SearchQueryVariants.hasGenericType(query) && bestMatches == 0;
+  }
+
+  private boolean startSearchVariant(int index)
+  {
+    if (index < 0 || index >= mSearchVariants.size())
+      return false;
+
+    mSearchVariantIndex = index;
+    mCurrentSearchResults = null;
+    mActiveSearchTimestamp = System.nanoTime();
+    final boolean started = SearchEngine.INSTANCE.searchInteractive(
+        mSearchVariants.get(index), isCategory(), mSearchLocale, mActiveSearchTimestamp,
+        true /* isMapAndTable */, mSearchHasLocation, mSearchLat, mSearchLon);
+    if (!started)
+      return false;
+
+    mSearchRunning = true;
+    mToolbarController.showProgress(true);
+    if (index > 0)
+    {
+      // Keep the fallback transparent: the user's original query stays in the field while the local
+      // Organic Maps index is retried with a spelling/type/language variant.
+      mSearchAdapter.clear();
+      UiUtils.show(mShimmerView);
+      mShimmerView.startShimmer();
+    }
+    updateResultsPlaceholder();
+    updateFrames();
+    return true;
   }
 
   private void onSearchEnd()
@@ -832,48 +843,53 @@ public class SearchFragment extends Fragment implements SearchListener, Categori
     final SearchRequest request = mSearchViewModel.getPendingRequest();
     // Locale applies only to this initial query; consume the request so later manual edits fall
     // back to the keyboard locale.
-    String locale =
+    mSearchLocale =
         (request != null && request.locale != null) ? request.locale : Language.getKeyboardLocale(requireContext());
-    if (containsCyrillic(getQuery()))
-      locale = "ru";
     mSearchViewModel.clearPendingRequest();
 
+    mSearchVariants = SearchQueryVariants.build(getQuery());
+    mSearchVariantIndex = 0;
+    mSearchHasLocation = hasLocation;
+    mSearchLat = lat;
+    mSearchLon = lon;
+    mCurrentSearchResults = null;
+
     SearchEngine.INSTANCE.setQuery(getQuery());
-    boolean started = SearchEngine.INSTANCE.searchInteractive(getQuery(), isCategory(), locale, System.nanoTime(),
-                                                              true /* isMapAndTable */, hasLocation, lat, lon);
-    if (!started)
+    if (mSearchVariants.isEmpty() || !startSearchVariant(0))
     {
       stopSearch();
       return;
     }
-
-    mSearchRunning = true;
-    mToolbarController.showProgress(true);
-    updateResultsPlaceholder();
 
     if (mSearchAdapter.getItemCount() == 0)
     {
       UiUtils.show(mShimmerView);
       mShimmerView.startShimmer();
     }
-
-    updateFrames();
   }
 
   @Override
   public void onResultsUpdate(@NonNull SearchResult[] results, long timestamp)
   {
-    if (!isAdded() || !mToolbarController.hasQuery())
+    if (!isAdded() || !mToolbarController.hasQuery() || timestamp != mActiveSearchTimestamp)
       return;
 
+    mCurrentSearchResults = results;
     refreshSearchResults(results);
   }
 
   @Override
   public void onResultsEnd(long timestamp)
   {
-    if (isAdded() && isBaoQuery(getQuery()) && mSearchAdapter.getItemCount() == 0)
-      refreshSearchResults(new SearchResult[0]);
+    if (!isAdded() || timestamp != mActiveSearchTimestamp)
+      return;
+
+    if (shouldTryAnotherVariant())
+    {
+      SearchEngine.INSTANCE.cancel();
+      if (startSearchVariant(mSearchVariantIndex + 1))
+        return;
+    }
     onSearchEnd();
   }
 
@@ -1050,7 +1066,6 @@ public class SearchFragment extends Fragment implements SearchListener, Categori
     void onQuerySubmitted();
     void closeSearch();
     void onChooseOnMapClicked();
-    void onKnownPlaceSelected(@NonNull MapObject mapObject);
   }
 
   private static class LastPosition
