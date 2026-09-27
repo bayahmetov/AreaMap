@@ -84,6 +84,10 @@ public class NavMenu implements DefaultLifecycleObserver
     mHeaderFrame.setOnClickListener(v -> toggleNavMenu());
     mHeaderFrame.addOnLayoutChangeListener((view, i, i1, i2, i3, i4, i5, i6, i7) -> setPeekHeight());
     mNavBottomSheetBehavior = BottomSheetBehavior.from(mActivity.findViewById(R.id.nav_bottom_sheet));
+    // Navigation must always leave a tappable collapsed header on screen. If the sheet is allowed
+    // to become HIDDEN, the user has no handle left to bring hike timing/status back.
+    mNavBottomSheetBehavior.setHideable(false);
+    mNavBottomSheetBehavior.setSkipCollapsed(false);
     mBottomSheetBackground = mActivity.findViewById(R.id.nav_bottom_sheet_background);
     mBottomSheetBackground.setOnClickListener(v -> collapseNavBottomSheet());
     mBottomSheetBackground.setVisibility(View.GONE);
@@ -197,7 +201,10 @@ public class NavMenu implements DefaultLifecycleObserver
 
   public void setPeekHeight()
   {
-    int headerHeight = mHeaderFrame.getHeight();
+    // On some devices the first measurement arrives as 0 and the collapsed navigation sheet then
+    // vanishes completely. Keep a real minimum: handle + timing/distance row + progress bar.
+    final int minPeek = Math.round(88 * mActivity.getResources().getDisplayMetrics().density);
+    final int headerHeight = Math.max(mHeaderFrame.getHeight(), minPeek);
     if (currentPeekHeight != headerHeight)
     {
       currentPeekHeight = headerHeight;
@@ -208,11 +215,13 @@ public class NavMenu implements DefaultLifecycleObserver
 
   public void collapseNavBottomSheet()
   {
+    setPeekHeight();
     mNavBottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
   }
 
   public void expandNavBottomSheet()
   {
+    setPeekHeight();
     mNavBottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
   }
 
