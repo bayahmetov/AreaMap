@@ -45,7 +45,7 @@ if (areaMapLocalPropertiesFile.exists()) {
 }
 def areaMapDemoKey = areaMapLocalProperties.getProperty('AREAMAP_DEMO_KEY', '')
 def areaMapBuildConfigString = { String value ->
-  '"' + value.replace('\\', '\\\\').replace('"', '\\"') + '"'
+  '"' + value + '"'
 }
 
 android {
