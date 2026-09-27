@@ -19,7 +19,10 @@ public class RouteSafetyAnalysisTest
 
     assertTrue(result.peaks.size() >= 2);
     assertFalse(result.hazards.isEmpty());
+    assertFalse(result.checkpoints.isEmpty());
     assertTrue(result.peaks.get(0).etaSeconds < result.peaks.get(result.peaks.size() - 1).etaSeconds);
+    assertTrue(result.checkpoints.get(0).etaSeconds
+               < result.checkpoints.get(result.checkpoints.size() - 1).etaSeconds);
   }
 
   @Test
