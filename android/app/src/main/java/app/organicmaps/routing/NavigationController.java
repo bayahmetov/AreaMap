@@ -181,6 +181,7 @@ public class NavigationController implements TrafficManager.TrafficCallback, Nav
 
     updateStreetView(info);
     mNavMenu.update(info);
+    autoExpandHikeSheetIfNeeded();
   }
 
   private void updateStreetView(@NonNull RoutingInfo info)
@@ -200,26 +201,40 @@ public class NavigationController implements TrafficManager.TrafficCallback, Nav
 
   public void show(boolean show)
   {
-    if (show && !UiUtils.isVisible(mFrame))
-    {
-      final boolean hiking = Router.get() == Router.Pedestrian;
-      if (hiking && !mTripSheetShownForSession)
-      {
-        mNavMenu.expandNavBottomSheet();
-        mTripSheetShownForSession = true;
-      }
-      else
-        collapseNavMenu();
+    final boolean wasVisible = UiUtils.isVisible(mFrame);
+    UiUtils.showIf(show, mFrame);
 
+    if (show && !wasVisible)
+    {
+      collapseNavMenu();
       // Seed the panel from the already-built route so it isn't empty until the first GPS fix arrives.
       update(RoutingController.get().getCachedRoutingInfo());
+      // BottomSheetBehavior cannot reliably expand while its parent is still invisible/unmeasured.
+      // Wait for the navigation frame to be laid out, then raise the hike panel.
+      autoExpandHikeSheetIfNeeded();
     }
-    UiUtils.showIf(show, mFrame);
+
     if (!show)
     {
       mMapButtonsViewModel.setTopHeaderHeight(0);
       mTripSheetShownForSession = false;
     }
+  }
+
+  private void autoExpandHikeSheetIfNeeded()
+  {
+    if (mTripSheetShownForSession || !UiUtils.isVisible(mFrame)
+        || Router.get() != Router.Pedestrian || !RoutingController.get().isNavigating())
+      return;
+
+    mTripSheetShownForSession = true;
+    mFrame.post(() -> {
+      if (UiUtils.isVisible(mFrame) && Router.get() == Router.Pedestrian
+          && RoutingController.get().isNavigating())
+        mNavMenu.expandNavBottomSheet();
+      else
+        mTripSheetShownForSession = false;
+    });
   }
 
   public boolean isNavMenuCollapsed()
