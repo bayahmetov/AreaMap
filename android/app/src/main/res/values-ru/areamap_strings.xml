@@ -74,6 +74,10 @@
   <string name="areamap_home_subtitle">Маршруты, тайминг и безопасность в одном месте.</string>
   <string name="areamap_popular_destinations">Популярное рядом с Алматы</string>
   <string name="areamap_home_tools">Для похода</string>
+  <string name="areamap_guide_first_aid_title">Первая помощь</string>
+  <string name="areamap_home_guide_first_aid_summary">Кровотечение, травмы и что делать до прибытия помощи.</string>
+  <string name="areamap_guide_storm_title">Гроза в горах</string>
+  <string name="areamap_home_guide_storm_summary">Молния, открытые гребни и более безопасные решения.</string>
   <string name="areamap_destination_furmanov_title">Пик Фурманова</string>
   <string name="areamap_destination_furmanov_subtitle">Трекинг · Алматы</string>
   <string name="areamap_destination_furmanov_meta">Маршрут и набор высоты</string>
