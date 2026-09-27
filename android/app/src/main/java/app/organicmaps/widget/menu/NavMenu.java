@@ -220,6 +220,11 @@ public class NavMenu implements DefaultLifecycleObserver
     return mNavBottomSheetBehavior.getState();
   }
 
+  public void resetHikeSession()
+  {
+    resetHikingTiming();
+  }
+
   public void refreshTts()
   {
     refreshTripState();
