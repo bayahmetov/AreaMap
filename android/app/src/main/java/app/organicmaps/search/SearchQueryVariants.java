@@ -2,6 +2,7 @@ package app.organicmaps.search;
 
 import androidx.annotation.NonNull;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -189,8 +190,8 @@ final class SearchQueryVariants
   {
     final String normalized = normalize(value).replaceAll("[^\\p{L}\\p{N}]+", " ").trim();
     if (normalized.isEmpty())
-      return List.of();
-    return List.of(normalized.split("\\s+"));
+      return new ArrayList<>();
+    return Arrays.asList(normalized.split("\\s+"));
   }
 
   @NonNull
