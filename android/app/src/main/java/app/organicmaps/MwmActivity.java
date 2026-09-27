@@ -1240,7 +1240,17 @@ public class MwmActivity extends BaseMwmFragmentActivity
   {
     final TripSafety safety = TripSafety.get(this);
     if (!safety.hasActiveTrip())
+    {
+      if (!RoutingController.get().isNavigating())
+        return;
+      new MaterialAlertDialogBuilder(this, R.style.MwmTheme_AlertDialog)
+          .setTitle(R.string.areamap_demo_finish_title)
+          .setMessage(R.string.areamap_demo_finish_message)
+          .setNegativeButton(R.string.cancel, null)
+          .setPositiveButton(R.string.areamap_finish_trip, (dialog, which) -> RoutingController.get().cancel())
+          .show();
       return;
+    }
 
     new MaterialAlertDialogBuilder(this, R.style.MwmTheme_AlertDialog)
         .setTitle(R.string.areamap_manual_return_title)
