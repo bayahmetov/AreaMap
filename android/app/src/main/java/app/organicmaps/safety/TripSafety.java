@@ -5,6 +5,9 @@ import android.content.SharedPreferences;
 import android.location.Location;
 import androidx.annotation.NonNull;
 import app.organicmaps.R;
+import app.organicmaps.sdk.Framework;
+import app.organicmaps.sdk.routing.RoutingController;
+import app.organicmaps.sdk.routing.RoutingInfo;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -64,12 +67,13 @@ public final class TripSafety
   public void onServiceStopped() {}
   public void onLocationUnavailable() {}
 
-  public void onLocation(@NonNull Location location)
+  public synchronized void onLocation(@NonNull Location location)
   {
     if (!location.hasAccuracy())
       return;
     save(location);
     updateReturnDetection(location);
+    updateScheduleDelay();
   }
 
   public void save(@NonNull Location location)
@@ -126,6 +130,7 @@ public final class TripSafety
         .putBoolean("trip_return_detected", false)
         .putBoolean("trip_return_prompt_dismissed", false)
         .putBoolean("trip_owns_track_recording", ownsTrackRecording)
+        .putInt("trip_schedule_alert_bucket", 0)
         .apply();
   }
 
@@ -157,6 +162,7 @@ public final class TripSafety
         .putBoolean("trip_return_detected", false)
         .putBoolean("trip_return_prompt_dismissed", false)
         .putBoolean("trip_owns_track_recording", false)
+        .putInt("trip_schedule_alert_bucket", 0)
         .apply();
   }
 
@@ -257,6 +263,106 @@ public final class TripSafety
     }
     out.append(mContext.getString(R.string.areamap_report_consent)).append('\n');
     return out.toString();
+  }
+
+  private void updateScheduleDelay()
+  {
+    if (!hasActiveTrip() || !RoutingController.get().isNavigating())
+      return;
+
+    final RoutingInfo info = Framework.nativeGetRouteFollowingInfo();
+    if (info == null)
+      return;
+
+    final long now = System.currentTimeMillis();
+    final long startedAt = mPrefs.getLong("trip_started_at", 0);
+    final int plannedSeconds = mPrefs.getInt("trip_planned_seconds", 0);
+    if (startedAt <= 0 || plannedSeconds <= 0)
+      return;
+
+    final double progress = Math.max(0.0, Math.min(1.0, info.completionPercent / 100.0));
+    final long elapsedSeconds = Math.max(0L, (now - startedAt) / 1000L);
+    final long plannedElapsedSeconds = Math.round(plannedSeconds * progress);
+    final int delayMinutes = (int) Math.max(0L, (elapsedSeconds - plannedElapsedSeconds) / 60L);
+
+    final int bucket = scheduleAlertBucket(delayMinutes);
+    final int lastBucket = mPrefs.getInt("trip_schedule_alert_bucket", 0);
+    if (bucket == 0)
+    {
+      if (delayMinutes < 5 && lastBucket != 0)
+        mPrefs.edit().putInt("trip_schedule_alert_bucket", 0).apply();
+      return;
+    }
+    if (bucket <= lastBucket)
+      return;
+
+    final NextCheckpoint next = findNextCheckpoint(progress);
+    final long projectedReturn = mPrefs.getLong("trip_planned_return", now) + delayMinutes * 60_000L;
+    mPrefs.edit().putInt("trip_schedule_alert_bucket", bucket).apply();
+
+    TripScheduleNotifier.notifyDelay(
+        mContext, delayMinutes, next.number,
+        formatClock(next.plannedAtMillis), formatClock(projectedReturn));
+  }
+
+  static int scheduleAlertBucket(int delayMinutes)
+  {
+    if (delayMinutes < 10)
+      return 0;
+    if (delayMinutes < 20)
+      return 1;
+    return 2 + (delayMinutes - 20) / 15;
+  }
+
+  private static final class NextCheckpoint
+  {
+    final int number;
+    final long plannedAtMillis;
+
+    NextCheckpoint(int number, long plannedAtMillis)
+    {
+      this.number = number;
+      this.plannedAtMillis = plannedAtMillis;
+    }
+  }
+
+  @NonNull
+  private NextCheckpoint findNextCheckpoint(double progress)
+  {
+    final double totalDistance = parseDouble("trip_distance");
+    final double completedDistance = totalDistance * progress;
+    final long startedAt = mPrefs.getLong("trip_started_at", 0);
+    final String encoded = mPrefs.getString("trip_checkpoints", "");
+    if (!encoded.isEmpty())
+    {
+      final String[] rows = encoded.split(";");
+      int number = 1;
+      for (String row : rows)
+      {
+        final String[] fields = row.split(",");
+        if (fields.length != 3)
+        {
+          number++;
+          continue;
+        }
+        try
+        {
+          final int etaSeconds = Integer.parseInt(fields[0]);
+          final double distanceMeters = Double.parseDouble(fields[1]);
+          if (distanceMeters > completedDistance + 50.0)
+            return new NextCheckpoint(number, startedAt + etaSeconds * 1000L);
+        }
+        catch (NumberFormatException ignored) {}
+        number++;
+      }
+    }
+    return new NextCheckpoint(0, mPrefs.getLong("trip_planned_finish", startedAt));
+  }
+
+  @NonNull
+  private String formatClock(long millis)
+  {
+    return DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date(millis));
   }
 
   private void updateReturnDetection(@NonNull Location location)
