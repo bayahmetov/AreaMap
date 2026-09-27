@@ -146,7 +146,9 @@ public final class TripStartFlow
                                                                      : plan.finishTitle,
                                   plan.distanceMeters / 1000.0,
                                   duration(activity, plan.plannedSeconds),
-                                  time(startMillis + plan.plannedSeconds * 1000L)));
+                                  time(startMillis + plan.plannedSeconds * 1000L),
+                                  duration(activity, plan.returnSeconds),
+                                  time(startMillis + (plan.plannedSeconds + plan.returnSeconds) * 1000L)));
     if (!plan.checkpoints.isEmpty())
     {
       out.append("\n\n").append(activity.getString(R.string.areamap_checkpoints_title));
