@@ -37,11 +37,13 @@ public final class TripPlan
   public final double finishLon;
   public final double distanceMeters;
   public final int plannedSeconds;
+  public final int returnSeconds;
   @NonNull public final List<Checkpoint> checkpoints;
 
   private TripPlan(@NonNull String startTitle, @NonNull String finishTitle,
                    double startLat, double startLon, double finishLat, double finishLon,
-                   double distanceMeters, int plannedSeconds, @NonNull List<Checkpoint> checkpoints)
+                   double distanceMeters, int plannedSeconds, int returnSeconds,
+                   @NonNull List<Checkpoint> checkpoints)
   {
     this.startTitle = startTitle;
     this.finishTitle = finishTitle;
@@ -51,6 +53,7 @@ public final class TripPlan
     this.finishLon = finishLon;
     this.distanceMeters = distanceMeters;
     this.plannedSeconds = plannedSeconds;
+    this.returnSeconds = returnSeconds;
     this.checkpoints = Collections.unmodifiableList(new ArrayList<>(checkpoints));
   }
 
@@ -80,8 +83,13 @@ public final class TripPlan
     final double distanceMeters = HikingTiming.toMeters(info.distToTarget);
     final RouteAltitudeData altitude = Framework.nativeGetRouteAltitudeData();
     final double ascent = altitude == null ? 0.0 : altitude.getTotalAscent();
+    final double reverseAscent = altitude == null ? ascent : altitude.getTotalDescent();
     final int plannedSeconds =
         HikingTiming.conservativeSeconds(info.totalTimeInSeconds, distanceMeters, ascent);
+    // Until a dedicated reverse route is built, estimate returning along the same trail.
+    // The outbound descent becomes ascent on the way back.
+    final int returnSeconds =
+        Math.max(info.totalTimeInSeconds, HikingTiming.estimateSeconds(distanceMeters, reverseAscent));
 
     final List<Checkpoint> checkpoints = new ArrayList<>();
     if (altitude != null && altitude.getSize() > 1)
@@ -102,7 +110,7 @@ public final class TripPlan
     }
 
     return new TripPlan(title(start), title(finish), start.mLat, start.mLon, finish.mLat, finish.mLon,
-                        distanceMeters, plannedSeconds, checkpoints);
+                        distanceMeters, plannedSeconds, returnSeconds, checkpoints);
   }
 
   @NonNull
