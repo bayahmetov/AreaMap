@@ -151,6 +151,16 @@
   <string name="areamap_manual_return">Я вернулся · завершить поход</string>
   <string name="areamap_manual_return_title">Подтвердите возвращение</string>
   <string name="areamap_manual_return_message">Нажимайте только когда группа действительно вернулась и поход можно закрыть. AreaMap подготовит сообщение о возвращении для демо-канала ДЧС.</string>
+  <string name="areamap_nav_trip_status_title">Статус похода</string>
+  <string name="areamap_nav_checkpoint_eta">Чекпоинт %1$d · по плану %2$s</string>
+  <string name="areamap_nav_destination_eta">Конечная точка · по плану %1$s</string>
+  <string name="areamap_nav_return_eta">Возвращение к старту · примерно %1$s</string>
+  <string name="areamap_nav_return_unknown">Прогноз возвращения появится после запуска зарегистрированного похода.</string>
+  <string name="areamap_nav_no_registered_trip">Запустите зарегистрированный поход, чтобы видеть чекпоинты и время возвращения.</string>
+  <string name="areamap_trip_im_ok">Я в порядке</string>
+  <string name="areamap_trip_break_20">Привал · +20 мин</string>
+  <string name="areamap_trip_ok_saved">Статус сохранён: вы в порядке.</string>
+  <string name="areamap_trip_break_added">К графику похода добавлен привал на 20 минут.</string>
   <string name="areamap_return_estimate">Обратно ~%1$s · вернётесь к старту ~%2$s</string>
   <string name="areamap_telegram_sending">Отправляем данные похода в Telegram…</string>
   <string name="areamap_telegram_sent">Данные похода отправлены в Telegram.</string>
