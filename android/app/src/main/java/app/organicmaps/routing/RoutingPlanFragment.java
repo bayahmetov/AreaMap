@@ -29,6 +29,8 @@ import app.organicmaps.sdk.routing.RoutingInfo;
 import app.organicmaps.sdk.routing.RoutingOptions;
 import app.organicmaps.sdk.routing.TransitRouteInfo;
 import app.organicmaps.settings.DrivingOptionsActivity;
+import app.organicmaps.safety.TripPlan;
+import app.organicmaps.safety.TripStartFlow;
 import app.organicmaps.util.UiUtils;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -448,6 +450,21 @@ public class RoutingPlanFragment extends Fragment implements View.OnLayoutChange
     if (!mRoutingPlanController.showRoutingDisclaimer())
       return;
 
+    if (Router.get() == Router.Pedestrian)
+    {
+      final TripPlan plan = TripPlan.current();
+      if (plan != null)
+      {
+        TripStartFlow.show(requireActivity(), plan, this::startNavigationNow, this::startNavigationNow);
+        return;
+      }
+    }
+
+    startNavigationNow();
+  }
+
+  private void startNavigationNow()
+  {
     mRoutingPlanController.closeFloatingPanels();
     mRoutingPlanController.setFullscreen(false);
     RoutingController.get().start();
