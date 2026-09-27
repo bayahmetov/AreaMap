@@ -30,6 +30,19 @@
       app:trackCornerRadius="@dimen/nav_progress_head"
       app:trackThickness="@dimen/nav_progress"
       app:trackColor="@color/bg_routing_progress" />
+
+    <com.google.android.material.button.MaterialButton
+      android:id="@+id/areamap_trip_return"
+      style="@style/AreaMap.ActionButton"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginStart="@dimen/margin_base"
+      android:layout_marginEnd="@dimen/margin_base"
+      android:layout_marginTop="@dimen/margin_quarter"
+      android:layout_marginBottom="@dimen/margin_half"
+      android:text="@string/areamap_manual_return"
+      android:visibility="gone"
+      tools:visibility="visible" />
   </LinearLayout>
 
   <LinearLayout
