@@ -471,6 +471,12 @@ public class SearchFragment extends Fragment implements SearchListener, Categori
     root.findViewById(R.id.areamap_guides_weather_card).setOnClickListener(v ->
         startActivity(new Intent(requireContext(), GuideArticleActivity.class)
                           .putExtra(GuideArticleActivity.EXTRA_ARTICLE_INDEX, 3)));
+    root.findViewById(R.id.areamap_guides_first_aid_card).setOnClickListener(v ->
+        startActivity(new Intent(requireContext(), GuideArticleActivity.class)
+                          .putExtra(GuideArticleActivity.EXTRA_ARTICLE_INDEX, 0)));
+    root.findViewById(R.id.areamap_guides_storm_card).setOnClickListener(v ->
+        startActivity(new Intent(requireContext(), GuideArticleActivity.class)
+                          .putExtra(GuideArticleActivity.EXTRA_ARTICLE_INDEX, 8)));
     root.findViewById(R.id.areamap_home_sos_card).setOnClickListener(v ->
         startActivity(new Intent(requireContext(), TripSafetyActivity.class)
                          .putExtra(TripSafetyActivity.EXTRA_SHOW_SOS, true)));
