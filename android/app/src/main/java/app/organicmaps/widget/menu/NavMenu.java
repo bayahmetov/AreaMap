@@ -365,9 +365,20 @@ public class NavMenu implements DefaultLifecycleObserver
       mNextCheckpoint.setText(safety.navigationCheckpointSummary(info.completionPercent));
       mReturnEta.setText(safety.navigationReturnSummary());
     }
+    else if (Router.get() == Router.Pedestrian)
+    {
+      final String format =
+          android.text.format.DateFormat.is24HourFormat(mActivity) ? "HH:mm" : "h:mm a";
+      final LocalTime destination = LocalTime.now().plusSeconds(info.totalTimeInSeconds);
+      final LocalTime back = destination.plusSeconds(info.totalTimeInSeconds);
+      mNextCheckpoint.setText(mActivity.getString(R.string.areamap_nav_destination_eta,
+                                                  destination.format(DateTimeFormatter.ofPattern(format))));
+      mReturnEta.setText(mActivity.getString(R.string.areamap_nav_demo_return_eta,
+                                             back.format(DateTimeFormatter.ofPattern(format))));
+    }
     else
     {
-      mNextCheckpoint.setText(R.string.areamap_nav_no_registered_trip);
+      mNextCheckpoint.setText("");
       mReturnEta.setText("");
     }
   }
