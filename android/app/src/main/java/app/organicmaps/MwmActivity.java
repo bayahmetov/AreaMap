@@ -28,6 +28,7 @@ import android.text.method.LinkMovementMethod;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -237,6 +238,15 @@ public class MwmActivity extends BaseMwmFragmentActivity
       final SearchRequest restored = new SearchRequest(mSearchPageViewModel.getPersistedQuery(), null,
                                                        mSearchPageViewModel.getPersistedIsCategory());
       mSearchPageViewModel.setSearchEnabled(true, restored);
+    }
+    else if (mSearchPageViewModel.getSearchEnabled().getValue() == null
+             && !RoutingController.get().isPlanning() && !RoutingController.get().isNavigating()
+             && (getIntent() == null || getIntent().hasCategory(Intent.CATEGORY_LAUNCHER)))
+    {
+      // AreaMap opens on the map with a compact bottom sheet. The sheet expands into the
+      // destination/guide home feed, while a real search still switches to result mode.
+      mSearchPageViewModel.setSearchPageLastState(BottomSheetBehavior.STATE_COLLAPSED);
+      mSearchPageViewModel.setSearchEnabled(true, null);
     }
 
     if (TrackRecorder.nativeIsTrackRecordingEnabled() && !startTrackRecording())
@@ -586,6 +596,12 @@ public class MwmActivity extends BaseMwmFragmentActivity
       // Drive nav-bar height from the AndroidX visibility signal — pre-R FLAG_FULLSCREEN
       // hides only the status bar, so inferring from app state misreports the nav bar.
       mNavBarHeight = windowInsets.isVisible(WindowInsetsCompat.Type.navigationBars()) ? systemBars.bottom : 0;
+      View areaMapNav = findViewById(R.id.areamap_bottom_nav);
+      if (areaMapNav != null && areaMapNav.getLayoutParams() instanceof ViewGroup.MarginLayoutParams params)
+      {
+        params.bottomMargin = dimen(this, R.dimen.margin_half) + mNavBarHeight;
+        areaMapNav.setLayoutParams(params);
+      }
       // For the first loading, set compass top margin to status bar size
       // The top inset will be then be updated by the routing controller
       if (mCurrentWindowInsets == null)
@@ -615,12 +631,38 @@ public class MwmActivity extends BaseMwmFragmentActivity
     getLifecycle().addObserver(mMapController);
 
     initNavigationButtons();
+    initAreaMapBottomNav();
 
     mNavigationController = new NavigationController(
         this, v -> onSettingsOptionSelected(), v -> openVoiceInstructionsSettings(), this::updateBottomWidgetsOffset);
     // TrafficManager.INSTANCE.attach(mNavigationController);
     initOnmapDownloader();
     initPositionChooser();
+  }
+
+  private void initAreaMapBottomNav()
+  {
+    View nav = findViewById(R.id.areamap_bottom_nav);
+    if (nav == null)
+      return;
+
+    nav.findViewById(R.id.areamap_nav_search).setOnClickListener(v -> showSearch(""));
+    nav.findViewById(R.id.areamap_nav_route).setOnClickListener(v -> {
+      closeFloatingPanels();
+      RoutingController.get().prepare(null, null);
+    });
+    nav.findViewById(R.id.areamap_nav_sos).setOnClickListener(v ->
+        startActivity(new Intent(this, app.organicmaps.safety.TripSafetyActivity.class)
+                          .putExtra(app.organicmaps.safety.TripSafetyActivity.EXTRA_SHOW_SOS, true)));
+    nav.findViewById(R.id.areamap_nav_guides).setOnClickListener(v ->
+        startActivity(new Intent(this, app.organicmaps.safety.TripSafetyActivity.class)));
+  }
+
+  private void setAreaMapBottomNavVisible(boolean visible)
+  {
+    View nav = findViewById(R.id.areamap_bottom_nav);
+    if (nav != null)
+      UiUtils.showIf(visible, nav);
   }
 
   private void updateDrivingOptionCount()
@@ -692,6 +734,10 @@ public class MwmActivity extends BaseMwmFragmentActivity
     // Used instead of closeBottomSheet to preserve state and hide instantly
     UiUtils.showIf(!isUiHidden, findViewById(R.id.place_page_container_fragment));
     mMapButtonsViewModel.setButtonsHidden(isUiHidden);
+    if (isUiHidden)
+      setAreaMapBottomNavVisible(false);
+    else
+      setAreaMapBottomNavVisible(mMapButtonsViewModel.getLayoutMode().getValue() == MapButtonsController.LayoutMode.regular);
   }
 
   public void showPositionChooserForAPI(@Nullable String appName)
@@ -732,6 +778,7 @@ public class MwmActivity extends BaseMwmFragmentActivity
     updatePositionChooserText(mode);
     UiUtils.show(mPointChooser);
     mMapButtonsViewModel.setButtonsHidden(true);
+    setAreaMapBottomNavVisible(false);
     ChoosePositionMode.set(mode, isBusiness, applyPosition);
     refreshLightStatusBar();
   }
@@ -757,6 +804,7 @@ public class MwmActivity extends BaseMwmFragmentActivity
     ChoosePositionMode mode = ChoosePositionMode.get();
     ChoosePositionMode.set(ChoosePositionMode.None, false, false);
     mMapButtonsViewModel.setButtonsHidden(false);
+    setAreaMapBottomNavVisible(mMapButtonsViewModel.getLayoutMode().getValue() == MapButtonsController.LayoutMode.regular);
     mRoutingPlanViewModel.setIsPointChooserActive(false);
     Framework.nativeDeactivatePopup();
     refreshLightStatusBar();
@@ -774,6 +822,7 @@ public class MwmActivity extends BaseMwmFragmentActivity
 
   private void initNavigationButtons(MapButtonsController.LayoutMode layoutMode)
   {
+    setAreaMapBottomNavVisible(layoutMode == MapButtonsController.LayoutMode.regular);
     // Recreate the navigation buttons with the correct layout when it changes
     if (mPreviousMapLayoutMode != layoutMode)
     {
@@ -2090,7 +2139,7 @@ public class MwmActivity extends BaseMwmFragmentActivity
     if (id.equals(MAIN_MENU_ID))
     {
       ArrayList<MenuBottomSheetItem> items = new ArrayList<>();
-      items.add(new MenuBottomSheetItem(R.string.areamap_title, R.drawable.ic_track_recording_off, () -> {
+      items.add(new MenuBottomSheetItem(R.string.areamap_nav_guides, R.drawable.ic_wiki, () -> {
         closeFloatingPanels();
         startActivity(new Intent(this, app.organicmaps.safety.TripSafetyActivity.class));
       }));

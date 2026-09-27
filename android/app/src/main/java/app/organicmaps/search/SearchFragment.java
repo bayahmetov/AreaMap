@@ -33,6 +33,7 @@ import app.organicmaps.R;
 import app.organicmaps.downloader.CountrySuggestFragment;
 import app.organicmaps.maplayer.MapButtonsViewModel;
 import app.organicmaps.routing.RoutePointLabels;
+import app.organicmaps.safety.TripSafetyActivity;
 import app.organicmaps.sdk.Framework;
 import app.organicmaps.sdk.bookmarks.data.MapObject;
 import app.organicmaps.sdk.downloader.MapManager;
@@ -64,6 +65,7 @@ public class SearchFragment extends Fragment implements SearchListener, Categori
   private final LastPosition mLastPosition = new LastPosition();
   private SearchFragmentListener mSearchFragmentListener;
   private View mResultsFrame;
+  private View mHomeFrame;
   @Nullable
   private RecyclerView mResults;
   private int mNavH = 0;
@@ -235,8 +237,10 @@ public class SearchFragment extends Fragment implements SearchListener, Categori
     final boolean hasQuery = mToolbarController.hasQuery();
 
     UiUtils.showIf(hasQuery, mResultsFrame);
-    UiUtils.showIf(!hasQuery, mTabFrame);
-    UiUtils.showIf(!hasQuery, mPager);
+    // AreaMap uses the empty search state as its home feed. History/categories remain available
+    // through the regular menu, while the expanded sheet presents destinations and safety guides.
+    UiUtils.showIf(!hasQuery, mHomeFrame);
+    UiUtils.hide(mTabFrame, mPager);
     updatePickerRows();
     if (hasQuery)
       hideDownloadSuggest();
@@ -434,6 +438,7 @@ public class SearchFragment extends Fragment implements SearchListener, Categori
     mToolbarController = new ToolbarController(view);
     mTabLayout = root.findViewById(R.id.tabs);
     mTabFrame = root.findViewById(R.id.tab_frame);
+    mHomeFrame = root.findViewById(R.id.areamap_home_frame);
     mPickerActions = root.findViewById(R.id.picker_actions);
     mSearchIcon = root.findViewById(R.id.search_icon);
     mSearchIconWidth = mSearchIcon.getLayoutParams().width;
@@ -441,6 +446,20 @@ public class SearchFragment extends Fragment implements SearchListener, Categori
     mYourLocation.setOnClickListener(v -> onYourLocationClicked());
     root.findViewById(R.id.choose_on_map).setOnClickListener(v -> mSearchFragmentListener.onChooseOnMapClicked());
     mResultsFrame = root.findViewById(R.id.results_frame);
+
+    root.findViewById(R.id.areamap_destination_furmanov)
+        .setOnClickListener(v -> setQuery("Пик Фурманова", false));
+    root.findViewById(R.id.areamap_destination_bao)
+        .setOnClickListener(v -> setQuery("Большое Алматинское озеро", false));
+    root.findViewById(R.id.areamap_destination_kimasar)
+        .setOnClickListener(v -> setQuery("Кимасар", false));
+    View.OnClickListener guidesListener = v ->
+        startActivity(new Intent(requireContext(), TripSafetyActivity.class));
+    root.findViewById(R.id.areamap_guides_card).setOnClickListener(guidesListener);
+    root.findViewById(R.id.areamap_guides_weather_card).setOnClickListener(guidesListener);
+    root.findViewById(R.id.areamap_home_sos_card).setOnClickListener(v ->
+        startActivity(new Intent(requireContext(), TripSafetyActivity.class)
+                         .putExtra(TripSafetyActivity.EXTRA_SHOW_SOS, true)));
     mResults = mResultsFrame.findViewById(R.id.recycler);
     setRecyclerScrollListener(mResults);
     ViewCompat.setOnApplyWindowInsetsListener(mResults, (v, insets) -> {

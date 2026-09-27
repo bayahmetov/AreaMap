@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/areamap_bottom_nav_bar"
+    android:layout_width="match_parent"
+    android:layout_height="76dp"
+    android:layout_marginStart="8dp"
+    android:layout_marginEnd="8dp"
+    android:layout_marginBottom="8dp"
+    android:background="@drawable/bg_areamap_bottom_nav"
+    android:elevation="18dp"
+    android:gravity="center"
+    android:paddingStart="8dp"
+    android:paddingEnd="8dp">
+
+  <LinearLayout
+      android:id="@+id/areamap_nav_search"
+      style="@style/AreaMap.BottomNavItem"
+      android:contentDescription="@string/areamap_nav_search">
+    <ImageView
+        style="@style/AreaMap.BottomNavIcon"
+        app:srcCompat="@drawable/ic_search" />
+    <TextView
+        style="@style/AreaMap.BottomNavLabel"
+        android:text="@string/areamap_nav_search" />
+  </LinearLayout>
+
+  <LinearLayout
+      android:id="@+id/areamap_nav_route"
+      style="@style/AreaMap.BottomNavItem"
+      android:contentDescription="@string/areamap_nav_route">
+    <ImageView
+        style="@style/AreaMap.BottomNavIcon"
+        app:srcCompat="@drawable/ic_manage_route" />
+    <TextView
+        style="@style/AreaMap.BottomNavLabel"
+        android:text="@string/areamap_nav_route" />
+  </LinearLayout>
+
+  <LinearLayout
+      android:id="@+id/areamap_nav_sos"
+      style="@style/AreaMap.BottomNavItem"
+      android:contentDescription="@string/areamap_nav_sos">
+    <ImageView
+        style="@style/AreaMap.BottomNavIcon"
+        app:srcCompat="@drawable/warning_icon" />
+    <TextView
+        style="@style/AreaMap.BottomNavLabel"
+        android:text="@string/areamap_nav_sos" />
+  </LinearLayout>
+
+  <LinearLayout
+      android:id="@+id/areamap_nav_guides"
+      style="@style/AreaMap.BottomNavItem"
+      android:contentDescription="@string/areamap_nav_guides">
+    <ImageView
+        style="@style/AreaMap.BottomNavIcon"
+        app:srcCompat="@drawable/ic_wiki" />
+    <TextView
+        style="@style/AreaMap.BottomNavLabel"
+        android:text="@string/areamap_nav_guides" />
+  </LinearLayout>
+</LinearLayout>

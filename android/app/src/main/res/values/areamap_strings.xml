@@ -24,7 +24,7 @@
   <string name="areamap_schedule_ahead">ahead %1$d min</string>
   <string name="areamap_schedule_behind">behind %1$d min</string>
   <string name="areamap_schedule_on_time">on schedule</string>
-  <string name="areamap_guide_button">Guide</string>
+  <string name="areamap_guide_button">Guides</string>
   <string name="areamap_night_warning">⚠ Estimated finish is after dark</string>
   <string name="areamap_night_warning_live">⚠ Finish after dark</string>
   <string name="areamap_route_specific_title">Advice for this route</string>
@@ -48,4 +48,17 @@
   <string name="areamap_hazard_item">%1$s near %2$.1f km from start · ~%3$.0f%% grade</string>
   <string name="areamap_hazard_ascent">Steep ascent</string>
   <string name="areamap_hazard_descent">Steep descent</string>
+  <string name="areamap_nav_search">Search</string>
+  <string name="areamap_nav_route">Route</string>
+  <string name="areamap_nav_sos">SOS</string>
+  <string name="areamap_nav_guides">Guides</string>
+  <string name="areamap_home_title">Where are we going?</string>
+  <string name="areamap_home_subtitle">Plan a hike, check the route and keep a safety card offline.</string>
+  <string name="areamap_popular_destinations">Popular destinations</string>
+  <string name="areamap_guides_section">Guides for the trail</string>
+  <string name="areamap_home_guide_lost_summary">What to do if the trail or connection disappears.</string>
+  <string name="areamap_home_guide_weather_summary">Cold, wind and weather: prepare before the start.</string>
+  <string name="areamap_home_sos_summary">Last known coordinates, ready to copy or share.</string>
+  <string name="areamap_open_guides">Open guide</string>
+  <string name="areamap_open_sos">Open SOS card</string>
 </resources>

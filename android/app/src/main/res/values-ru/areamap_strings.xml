@@ -24,7 +24,7 @@
   <string name="areamap_schedule_ahead">опережение %1$d мин</string>
   <string name="areamap_schedule_behind">отставание %1$d мин</string>
   <string name="areamap_schedule_on_time">по графику</string>
-  <string name="areamap_guide_button">Справочник</string>
+  <string name="areamap_guide_button">Гайды</string>
   <string name="areamap_night_warning">⚠ По расчёту маршрут закончится после наступления темноты</string>
   <string name="areamap_night_warning_live">⚠ Финиш после наступления темноты</string>
   <string name="areamap_route_specific_title">Советы по этому маршруту</string>
@@ -48,4 +48,17 @@
   <string name="areamap_hazard_item">%1$s около %2$.1f км от старта · уклон ~%3$.0f%%</string>
   <string name="areamap_hazard_ascent">Крутой подъём</string>
   <string name="areamap_hazard_descent">Крутой спуск</string>
+  <string name="areamap_nav_search">Поиск</string>
+  <string name="areamap_nav_route">Маршрут</string>
+  <string name="areamap_nav_sos">SOS</string>
+  <string name="areamap_nav_guides">Гайды</string>
+  <string name="areamap_home_title">Куда отправимся?</string>
+  <string name="areamap_home_subtitle">Планируйте поход, проверяйте маршрут и сохраняйте SOS-карточку офлайн.</string>
+  <string name="areamap_popular_destinations">Популярные направления</string>
+  <string name="areamap_guides_section">Гайды для маршрута</string>
+  <string name="areamap_home_guide_lost_summary">Что делать, если пропала тропа или связь.</string>
+  <string name="areamap_home_guide_weather_summary">Холод, ветер и погода: подготовьтесь до старта.</string>
+  <string name="areamap_home_sos_summary">Последние известные координаты — можно скопировать или отправить.</string>
+  <string name="areamap_open_guides">Открыть гайды</string>
+  <string name="areamap_open_sos">Открыть SOS-карточку</string>
 </resources>

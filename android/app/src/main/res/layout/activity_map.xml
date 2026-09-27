@@ -53,6 +53,14 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:name="app.organicmaps.search.SearchFragmentController" />
+
+  <include
+    android:id="@+id/areamap_bottom_nav"
+    layout="@layout/areamap_bottom_nav"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_gravity="bottom|center_horizontal" />
+
   <FrameLayout
     android:id="@+id/routing_container"
     android:layout_width="match_parent"
