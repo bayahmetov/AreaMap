@@ -121,6 +121,7 @@ public class MwmApplication extends Application implements Application.ActivityL
   public void onCreate()
   {
     super.onCreate();
+    app.organicmaps.safety.AreaMapLocale.applySaved(this);
     Logger.i(TAG, "Initializing application");
 
     sInstance = this;
