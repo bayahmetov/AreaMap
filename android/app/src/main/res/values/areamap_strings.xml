@@ -155,4 +155,5 @@
   <string name="areamap_schedule_demo_button">Show test delay notification</string>
   <string name="areamap_schedule_demo_sent">Test schedule notification sent.</string>
   <string name="areamap_schedule_demo_permission">Notifications are disabled for AreaMap. Allow notifications and try again.</string>
+  <string name="areamap_schedule_demo_permission_request">Allow notifications, then tap the demo button again.</string>
 </resources>
