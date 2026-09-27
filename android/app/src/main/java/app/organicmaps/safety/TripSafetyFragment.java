@@ -1,9 +1,11 @@
 package app.organicmaps.safety;
 
+import android.Manifest;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.location.Location;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -16,6 +18,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
 import androidx.core.view.ViewCompat;
 import app.organicmaps.MwmApplication;
 import app.organicmaps.R;
@@ -73,7 +76,7 @@ public class TripSafetyFragment extends BaseMwmFragment
         .setOnClickListener(v -> TripReportSender.shareToTelegram(requireActivity(), mSos.startReport()));
     view.findViewById(R.id.active_trip_finish).setOnClickListener(v -> confirmManualReturn());
     view.findViewById(R.id.schedule_demo_notification)
-        .setOnClickListener(v -> TripScheduleNotifier.postDemo(requireContext()));
+        .setOnClickListener(v -> showScheduleDemo());
     refreshLastLocation(view);
     refreshActiveTrip(view);
 
@@ -82,6 +85,20 @@ public class TripSafetyFragment extends BaseMwmFragment
       requireActivity().getIntent().removeExtra(TripSafetyActivity.EXTRA_SHOW_SOS);
       view.post(this::showSos);
     }
+  }
+
+  private void showScheduleDemo()
+  {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+        && ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.POST_NOTIFICATIONS)
+           != android.content.pm.PackageManager.PERMISSION_GRANTED)
+    {
+      ActivityCompat.requestPermissions(requireActivity(),
+                                        new String[] {Manifest.permission.POST_NOTIFICATIONS}, 9042);
+      Toast.makeText(requireContext(), R.string.areamap_schedule_demo_permission_request, Toast.LENGTH_LONG).show();
+      return;
+    }
+    TripScheduleNotifier.postDemo(requireContext());
   }
 
   private void renderArticles(@NonNull String query)
