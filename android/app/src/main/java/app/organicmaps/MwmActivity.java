@@ -742,8 +742,7 @@ public class MwmActivity extends BaseMwmFragmentActivity
     if (mMapButtonsViewModel == null)
       return false;
     final MapButtonsController.LayoutMode mode = mMapButtonsViewModel.getLayoutMode().getValue();
-    return mode == MapButtonsController.LayoutMode.regular
-        || mode == MapButtonsController.LayoutMode.navigation;
+    return mode == MapButtonsController.LayoutMode.regular;
   }
 
   private void updateGpxBanner()
@@ -787,20 +786,18 @@ public class MwmActivity extends BaseMwmFragmentActivity
     final boolean searching = Boolean.TRUE.equals(mSearchPageViewModel.getSearchEnabled().getValue());
     final boolean compactSearch = Integer.valueOf(BottomSheetBehavior.STATE_COLLAPSED)
         .equals(mSearchPageViewModel.getSearchPageLastState().getValue());
-    final MapButtonsController.LayoutMode mode =
-        mMapButtonsViewModel == null ? null : mMapButtonsViewModel.getLayoutMode().getValue();
-    final boolean navigating = mode == MapButtonsController.LayoutMode.navigation;
-    final boolean show = visible && (!isFullscreen() || navigating) && (!searching || compactSearch)
+    final boolean show = visible && !isFullscreen() && (!searching || compactSearch)
         && mPlacePageViewModel.getMapObject().getValue() == null;
 
     UiUtils.showIf(show, nav);
 
-    // On the ordinary map the AreaMap dock deliberately sits half below the viewport.
-    // When navigation starts it rises to its full height; the draggable navigation sheet
-    // is then offset above it, so route timing/status and the AreaMap actions are visible together.
+    // Keep the dock visibly "sunk" on the ordinary map without throwing labels below the screen.
+    // A fixed offset is stable across devices; translating by half of the measured height made
+    // tall/inset-aware docks almost disappear on real phones.
     final int dockHeight =
         Math.max(nav.getHeight(), Math.round(72 * getResources().getDisplayMetrics().density));
-    final float targetTranslation = show && !navigating ? dockHeight * 0.5f : 0f;
+    final int sunkOffset = Math.round(22 * getResources().getDisplayMetrics().density);
+    final float targetTranslation = show ? Math.min(sunkOffset, dockHeight / 3f) : 0f;
     nav.animate().cancel();
     nav.animate().translationY(targetTranslation).setDuration(180).start();
 
@@ -814,18 +811,6 @@ public class MwmActivity extends BaseMwmFragmentActivity
       {
         params.bottomMargin = reserve;
         content.setLayoutParams(params);
-      }
-    }
-
-    final View navigationSheet = findViewById(R.id.nav_bottom_sheet);
-    if (navigationSheet != null
-        && navigationSheet.getLayoutParams() instanceof ViewGroup.MarginLayoutParams params)
-    {
-      final int navigationBottomMargin = show && navigating ? dockHeight + mNavBarHeight : 0;
-      if (params.bottomMargin != navigationBottomMargin)
-      {
-        params.bottomMargin = navigationBottomMargin;
-        navigationSheet.setLayoutParams(params);
       }
     }
   }
@@ -997,8 +982,7 @@ public class MwmActivity extends BaseMwmFragmentActivity
       mRoutingToGpxStart = false;
     }
     updateGpxBanner();
-    setAreaMapBottomNavVisible(layoutMode == MapButtonsController.LayoutMode.regular
-                               || layoutMode == MapButtonsController.LayoutMode.navigation);
+    setAreaMapBottomNavVisible(layoutMode == MapButtonsController.LayoutMode.regular);
     // Recreate the navigation buttons with the correct layout when it changes
     if (mPreviousMapLayoutMode != layoutMode)
     {
