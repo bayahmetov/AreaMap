@@ -45,7 +45,6 @@
       layout="@layout/layout_nav"
       android:layout_width="match_parent"
       android:layout_height="match_parent"
-      android:paddingBottom="@dimen/margin_base"
       android:visibility="invisible" />
   </RelativeLayout>
   <androidx.fragment.app.FragmentContainerView
