@@ -288,6 +288,7 @@ public final class TripSafety
       out.append(mContext.getString(R.string.areamap_report_checkpoints)).append('\n');
       final String[] rows = checkpoints.split(";");
       final long started = mPrefs.getLong("trip_started_at", 0);
+      final long timingOffsetMs = mPrefs.getInt("trip_timing_offset_seconds", 0) * 1000L;
       int number = 1;
       for (String row : rows)
       {
@@ -302,7 +303,7 @@ public final class TripSafety
           final String altitudeText = altitude >= 0
               ? mContext.getString(R.string.areamap_report_checkpoint_altitude, altitude) : "";
           out.append(mContext.getString(R.string.areamap_report_checkpoint_line, number++,
-                                        formatTime(started + eta * 1000L), formatDuration(eta),
+                                        formatTime(started + eta * 1000L + timingOffsetMs), formatDuration(eta),
                                         distance / 1000.0, altitudeText)).append('\n');
         }
         catch (NumberFormatException ignored) {}
