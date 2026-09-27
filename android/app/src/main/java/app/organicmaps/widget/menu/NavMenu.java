@@ -49,6 +49,9 @@ public class NavMenu implements DefaultLifecycleObserver
   private final TextView mDistanceUnits;
   private final LinearProgressIndicator mRouteProgress;
   private final View mTripReturn;
+  private final View mTripStatusActions;
+  private final TextView mNextCheckpoint;
+  private final TextView mReturnEta;
 
   private final AppCompatActivity mActivity;
   private final NavMenuListener mNavMenuListener;
@@ -118,7 +121,20 @@ public class NavMenu implements DefaultLifecycleObserver
     mDistanceUnits = bottomFrame.findViewById(R.id.distance_dimen);
     mRouteProgress = bottomFrame.findViewById(R.id.navigation_progress);
     mTripReturn = bottomFrame.findViewById(R.id.areamap_trip_return);
+    mTripStatusActions = bottomFrame.findViewById(R.id.areamap_nav_status_actions);
+    mNextCheckpoint = bottomFrame.findViewById(R.id.areamap_nav_next_checkpoint);
+    mReturnEta = bottomFrame.findViewById(R.id.areamap_nav_return_eta);
     mTripReturn.setOnClickListener(v -> mNavMenuListener.onTripReturnClicked());
+    bottomFrame.findViewById(R.id.areamap_trip_ok).setOnClickListener(v -> {
+      TripSafety.get(mActivity).markImOk();
+      android.widget.Toast.makeText(mActivity, R.string.areamap_trip_ok_saved, android.widget.Toast.LENGTH_SHORT).show();
+      refreshTripState();
+    });
+    bottomFrame.findViewById(R.id.areamap_trip_break).setOnClickListener(v -> {
+      TripSafety.get(mActivity).addBreakMinutes(20);
+      android.widget.Toast.makeText(mActivity, R.string.areamap_trip_break_added, android.widget.Toast.LENGTH_SHORT).show();
+      refreshTripState();
+    });
     refreshTripState();
 
     // Bottom frame buttons
@@ -128,7 +144,6 @@ public class NavMenu implements DefaultLifecycleObserver
     mTts.setOnClickListener(v -> onTtsClicked());
     Button stop = bottomFrame.findViewById(R.id.stop);
     stop.setOnClickListener(v -> onStopClicked());
-    UiUtils.updateRedButton(stop);
 
     TtsPlayer.addStateChangedListener(mTtsStateListener);
     mActivity.getLifecycle().addObserver(this);
@@ -279,9 +294,15 @@ public class NavMenu implements DefaultLifecycleObserver
     mRouteProgress.setProgressCompat((int) info.completionPercent, true);
 
     if (Router.get() == Router.Pedestrian)
+    {
       updateHikingTiming(info);
+      refreshTripDetails(info);
+    }
     else
+    {
       resetHikingTiming();
+      refreshTripDetails(info);
+    }
   }
 
   private void updateHikingTiming(@NonNull RoutingInfo info)
@@ -336,9 +357,27 @@ public class NavMenu implements DefaultLifecycleObserver
     mTimeEstimate.setText(detail);
   }
 
+  private void refreshTripDetails(@NonNull RoutingInfo info)
+  {
+    final TripSafety safety = TripSafety.get(mActivity);
+    if (Router.get() == Router.Pedestrian && safety.hasActiveTrip())
+    {
+      mNextCheckpoint.setText(safety.navigationCheckpointSummary(info.completionPercent));
+      mReturnEta.setText(safety.navigationReturnSummary());
+    }
+    else
+    {
+      mNextCheckpoint.setText(R.string.areamap_nav_no_registered_trip);
+      mReturnEta.setText("");
+    }
+  }
+
   private void refreshTripState()
   {
-    UiUtils.showIf(Router.get() == Router.Pedestrian && TripSafety.get(mActivity).hasActiveTrip(), mTripReturn);
+    final boolean active = Router.get() == Router.Pedestrian && TripSafety.get(mActivity).hasActiveTrip();
+    UiUtils.showIf(active, mTripReturn, mTripStatusActions);
+    if (active)
+      mReturnEta.setText(TripSafety.get(mActivity).navigationReturnSummary());
   }
 
   private void resetHikingTiming()
