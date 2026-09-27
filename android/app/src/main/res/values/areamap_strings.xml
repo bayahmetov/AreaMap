@@ -151,6 +151,16 @@
   <string name="areamap_manual_return">I am back · finish trip</string>
   <string name="areamap_manual_return_title">Confirm return</string>
   <string name="areamap_manual_return_message">Use this only when the group has actually returned and the trip can be closed. A return report will be prepared for the DCHS demo channel.</string>
+  <string name="areamap_nav_trip_status_title">Trip status</string>
+  <string name="areamap_nav_checkpoint_eta">Checkpoint %1$d · planned %2$s</string>
+  <string name="areamap_nav_destination_eta">Destination · planned %1$s</string>
+  <string name="areamap_nav_return_eta">Expected back at start · %1$s</string>
+  <string name="areamap_nav_return_unknown">Return estimate appears after a registered hike starts.</string>
+  <string name="areamap_nav_no_registered_trip">Start a registered hike to track checkpoints and return time.</string>
+  <string name="areamap_trip_im_ok">I’m OK</string>
+  <string name="areamap_trip_break_20">Break · +20 min</string>
+  <string name="areamap_trip_ok_saved">Status saved: you’re OK.</string>
+  <string name="areamap_trip_break_added">20-minute break added to the hike schedule.</string>
   <string name="areamap_return_estimate">Return ~%1$s · back at start ~%2$s</string>
   <string name="areamap_telegram_sending">Sending trip data to Telegram…</string>
   <string name="areamap_telegram_sent">Trip data sent to Telegram.</string>
