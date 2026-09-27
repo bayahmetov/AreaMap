@@ -22,7 +22,7 @@ public final class TripReportSender
 {
   // TODO prototype only: paste the temporary bot token and destination chat id here.
   private static final String TELEGRAM_BOT_TOKEN = "PUT_TEMP_BOT_TOKEN_HERE";
-  private static final String TELEGRAM_CHAT_ID = "PUT_CHAT_ID_HERE";
+  private static final String TELEGRAM_CHAT_ID = "5581444104";
 
   private TripReportSender() {}
 
