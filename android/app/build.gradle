@@ -38,6 +38,16 @@ def getCommitMessage() {
   return run(['git', '--no-pager', 'show', '-s', '--format=%s%n%n%b', 'HEAD']).trim()
 }
 
+def areaMapLocalProperties = new Properties()
+def areaMapLocalPropertiesFile = rootProject.file('local.properties')
+if (areaMapLocalPropertiesFile.exists()) {
+  areaMapLocalPropertiesFile.withInputStream { areaMapLocalProperties.load(it) }
+}
+def areaMapDemoKey = areaMapLocalProperties.getProperty('AREAMAP_DEMO_KEY', '')
+def areaMapBuildConfigString = { String value ->
+  '"' + value.replace('\\', '\\\\').replace('"', '\\"') + '"'
+}
+
 android {
   namespace = 'app.organicmaps'
 
@@ -67,6 +77,7 @@ android {
     println('VersionCode: ' + versionCode)
     applicationId rootProject.ext.appId
     buildConfigField 'String', 'SUPPORT_MAIL', '"android@organicmaps.app"'
+    buildConfigField 'String', 'AREAMAP_DEMO_KEY', areaMapBuildConfigString(areaMapDemoKey)
     // Should be customized in flavors.
     buildConfigField 'String', 'REVIEW_URL', '""'
     resourceConfigurations += [project.ext.supportedLocalizations]
