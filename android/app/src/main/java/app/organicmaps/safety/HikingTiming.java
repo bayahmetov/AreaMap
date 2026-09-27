@@ -30,11 +30,15 @@ public final class HikingTiming
     }
   }
 
+  public static int estimateSeconds(double distanceMeters, double ascentMeters)
+  {
+    return (int) Math.round(distanceMeters / FLAT_SPEED_MPS
+                            + Math.max(0.0, ascentMeters) * ASCENT_SECONDS_PER_METER);
+  }
+
   public static int conservativeSeconds(int engineSeconds, double distanceMeters, double ascentMeters)
   {
-    final int hikingSeconds =
-        (int) Math.round(distanceMeters / FLAT_SPEED_MPS + Math.max(0.0, ascentMeters) * ASCENT_SECONDS_PER_METER);
-    return Math.max(engineSeconds, hikingSeconds);
+    return Math.max(engineSeconds, estimateSeconds(distanceMeters, ascentMeters));
   }
 
   @NonNull
