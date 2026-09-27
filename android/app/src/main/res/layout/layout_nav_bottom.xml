@@ -7,18 +7,19 @@
   android:layout_width="match_parent"
   android:layout_height="wrap_content"
   android:orientation="vertical"
-  android:background="@color/areamap_surface"
+  android:background="@drawable/bg_areamap_sheet"
+  android:paddingBottom="0dp"
   tools:showIn="@layout/layout_nav">
 
   <LinearLayout
     android:id="@+id/line_frame"
-    android:gravity="center_vertical"
-    android:orientation="vertical"
-    android:background="@color/areamap_surface"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:background="@drawable/bg_areamap_sheet"
     android:clickable="true"
-    android:focusable="true">
+    android:focusable="true"
+    android:gravity="center_vertical"
+    android:orientation="vertical">
 
     <include layout="@layout/bottom_sheet_handle" />
     <include layout="@layout/layout_nav_bottom_numbers" />
@@ -28,66 +29,132 @@
       style="@style/Widget.MaterialComponents.LinearProgressIndicator"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
-      app:indicatorColor="?colorAccent"
+      app:indicatorColor="@color/areamap_green"
       app:trackCornerRadius="@dimen/nav_progress_head"
       app:trackThickness="@dimen/nav_progress"
-      app:trackColor="@color/bg_routing_progress" />
+      app:trackColor="@color/areamap_stroke" />
+  </LinearLayout>
+
+  <LinearLayout
+    android:id="@+id/content_frame"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/areamap_surface"
+    android:orientation="vertical"
+    android:paddingStart="18dp"
+    android:paddingEnd="18dp"
+    android:paddingTop="12dp"
+    android:paddingBottom="12dp">
+
+    <TextView
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:text="@string/areamap_nav_trip_status_title"
+      android:textColor="@color/areamap_text"
+      android:textSize="18sp"
+      android:textStyle="bold" />
+
+    <TextView
+      android:id="@+id/areamap_nav_next_checkpoint"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="8dp"
+      android:textColor="@color/areamap_text_secondary"
+      android:textSize="14sp"
+      android:maxLines="2"
+      tools:text="Checkpoint 2 · planned 16:10" />
+
+    <TextView
+      android:id="@+id/areamap_nav_return_eta"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="4dp"
+      android:textColor="@color/areamap_green"
+      android:textSize="14sp"
+      android:textStyle="bold"
+      android:maxLines="2"
+      tools:text="Expected back at start · 18:25" />
+
+    <LinearLayout
+      android:id="@+id/areamap_nav_status_actions"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="14dp"
+      android:orientation="horizontal"
+      android:baselineAligned="false">
+
+      <com.google.android.material.button.MaterialButton
+        android:id="@+id/areamap_trip_ok"
+        style="@style/AreaMap.SecondaryButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginEnd="5dp"
+        android:minHeight="48dp"
+        android:text="@string/areamap_trip_im_ok"
+        android:textSize="13sp" />
+
+      <com.google.android.material.button.MaterialButton
+        android:id="@+id/areamap_trip_break"
+        style="@style/AreaMap.SecondaryButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginStart="5dp"
+        android:minHeight="48dp"
+        android:text="@string/areamap_trip_break_20"
+        android:textSize="13sp" />
+    </LinearLayout>
 
     <com.google.android.material.button.MaterialButton
       android:id="@+id/areamap_trip_return"
       style="@style/AreaMap.ActionButton"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
-      android:layout_marginStart="@dimen/margin_base"
-      android:layout_marginEnd="@dimen/margin_base"
-      android:layout_marginTop="@dimen/margin_quarter"
-      android:layout_marginBottom="@dimen/margin_half"
+      android:layout_marginTop="8dp"
+      android:minHeight="50dp"
       android:text="@string/areamap_manual_return"
+      android:textSize="14sp"
       android:visibility="gone"
       tools:visibility="visible" />
-  </LinearLayout>
 
-  <LinearLayout
-    android:id="@+id/content_frame"
-    android:layout_width="match_parent"
-    android:layout_height="@dimen/nav_menu_content_height"
-    android:gravity="center_vertical"
-    android:orientation="horizontal"
-    android:background="@color/areamap_surface"
-    android:paddingStart="@dimen/nav_bottom_gap"
-    android:paddingEnd="@dimen/nav_bottom_gap"
-    tools:background="#300000FF">
+    <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="64dp"
+      android:layout_marginTop="8dp"
+      android:gravity="center_vertical"
+      android:orientation="horizontal">
 
-    <ImageView
-      android:id="@+id/tts_volume"
-      android:layout_width="0dp"
-      android:layout_height="@dimen/nav_icon_size"
-      android:layout_weight="0.2"
-      android:background="?selectableItemBackgroundBorderless"
-      android:scaleType="center"
-      app:srcCompat="@drawable/ic_voice_on" />
+      <ImageView
+        android:id="@+id/tts_volume"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:layout_weight="0.2"
+        android:background="?selectableItemBackgroundBorderless"
+        android:scaleType="center"
+        app:srcCompat="@drawable/ic_voice_on" />
 
-    <ImageView
-      android:id="@+id/settings"
-      android:layout_width="0dp"
-      android:layout_height="@dimen/nav_icon_size"
-      android:layout_marginEnd="@dimen/nav_bottom_gap"
-      android:layout_weight="0.2"
-      android:background="?selectableItemBackgroundBorderless"
-      android:scaleType="center"
-      app:srcCompat="@drawable/ic_menu_settings"
-      app:tint="?iconTint" />
+      <ImageView
+        android:id="@+id/settings"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:layout_weight="0.2"
+        android:background="?selectableItemBackgroundBorderless"
+        android:scaleType="center"
+        app:srcCompat="@drawable/ic_menu_settings"
+        app:tint="@color/areamap_text_secondary" />
 
-    <Button
-      android:id="@+id/stop"
-      android:layout_width="0dp"
-      android:layout_height="@dimen/nav_button_height"
-      android:layout_weight="0.4"
-      android:background="?redButtonBackground"
-      android:fontFamily="@string/robotoMedium"
-      android:minWidth="@dimen/start_button_width"
-      android:text="@string/navigation_stop_button"
-      android:textAppearance="@style/MwmTextAppearance.Button.Red"
-      tools:ignore="UnusedAttribute" />
+      <com.google.android.material.button.MaterialButton
+        android:id="@+id/stop"
+        style="@style/AreaMap.SecondaryButton"
+        android:layout_width="0dp"
+        android:layout_height="50dp"
+        android:layout_marginStart="12dp"
+        android:layout_weight="0.6"
+        android:text="@string/navigation_stop_button"
+        android:textColor="@color/areamap_red"
+        android:textSize="14sp"
+        app:strokeColor="@color/areamap_red" />
+    </LinearLayout>
   </LinearLayout>
 </LinearLayout>
