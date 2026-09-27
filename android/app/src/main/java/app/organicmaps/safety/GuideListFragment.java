@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
@@ -35,7 +36,7 @@ public class GuideListFragment extends BaseMwmFragment
     requireActivity().setTitle(R.string.areamap_nav_guides);
 
     mArticles = view.findViewById(R.id.guide_articles);
-    mAllArticles = GuideArticles.all();
+    mAllArticles = GuideArticles.all(requireContext());
     render("");
 
     final EditText search = view.findViewById(R.id.guide_search);
@@ -61,6 +62,7 @@ public class GuideListFragment extends BaseMwmFragment
 
       final int articleIndex = i;
       final View card = getLayoutInflater().inflate(R.layout.areamap_guide_card, mArticles, false);
+      ((ImageView) card.findViewById(R.id.article_image)).setImageResource(article.imageResId);
       ((TextView) card.findViewById(R.id.article_title)).setText(article.title);
       ((TextView) card.findViewById(R.id.article_summary)).setText(article.tags);
       card.setOnClickListener(v -> startActivity(
