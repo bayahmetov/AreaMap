@@ -63,6 +63,7 @@ public class NavMenu implements DefaultLifecycleObserver
   private double mHikeTotalMeters;
   private double mPlannedSecondsPerKm = Double.NaN;
   private double mLastCompletionPercent;
+  private int mDemoBreakSeconds;
 
   public interface OnMenuSizeChangedListener
   {
@@ -131,8 +132,15 @@ public class NavMenu implements DefaultLifecycleObserver
       refreshTripState();
     });
     bottomFrame.findViewById(R.id.areamap_trip_break).setOnClickListener(v -> {
-      TripSafety.get(mActivity).addBreakMinutes(20);
+      final TripSafety safety = TripSafety.get(mActivity);
+      if (safety.hasActiveTrip())
+        safety.addBreakMinutes(20);
+      else
+        mDemoBreakSeconds += 20 * 60;
       android.widget.Toast.makeText(mActivity, R.string.areamap_trip_break_added, android.widget.Toast.LENGTH_SHORT).show();
+      final RoutingInfo info = RoutingController.get().getCachedRoutingInfo();
+      if (info != null)
+        refreshTripDetails(info);
       refreshTripState();
     });
     refreshTripState();
@@ -369,7 +377,8 @@ public class NavMenu implements DefaultLifecycleObserver
     {
       final String format =
           android.text.format.DateFormat.is24HourFormat(mActivity) ? "HH:mm" : "h:mm a";
-      final LocalTime destination = LocalTime.now().plusSeconds(info.totalTimeInSeconds);
+      final int adjustedSeconds = info.totalTimeInSeconds + mDemoBreakSeconds;
+      final LocalTime destination = LocalTime.now().plusSeconds(adjustedSeconds);
       final LocalTime back = destination.plusSeconds(info.totalTimeInSeconds);
       mNextCheckpoint.setText(mActivity.getString(R.string.areamap_nav_destination_eta,
                                                   destination.format(DateTimeFormatter.ofPattern(format))));
@@ -385,8 +394,10 @@ public class NavMenu implements DefaultLifecycleObserver
 
   private void refreshTripState()
   {
-    final boolean active = Router.get() == Router.Pedestrian && TripSafety.get(mActivity).hasActiveTrip();
-    UiUtils.showIf(active, mTripReturn, mTripStatusActions);
+    final boolean hiking = Router.get() == Router.Pedestrian;
+    final boolean active = hiking && TripSafety.get(mActivity).hasActiveTrip();
+    // Demo hikes should look and behave like real hikes; only the DCHS/Telegram send is omitted.
+    UiUtils.showIf(hiking, mTripReturn, mTripStatusActions);
     if (active)
       mReturnEta.setText(TripSafety.get(mActivity).navigationReturnSummary());
   }
@@ -397,6 +408,7 @@ public class NavMenu implements DefaultLifecycleObserver
     mHikeTotalMeters = 0.0;
     mPlannedSecondsPerKm = Double.NaN;
     mLastCompletionPercent = 0.0;
+    mDemoBreakSeconds = 0;
   }
 
   public interface NavMenuListener
