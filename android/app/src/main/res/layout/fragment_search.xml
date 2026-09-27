@@ -28,7 +28,7 @@
           android:layout_height="wrap_content" />
     </LinearLayout>
 
-    <ScrollView
+    <androidx.core.widget.NestedScrollView
       android:id="@+id/areamap_home_frame"
       android:layout_width="match_parent"
       android:layout_height="0dp"
@@ -36,6 +36,8 @@
       android:background="@color/areamap_surface"
       android:clipToPadding="false"
       android:fillViewport="true"
+      android:nestedScrollingEnabled="true"
+      android:overScrollMode="never"
       android:paddingBottom="48dp"
       android:visibility="gone">
       <LinearLayout
@@ -82,7 +84,7 @@
           <LinearLayout
             android:id="@+id/areamap_destination_furmanov"
             android:layout_width="0dp"
-            android:layout_height="300dp"
+            android:layout_height="260dp"
             android:layout_weight="1"
             android:layout_marginEnd="6dp"
             android:background="@drawable/bg_areamap_feed_card"
@@ -99,7 +101,7 @@
 
           <LinearLayout
             android:layout_width="0dp"
-            android:layout_height="300dp"
+            android:layout_height="260dp"
             android:layout_weight="1"
             android:layout_marginStart="6dp"
             android:orientation="vertical">
@@ -211,7 +213,7 @@
           <TextView style="@style/AreaMap.HomeCardAction" android:text="@string/areamap_open_sos" android:textColor="@color/areamap_red" />
         </LinearLayout>
       </LinearLayout>
-    </ScrollView>
+    </androidx.core.widget.NestedScrollView>
 
     <!-- Tabs -->
     <LinearLayout
