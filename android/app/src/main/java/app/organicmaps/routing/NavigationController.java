@@ -58,9 +58,11 @@ public class NavigationController implements TrafficManager.TrafficCallback, Nav
   private final NavMenu mNavMenu;
   View.OnClickListener mOnSettingsClickListener;
   View.OnClickListener mOnVoiceSettingsClickListener;
+  View.OnClickListener mOnTripReturnClickListener;
 
   public NavigationController(AppCompatActivity activity, View.OnClickListener onSettingsClickListener,
                               View.OnClickListener onVoiceSettingsClickListener,
+                              View.OnClickListener onTripReturnClickListener,
                               NavMenu.OnMenuSizeChangedListener onMenuSizeChangedListener)
   {
     mMapButtonsViewModel = new ViewModelProvider(activity).get(MapButtonsViewModel.class);
@@ -69,6 +71,7 @@ public class NavigationController implements TrafficManager.TrafficCallback, Nav
     mNavMenu = new NavMenu(activity, this, onMenuSizeChangedListener);
     mOnSettingsClickListener = onSettingsClickListener;
     mOnVoiceSettingsClickListener = onVoiceSettingsClickListener;
+    mOnTripReturnClickListener = onTripReturnClickListener;
 
     // Top frame
     mTopFrame = mFrame.findViewById(R.id.nav_top_frame);
@@ -291,6 +294,12 @@ public class NavigationController implements TrafficManager.TrafficCallback, Nav
   public void onStopClicked()
   {
     RoutingController.get().cancel();
+  }
+
+  @Override
+  public void onTripReturnClicked()
+  {
+    mOnTripReturnClickListener.onClick(null);
   }
 
   private void updateSpeedLimit(@NonNull final RoutingInfo info)
