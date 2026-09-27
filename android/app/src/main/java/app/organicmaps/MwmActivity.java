@@ -734,8 +734,16 @@ public class MwmActivity extends BaseMwmFragmentActivity
   private void refreshAreaMapBottomNav()
   {
     if (mMapButtonsViewModel != null)
-      setAreaMapBottomNavVisible(mMapButtonsViewModel.getLayoutMode().getValue()
-                                == MapButtonsController.LayoutMode.regular);
+      setAreaMapBottomNavVisible(isAreaMapDockLayout());
+  }
+
+  private boolean isAreaMapDockLayout()
+  {
+    if (mMapButtonsViewModel == null)
+      return false;
+    final MapButtonsController.LayoutMode mode = mMapButtonsViewModel.getLayoutMode().getValue();
+    return mode == MapButtonsController.LayoutMode.regular
+        || mode == MapButtonsController.LayoutMode.navigation;
   }
 
   private void updateGpxBanner()
@@ -772,26 +780,52 @@ public class MwmActivity extends BaseMwmFragmentActivity
 
   private void setAreaMapBottomNavVisible(boolean visible)
   {
-    View nav = findViewById(R.id.areamap_bottom_nav);
-    if (nav != null)
+    final View nav = findViewById(R.id.areamap_bottom_nav);
+    if (nav == null)
+      return;
+
+    final boolean searching = Boolean.TRUE.equals(mSearchPageViewModel.getSearchEnabled().getValue());
+    final boolean compactSearch = Integer.valueOf(BottomSheetBehavior.STATE_COLLAPSED)
+        .equals(mSearchPageViewModel.getSearchPageLastState().getValue());
+    final boolean show = visible && !isFullscreen() && (!searching || compactSearch)
+        && mPlacePageViewModel.getMapObject().getValue() == null;
+    final MapButtonsController.LayoutMode mode =
+        mMapButtonsViewModel == null ? null : mMapButtonsViewModel.getLayoutMode().getValue();
+    final boolean navigating = mode == MapButtonsController.LayoutMode.navigation;
+
+    UiUtils.showIf(show, nav);
+
+    // On the ordinary map the AreaMap dock deliberately sits half below the viewport.
+    // When navigation starts it rises to its full height; the draggable navigation sheet
+    // is then offset above it, so route timing/status and the AreaMap actions are visible together.
+    final int dockHeight =
+        Math.max(nav.getHeight(), Math.round(72 * getResources().getDisplayMetrics().density));
+    final float targetTranslation = show && !navigating ? dockHeight * 0.5f : 0f;
+    nav.animate().cancel();
+    nav.animate().translationY(targetTranslation).setDuration(180).start();
+
+    final int visibleDockHeight = show ? dockHeight - Math.round(targetTranslation) : 0;
+    final int reserve = visibleDockHeight + (show ? mNavBarHeight : 0);
+    for (int id : new int[] {R.id.search_container_fragment, R.id.map_buttons})
     {
-      final boolean searching = Boolean.TRUE.equals(mSearchPageViewModel.getSearchEnabled().getValue());
-      final boolean compactSearch = Integer.valueOf(BottomSheetBehavior.STATE_COLLAPSED)
-          .equals(mSearchPageViewModel.getSearchPageLastState().getValue());
-      final boolean show = visible && !isFullscreen() && (!searching || compactSearch)
-          && mPlacePageViewModel.getMapObject().getValue() == null;
-      UiUtils.showIf(show, nav);
-      final int reserve = show ? Math.max(nav.getHeight(), Math.round(72 * getResources().getDisplayMetrics().density))
-          + mNavBarHeight : 0;
-      for (int id : new int[] {R.id.search_container_fragment, R.id.map_buttons})
+      final View content = findViewById(id);
+      if (content != null && content.getLayoutParams() instanceof ViewGroup.MarginLayoutParams params
+          && params.bottomMargin != reserve)
       {
-        final View content = findViewById(id);
-        if (content != null && content.getLayoutParams() instanceof ViewGroup.MarginLayoutParams params
-            && params.bottomMargin != reserve)
-        {
-          params.bottomMargin = reserve;
-          content.setLayoutParams(params);
-        }
+        params.bottomMargin = reserve;
+        content.setLayoutParams(params);
+      }
+    }
+
+    final View navigationSheet = findViewById(R.id.nav_bottom_sheet);
+    if (navigationSheet != null
+        && navigationSheet.getLayoutParams() instanceof ViewGroup.MarginLayoutParams params)
+    {
+      final int navigationBottomMargin = show && navigating ? dockHeight + mNavBarHeight : 0;
+      if (params.bottomMargin != navigationBottomMargin)
+      {
+        params.bottomMargin = navigationBottomMargin;
+        navigationSheet.setLayoutParams(params);
       }
     }
   }
@@ -868,7 +902,7 @@ public class MwmActivity extends BaseMwmFragmentActivity
     if (isUiHidden)
       setAreaMapBottomNavVisible(false);
     else
-      setAreaMapBottomNavVisible(mMapButtonsViewModel.getLayoutMode().getValue() == MapButtonsController.LayoutMode.regular);
+      setAreaMapBottomNavVisible(isAreaMapDockLayout());
   }
 
   public void showPositionChooserForAPI(@Nullable String appName)
@@ -935,7 +969,7 @@ public class MwmActivity extends BaseMwmFragmentActivity
     ChoosePositionMode mode = ChoosePositionMode.get();
     ChoosePositionMode.set(ChoosePositionMode.None, false, false);
     mMapButtonsViewModel.setButtonsHidden(false);
-    setAreaMapBottomNavVisible(mMapButtonsViewModel.getLayoutMode().getValue() == MapButtonsController.LayoutMode.regular);
+    setAreaMapBottomNavVisible(isAreaMapDockLayout());
     mRoutingPlanViewModel.setIsPointChooserActive(false);
     Framework.nativeDeactivatePopup();
     refreshLightStatusBar();
@@ -963,7 +997,8 @@ public class MwmActivity extends BaseMwmFragmentActivity
       mRoutingToGpxStart = false;
     }
     updateGpxBanner();
-    setAreaMapBottomNavVisible(layoutMode == MapButtonsController.LayoutMode.regular);
+    setAreaMapBottomNavVisible(layoutMode == MapButtonsController.LayoutMode.regular
+                               || layoutMode == MapButtonsController.LayoutMode.navigation);
     // Recreate the navigation buttons with the correct layout when it changes
     if (mPreviousMapLayoutMode != layoutMode)
     {
@@ -2419,8 +2454,7 @@ public class MwmActivity extends BaseMwmFragmentActivity
   {
     mRoutingPlanViewModel.setIsPlacePageActive(active);
     updateGpxBanner();
-    setAreaMapBottomNavVisible(!active
-        && mMapButtonsViewModel.getLayoutMode().getValue() == MapButtonsController.LayoutMode.regular);
+    setAreaMapBottomNavVisible(!active && isAreaMapDockLayout());
   }
 
   @Override
