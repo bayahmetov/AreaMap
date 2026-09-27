@@ -70,6 +70,39 @@
           android:text="@string/areamap_manual_return" />
     </LinearLayout>
 
+    <LinearLayout
+        android:id="@+id/schedule_demo_section"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:background="@drawable/bg_areamap_surface">
+
+      <TextView
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:text="@string/areamap_schedule_demo_title"
+          android:textSize="18sp"
+          android:textStyle="bold" />
+
+      <TextView
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:layout_marginTop="6dp"
+          android:text="@string/areamap_schedule_demo_description"
+          android:textColor="?android:attr/textColorSecondary"
+          android:textSize="13sp" />
+
+      <com.google.android.material.button.MaterialButton
+          android:id="@+id/schedule_demo_notification"
+          style="@style/AreaMap.SecondaryButton"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:layout_marginTop="12dp"
+          android:text="@string/areamap_schedule_demo_button" />
+    </LinearLayout>
+
     <androidx.appcompat.widget.AppCompatEditText
         android:id="@+id/guide_search"
         android:layout_width="match_parent"
