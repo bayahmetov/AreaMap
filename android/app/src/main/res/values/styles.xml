@@ -7,7 +7,7 @@
 
   <style name="MwmWidget.FrameLayout"/>
 
-  <style name="AreaMap.BottomNavItem">
+  <style name="AreaMap.BottomNavItem" parent="">
     <item name="android:layout_width">0dp</item>
     <item name="android:layout_height">match_parent</item>
     <item name="android:layout_weight">1</item>
@@ -20,7 +20,7 @@
     <item name="android:paddingBottom">4dp</item>
   </style>
 
-  <style name="AreaMap.BottomNavIcon">
+  <style name="AreaMap.BottomNavIcon" parent="">
     <item name="android:layout_width">24dp</item>
     <item name="android:layout_height">24dp</item>
     <item name="android:scaleType">centerInside</item>
@@ -32,11 +32,11 @@
     <item name="android:layout_height">wrap_content</item>
     <item name="android:layout_marginTop">2dp</item>
     <item name="android:textSize">11sp</item>
-    <item name="android:textColor">?attr/textColorPrimary</item>
+    <item name="android:textColor">?android:attr/textColorPrimary</item>
     <item name="android:maxLines">1</item>
   </style>
 
-  <style name="AreaMap.HomeCard">
+  <style name="AreaMap.HomeCard" parent="">
     <item name="android:layout_width">220dp</item>
     <item name="android:layout_height">154dp</item>
     <item name="android:layout_marginEnd">12dp</item>
@@ -47,7 +47,7 @@
     <item name="android:padding">16dp</item>
   </style>
 
-  <style name="AreaMap.HomeWideCard">
+  <style name="AreaMap.HomeWideCard" parent="">
     <item name="android:layout_width">match_parent</item>
     <item name="android:layout_height">132dp</item>
     <item name="android:clickable">true</item>
@@ -57,7 +57,7 @@
     <item name="android:padding">18dp</item>
   </style>
 
-  <style name="AreaMap.HomeCardTitle">
+  <style name="AreaMap.HomeCardTitle" parent="">
     <item name="android:layout_width">match_parent</item>
     <item name="android:layout_height">wrap_content</item>
     <item name="android:textColor">@color/white_primary</item>
@@ -65,7 +65,7 @@
     <item name="android:textStyle">bold</item>
   </style>
 
-  <style name="AreaMap.HomeCardSubtitle">
+  <style name="AreaMap.HomeCardSubtitle" parent="">
     <item name="android:layout_width">match_parent</item>
     <item name="android:layout_height">wrap_content</item>
     <item name="android:layout_marginTop">5dp</item>
@@ -73,7 +73,7 @@
     <item name="android:textSize">14sp</item>
   </style>
 
-  <style name="AreaMap.HomeCardMeta">
+  <style name="AreaMap.HomeCardMeta" parent="">
     <item name="android:layout_width">match_parent</item>
     <item name="android:layout_height">wrap_content</item>
     <item name="android:layout_marginTop">16dp</item>
@@ -81,7 +81,7 @@
     <item name="android:textSize">12sp</item>
   </style>
 
-  <style name="AreaMap.HomeCardAction">
+  <style name="AreaMap.HomeCardAction" parent="">
     <item name="android:layout_width">match_parent</item>
     <item name="android:layout_height">wrap_content</item>
     <item name="android:layout_marginTop">16dp</item>
