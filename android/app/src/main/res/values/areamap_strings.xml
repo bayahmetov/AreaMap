@@ -59,6 +59,7 @@
   <string name="areamap_guides_page_subtitle">Offline reference for navigation, weather and first aid. Open an article to read the full guide.</string>
   <string name="areamap_hike_page_title">Hike</string>
   <string name="areamap_hike_page_subtitle">Your active trip, GPX import, schedule alerts and safety controls.</string>
+  <string name="areamap_hike_gpx_summary">Open an imported track or add a GPX file for an offline hike.</string>
   <string name="areamap_quick_route">Build route</string>
   <string name="areamap_quick_gpx">Import GPX</string>
   <string name="areamap_search_hint">Where to?</string>
