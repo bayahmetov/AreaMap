@@ -113,6 +113,8 @@ import app.organicmaps.sdk.widget.placepage.PlacePageData;
 import app.organicmaps.search.SearchFragmentController;
 import app.organicmaps.search.SearchPageViewModel;
 import app.organicmaps.search.SearchRequest;
+import app.organicmaps.safety.TripReportSender;
+import app.organicmaps.safety.TripSafety;
 import app.organicmaps.settings.SettingsActivity;
 import app.organicmaps.util.SharingUtils;
 import app.organicmaps.util.ThemeSwitcher;
@@ -1203,6 +1205,39 @@ public class MwmActivity extends BaseMwmFragmentActivity
     refreshLightStatusBar();
 
     MwmApplication.from(this).getSensorHelper().addListener(this);
+    maybePromptTripReturn();
+  }
+
+  private void maybePromptTripReturn()
+  {
+    final TripSafety safety = TripSafety.get(this);
+    if (!safety.shouldSuggestReturn() || isFinishing() || isDestroyed())
+      return;
+    if (mAlertDialog != null && mAlertDialog.isShowing())
+      return;
+
+    mAlertDialog = new MaterialAlertDialogBuilder(this, R.style.MwmTheme_AlertDialog)
+        .setTitle(R.string.areamap_return_detected_title)
+        .setMessage(getString(R.string.areamap_return_detected_message, safety.activeTripSummary()))
+        .setCancelable(false)
+        .setNegativeButton(R.string.areamap_not_returned_yet, (dialog, which) -> safety.dismissReturnSuggestion())
+        .setPositiveButton(R.string.areamap_finish_and_send, (dialog, which) -> finishRegisteredTrip())
+        .setOnDismissListener(dialog -> mAlertDialog = null)
+        .show();
+  }
+
+  private void finishRegisteredTrip()
+  {
+    final TripSafety safety = TripSafety.get(this);
+    if (!safety.hasActiveTrip())
+      return;
+    final boolean stopOwnedRecording = safety.ownsTrackRecording();
+    final String report = safety.returnReport();
+    safety.completeTrip();
+    if (stopOwnedRecording && TrackRecorder.nativeIsTrackRecordingEnabled())
+      saveAndStopTrackRecording();
+    TripReportSender.shareToTelegram(this, report);
+    Toast.makeText(this, R.string.areamap_trip_completed, Toast.LENGTH_LONG).show();
   }
 
   @Override
@@ -1570,6 +1605,9 @@ public class MwmActivity extends BaseMwmFragmentActivity
 
     requestPostNotificationsPermission();
     NavigationService.startForegroundService(this);
+    final TripSafety safety = TripSafety.get(this);
+    if (safety.hasActiveTrip() && safety.ownsTrackRecording() && !TrackRecorder.nativeIsTrackRecordingEnabled())
+      startTrackRecording();
     Utils.keepScreenOn(true, getWindow());
   }
 
@@ -1809,6 +1847,8 @@ public class MwmActivity extends BaseMwmFragmentActivity
   {
     dismissLocationErrorDialog();
     updateGpxBanner();
+    TripSafety.get(this).onLocation(location);
+    maybePromptTripReturn();
 
     final RoutingController routing = RoutingController.get();
     if (!routing.isNavigating())
