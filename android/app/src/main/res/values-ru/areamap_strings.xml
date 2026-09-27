@@ -161,6 +161,9 @@
   <string name="areamap_manual_return">Я вернулся · завершить поход</string>
   <string name="areamap_manual_return_title">Подтвердите возвращение</string>
   <string name="areamap_manual_return_message">Нажимайте только когда группа действительно вернулась и поход можно закрыть. AreaMap подготовит сообщение о возвращении для демо-канала ДЧС.</string>
+  <string name="areamap_demo_finish_title">Завершить демо-поход?</string>
+  <string name="areamap_demo_finish_message">Маршрут запущен в режиме просмотра, поэтому сообщение о возвращении отправлено не будет.</string>
+  <string name="areamap_finish_trip">Завершить поход</string>
   <string name="areamap_nav_trip_status_title">Статус похода</string>
   <string name="areamap_nav_checkpoint_eta">Чекпоинт %1$d · по плану %2$s</string>
   <string name="areamap_nav_destination_eta">Конечная точка · по плану %1$s</string>
