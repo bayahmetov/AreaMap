@@ -1249,6 +1249,8 @@ public class MwmActivity extends BaseMwmFragmentActivity
     final boolean stopOwnedRecording = safety.ownsTrackRecording();
     final String report = safety.returnReport();
     safety.completeTrip();
+    if (RoutingController.get().isNavigating())
+      RoutingController.get().cancel();
     if (stopOwnedRecording && TrackRecorder.nativeIsTrackRecordingEnabled())
       saveAndStopTrackRecording();
     TripReportSender.shareToTelegram(this, report);
