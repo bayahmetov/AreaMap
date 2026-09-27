@@ -172,6 +172,7 @@ public class MwmActivity extends BaseMwmFragmentActivity
   private RoutingPlanViewModel mRoutingPlanViewModel;
   private PlacePageViewModel mPlacePageViewModel;
   private app.organicmaps.safety.GpxNavigation mGpxSession;
+  private boolean mRoutingToGpxStart;
   private final android.os.Handler mGpxHandler = new android.os.Handler(android.os.Looper.getMainLooper());
   private final Runnable mGpxRefresh = new Runnable() {
     @Override
@@ -672,6 +673,12 @@ public class MwmActivity extends BaseMwmFragmentActivity
 
     nav.findViewById(R.id.areamap_nav_search).setOnClickListener(v -> showSearch(""));
     nav.findViewById(R.id.areamap_nav_route).setOnClickListener(v -> {
+      final app.organicmaps.safety.GpxNavigation gpx = app.organicmaps.safety.GpxNavigation.current;
+      if (gpx != null)
+      {
+        showGpxRouteChoices(gpx);
+        return;
+      }
       final MapObject selected = mPlacePageViewModel.getMapObject().getValue();
       if (selected != null && !selected.isTrack() && !selected.isTrackRecording())
       {
@@ -691,6 +698,25 @@ public class MwmActivity extends BaseMwmFragmentActivity
         refreshAreaMapBottomNav();
     });
     refreshAreaMapBottomNav();
+  }
+
+  private void showGpxRouteChoices(@NonNull app.organicmaps.safety.GpxNavigation session)
+  {
+    new MaterialAlertDialogBuilder(this)
+        .setTitle(R.string.areamap_gpx_active_title)
+        .setMessage(R.string.areamap_gpx_active_message)
+        .setNegativeButton(R.string.areamap_continue_track, null)
+        .setPositiveButton(R.string.areamap_route_to_gpx_start, (dialog, which) -> {
+          final double[] start = session.track.points[0];
+          final MapObject target = MapObject.createMapObject(
+              MapObject.API_POINT, getString(R.string.areamap_gpx_start_title),
+              getString(R.string.areamap_gpx_start_subtitle), start[0], start[1]);
+          mRoutingToGpxStart = true;
+          closeFloatingPanels();
+          final MapObject myPosition = MwmApplication.from(this).getLocationHelper().getMyPosition();
+          RoutingController.get().prepare(myPosition, target, Router.Pedestrian);
+        })
+        .show();
   }
 
   private void refreshAreaMapBottomNav()
@@ -915,10 +941,14 @@ public class MwmActivity extends BaseMwmFragmentActivity
 
   private void initNavigationButtons(MapButtonsController.LayoutMode layoutMode)
   {
-    if (layoutMode != MapButtonsController.LayoutMode.regular)
+    if (layoutMode != MapButtonsController.LayoutMode.regular && !mRoutingToGpxStart)
     {
       app.organicmaps.safety.GpxNavigation.current = null;
       mGpxSession = null;
+    }
+    else if (layoutMode == MapButtonsController.LayoutMode.regular)
+    {
+      mRoutingToGpxStart = false;
     }
     updateGpxBanner();
     setAreaMapBottomNavVisible(layoutMode == MapButtonsController.LayoutMode.regular);
