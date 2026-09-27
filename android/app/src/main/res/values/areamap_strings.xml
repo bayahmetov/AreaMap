@@ -74,6 +74,10 @@
   <string name="areamap_home_subtitle">Routes, timing and safety in one place.</string>
   <string name="areamap_popular_destinations">Popular near Almaty</string>
   <string name="areamap_home_tools">For your hike</string>
+  <string name="areamap_guide_first_aid_title">First aid basics</string>
+  <string name="areamap_home_guide_first_aid_summary">Bleeding, injury and what to do before help arrives.</string>
+  <string name="areamap_guide_storm_title">Storms in the mountains</string>
+  <string name="areamap_home_guide_storm_summary">Lightning, exposed ridges and safer decisions.</string>
   <string name="areamap_destination_furmanov_title">Furmanov Peak</string>
   <string name="areamap_destination_furmanov_subtitle">Hiking · Almaty</string>
   <string name="areamap_destination_furmanov_meta">Route and elevation gain</string>
