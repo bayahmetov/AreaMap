@@ -83,7 +83,7 @@ public class SearchFragmentController extends Fragment implements SearchFragment
           showSearchSheet(lastState);
         }
         else if (mBottomSheetBehavior.getState() == BottomSheetBehavior.STATE_HIDDEN)
-          showSearchSheet(BottomSheetBehavior.STATE_HALF_EXPANDED);
+          showSearchSheet(BottomSheetBehavior.STATE_EXPANDED);
       }
       else
       {
@@ -366,13 +366,13 @@ public class SearchFragmentController extends Fragment implements SearchFragment
   @Override
   public void onSearchClicked()
   {
-    showSearchSheet(BottomSheetBehavior.STATE_HALF_EXPANDED);
+    showSearchSheet(BottomSheetBehavior.STATE_EXPANDED);
   }
 
   @Override
   public void onQuerySubmitted()
   {
-    showSearchSheet(BottomSheetBehavior.STATE_COLLAPSED);
+    showSearchSheet(BottomSheetBehavior.STATE_EXPANDED);
   }
 
   @Override
