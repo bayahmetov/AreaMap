@@ -460,11 +460,11 @@ public class SearchFragment extends Fragment implements SearchListener, Categori
     mResultsFrame = root.findViewById(R.id.results_frame);
 
     root.findViewById(R.id.areamap_destination_furmanov)
-        .setOnClickListener(v -> setQuery("Пик Фурманова", false));
+        .setOnClickListener(v -> setQuery(getString(R.string.areamap_destination_furmanov_title), false));
     root.findViewById(R.id.areamap_destination_bao)
         .setOnClickListener(v -> setQuery(getString(R.string.areamap_destination_bao_title), false));
     root.findViewById(R.id.areamap_destination_kimasar)
-        .setOnClickListener(v -> setQuery("Кимасар", false));
+        .setOnClickListener(v -> setQuery(getString(R.string.areamap_destination_kimasar_title), false));
     root.findViewById(R.id.areamap_guides_card).setOnClickListener(v ->
         startActivity(new Intent(requireContext(), GuideArticleActivity.class)
                           .putExtra(GuideArticleActivity.EXTRA_ARTICLE_INDEX, 7)));
