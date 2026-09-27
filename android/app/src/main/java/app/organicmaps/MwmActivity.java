@@ -661,7 +661,8 @@ public class MwmActivity extends BaseMwmFragmentActivity
     initAreaMapBottomNav();
 
     mNavigationController = new NavigationController(
-        this, v -> onSettingsOptionSelected(), v -> openVoiceInstructionsSettings(), this::updateBottomWidgetsOffset);
+        this, v -> onSettingsOptionSelected(), v -> openVoiceInstructionsSettings(),
+        v -> showManualTripReturnConfirmation(), this::updateBottomWidgetsOffset);
     // TrafficManager.INSTANCE.attach(mNavigationController);
     initOnmapDownloader();
     initPositionChooser();
@@ -1223,6 +1224,20 @@ public class MwmActivity extends BaseMwmFragmentActivity
         .setNegativeButton(R.string.areamap_not_returned_yet, (dialog, which) -> safety.dismissReturnSuggestion())
         .setPositiveButton(R.string.areamap_finish_and_send, (dialog, which) -> finishRegisteredTrip())
         .setOnDismissListener(dialog -> mAlertDialog = null)
+        .show();
+  }
+
+  private void showManualTripReturnConfirmation()
+  {
+    final TripSafety safety = TripSafety.get(this);
+    if (!safety.hasActiveTrip())
+      return;
+
+    new MaterialAlertDialogBuilder(this, R.style.MwmTheme_AlertDialog)
+        .setTitle(R.string.areamap_manual_return_title)
+        .setMessage(R.string.areamap_manual_return_message)
+        .setNegativeButton(R.string.cancel, null)
+        .setPositiveButton(R.string.areamap_finish_and_send, (dialog, which) -> finishRegisteredTrip())
         .show();
   }
 
