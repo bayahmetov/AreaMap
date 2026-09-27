@@ -3,7 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true">
+    android:fillViewport="true"
+    android:background="@color/areamap_bg">
 
   <LinearLayout
       android:layout_width="match_parent"
@@ -16,7 +17,7 @@
         android:layout_height="wrap_content"
         android:text="@string/areamap_guide_title"
         android:textSize="30sp"
-        android:textColor="?android:attr/textColorPrimary"
+        android:textColor="@color/areamap_text"
         android:textStyle="bold" />
 
     <TextView
@@ -25,7 +26,7 @@
         android:layout_marginTop="8dp"
         android:textSize="15sp"
         android:lineSpacingExtra="4dp"
-        android:textColor="?android:attr/textColorSecondary"
+        android:textColor="@color/areamap_text_secondary"
         android:text="@string/areamap_guide_intro" />
 
     <LinearLayout
@@ -35,7 +36,7 @@
         android:layout_marginTop="16dp"
         android:orientation="vertical"
         android:padding="16dp"
-        android:background="@drawable/bg_areamap_surface"
+        android:background="@drawable/bg_areamap_feed_card"
         android:visibility="gone">
 
       <TextView
@@ -77,7 +78,7 @@
         android:layout_marginTop="16dp"
         android:orientation="vertical"
         android:padding="16dp"
-        android:background="@drawable/bg_areamap_surface">
+        android:background="@drawable/bg_areamap_feed_card_alt">
 
       <TextView
           android:layout_width="match_parent"
@@ -109,8 +110,10 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:hint="@string/areamap_search_articles"
-        android:background="@drawable/bg_areamap_surface"
+        android:background="@drawable/bg_areamap_search_input"
         android:padding="18dp"
+        android:textColor="@color/areamap_text"
+        android:textColorHint="@color/areamap_text_muted"
         android:minHeight="56dp"
         android:textSize="16sp"
         android:inputType="text"
