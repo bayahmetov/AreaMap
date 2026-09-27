@@ -71,4 +71,11 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent" />
 
+  <include
+    android:id="@+id/areamap_track_navigation"
+    layout="@layout/areamap_track_navigation"
+    android:layout_width="@dimen/bottom_sheet_widths"
+    android:layout_height="wrap_content"
+    android:layout_gravity="top|start" />
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

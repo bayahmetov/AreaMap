@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="areamap_toggle_preview">Expand or collapse route preview</string>
+  <string name="areamap_route_details">Route details · terrain and timing</string>
+  <string name="areamap_follow_track">Follow GPX track</string>
+  <string name="areamap_gpx_preview">%1$.1f km · about %2$d h %3$d min</string>
+  <string name="areamap_gpx_explanation">Follow the original line with remaining distance, estimated time and distance from the track. No turn-by-turn instructions or automatic rerouting. Guidance works while the app is open; reopen the GPX to restart after closing the app. Time is an estimate; missing elevation data can make it too optimistic.</string>
+  <string name="areamap_gpx_unsupported">The file was sent for import as a map track. Guidance currently supports GPX with one continuous segment and up to 20,000 points. KML, KMZ and multi-segment files can be viewed on the map.</string>
+  <string name="areamap_track_stop">Stop</string>
+  <string name="areamap_track_waiting">Waiting for a recent, accurate location…</string>
+  <string name="areamap_track_off_course">About %1$.0f m from the track. Check your position on the map.</string>
+  <string name="areamap_track_arrived">You are near the end of the track.</string>
+  <string name="areamap_track_progress">%1$.1f km remaining · about %2$d h %3$d min</string>
+</resources>

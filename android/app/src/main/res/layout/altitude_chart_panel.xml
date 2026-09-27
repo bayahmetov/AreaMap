@@ -162,8 +162,16 @@
     android:visibility="gone"
     tools:visibility="visible">
 
+    <com.google.android.material.button.MaterialButton
+      android:id="@+id/areamap_route_details"
+      style="@style/AreaMap.SecondaryButton"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:text="@string/areamap_route_details" />
+
     <TextView
       android:id="@+id/areamap_route_advice"
+      android:visibility="gone"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
       android:textAppearance="@style/MwmTextAppearance.Body3"
@@ -171,6 +179,7 @@
 
     <TextView
       android:id="@+id/areamap_route_peaks"
+      android:visibility="gone"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
       android:layout_marginTop="@dimen/margin_quarter_plus"
@@ -179,6 +188,9 @@
 
     <TextView
       android:id="@+id/areamap_route_warning"
+      android:paddingTop="8dp"
+      android:paddingBottom="8dp"
+      android:textColor="#D88732"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
       android:textAppearance="@style/MwmTextAppearance.Body3"
@@ -191,14 +203,16 @@
       android:layout_marginTop="@dimen/margin_half"
       android:orientation="horizontal">
 
-      <Button
+      <com.google.android.material.button.MaterialButton
+        style="@style/AreaMap.ActionButton"
         android:id="@+id/areamap_route_guide"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:text="@string/areamap_guide_button" />
 
-      <Button
+      <com.google.android.material.button.MaterialButton
+        style="@style/AreaMap.ActionButton"
         android:id="@+id/areamap_route_sos"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -207,8 +221,10 @@
         android:text="@string/areamap_sos" />
     </LinearLayout>
 
-    <Button
+    <com.google.android.material.button.MaterialButton
+        style="@style/AreaMap.ActionButton"
       android:id="@+id/areamap_route_import"
+      android:visibility="gone"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
       android:layout_marginTop="@dimen/margin_quarter_plus"

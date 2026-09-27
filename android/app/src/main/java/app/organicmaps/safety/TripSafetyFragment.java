@@ -10,7 +10,6 @@ import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -85,21 +84,21 @@ public class TripSafetyFragment extends BaseMwmFragment
       if (!article.matches(query))
         continue;
 
-      final Button card = new Button(requireContext());
-      card.setAllCaps(false);
-      card.setText(article.title);
-      card.setGravity(android.view.Gravity.START | android.view.Gravity.CENTER_VERTICAL);
+      final View card = getLayoutInflater().inflate(R.layout.areamap_guide_card, mArticles, false);
+      ((TextView) card.findViewById(R.id.article_title)).setText(article.title);
+      ((TextView) card.findViewById(R.id.article_summary)).setText(article.tags);
       card.setOnClickListener(v -> openArticle(article));
-      mArticles.addView(card, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-                                                            ViewGroup.LayoutParams.WRAP_CONTENT));
+      mArticles.addView(card);
     }
   }
 
   private void openArticle(@NonNull GuideArticles.Article article)
   {
+    final View content = getLayoutInflater().inflate(R.layout.areamap_article, null);
+    ((TextView) content.findViewById(R.id.article_body)).setText(article.body);
     new MaterialAlertDialogBuilder(requireContext())
         .setTitle(article.title)
-        .setMessage(article.body)
+        .setView(content)
         .setPositiveButton(R.string.areamap_close, null)
         .show();
   }

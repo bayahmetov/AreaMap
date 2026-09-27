@@ -171,6 +171,13 @@ final class RoutingBottomMenuController
     mAreaMapWarning = altitudeChartFrame.findViewById(R.id.areamap_route_warning);
     mAreaMapAdvice = altitudeChartFrame.findViewById(R.id.areamap_route_advice);
     mAreaMapPeaks = altitudeChartFrame.findViewById(R.id.areamap_route_peaks);
+    altitudeChartFrame.findViewById(R.id.areamap_route_details).setOnClickListener(v -> {
+      new com.google.android.material.dialog.MaterialAlertDialogBuilder(mContext)
+          .setTitle(R.string.areamap_route_specific_title)
+          .setMessage(TextUtils.concat(mAreaMapAdvice.getText(), "\n\n", mAreaMapPeaks.getText()))
+          .setPositiveButton(R.string.areamap_close, null)
+          .show();
+    });
     altitudeChartFrame.findViewById(R.id.areamap_route_guide)
         .setOnClickListener(v -> mContext.startActivity(new Intent(mContext, TripSafetyActivity.class)));
     altitudeChartFrame.findViewById(R.id.areamap_route_sos)
@@ -475,7 +482,9 @@ final class RoutingBottomMenuController
         final double distanceMeters = HikingTiming.toMeters(rinfo.distToTarget);
         final int plannedSeconds = HikingTiming.conservativeSeconds(rinfo.totalTimeInSeconds, distanceMeters, ascent);
         final String pace = HikingTiming.formatPace(HikingTiming.secondsPerKm(plannedSeconds, distanceMeters));
-        mTime.setText(TextUtils.concat(spanned, "\n", mContext.getString(R.string.areamap_pace, pace)));
+        mTime.setText(TextUtils.concat(
+            Utils.formatRoutingTime(mContext, plannedSeconds, R.dimen.text_size_routing_number),
+            " · ", rinfo.distToTarget.toString(mContext), "\n", mContext.getString(R.string.areamap_pace, pace)));
 
         UiUtils.show(mAreaMapPanel);
         final Location location = MwmApplication.from(mContext).getLocationHelper().getSavedLocation();

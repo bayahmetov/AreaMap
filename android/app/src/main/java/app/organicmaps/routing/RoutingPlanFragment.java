@@ -143,6 +143,12 @@ public class RoutingPlanFragment extends Fragment implements View.OnLayoutChange
 
     setInsets();
     setupBottomSheetBehavior();
+    final View handle = mFrame.findViewById(R.id.pull_icon_container);
+    handle.setMinimumHeight(Math.round(32 * getResources().getDisplayMetrics().density));
+    handle.setContentDescription(getString(R.string.areamap_toggle_preview));
+    handle.setOnClickListener(v -> mSheetBehavior.setState(
+        mSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED
+            ? BottomSheetBehavior.STATE_COLLAPSED : BottomSheetBehavior.STATE_EXPANDED));
 
     mSheetVisible.addSource(mViewModel.getShowRoutingBottomSheet(), show -> updateSheetVisible());
     mSheetVisible.addSource(mViewModel.getIsPlacePageActive(), active -> updateSheetVisible());
@@ -304,8 +310,12 @@ public class RoutingPlanFragment extends Fragment implements View.OnLayoutChange
     // none), while setMaxHeight caps a long list to scroll inside the sheet instead of covering the map.
     final boolean stepsVisible = mTransitStepsView.getVisibility() == View.VISIBLE;
     final int chartHeader = stepsVisible ? mTransitStepsView.getTop() : mChartPanel.getHeight();
-    final int peekHeight =
+    final int desiredHeight =
         mRoutingTypesContainer.getHeight() + chartHeader + mBottomButtonsMaxHeight + mPeekHeightMargins;
+    // Advice and large font sizes must not turn the collapsed state into a full-screen sheet.
+    final int compactHeight = Math.round(260 * getResources().getDisplayMetrics().density);
+    final int peekHeight = parentHeight > 0
+        ? Math.min(desiredHeight, Math.min(compactHeight, parentHeight / 2)) : compactHeight;
     mSheetBehavior.setPeekHeight(peekHeight);
   }
 
