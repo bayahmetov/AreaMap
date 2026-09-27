@@ -4,61 +4,257 @@
     android:id="@+id/areamap_bottom_nav_bar"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:minHeight="68dp"
-    android:layout_marginStart="8dp"
-    android:layout_marginEnd="8dp"
-    android:layout_marginBottom="8dp"
-    android:background="@drawable/bg_areamap_bottom_nav"
-    android:elevation="18dp"
-    android:gravity="center"
-    android:paddingStart="8dp"
-    android:paddingEnd="8dp">
+    android:orientation="vertical"
+    android:background="@drawable/bg_areamap_dock"
+    android:elevation="20dp"
+    android:paddingTop="10dp">
+
+  <HorizontalScrollView
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:clipToPadding="false"
+      android:paddingStart="14dp"
+      android:paddingEnd="14dp"
+      android:scrollbars="none">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+      <LinearLayout
+          android:id="@+id/areamap_quick_route"
+          android:layout_width="wrap_content"
+          android:layout_height="44dp"
+          android:layout_marginEnd="8dp"
+          android:background="@drawable/bg_areamap_chip"
+          android:clickable="true"
+          android:focusable="true"
+          android:foreground="?attr/selectableItemBackground"
+          android:gravity="center_vertical"
+          android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:tint="@color/areamap_green"
+            app:srcCompat="@drawable/ic_manage_route" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="@string/areamap_quick_route"
+            android:textColor="@color/areamap_text"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+      </LinearLayout>
+
+      <LinearLayout
+          android:id="@+id/areamap_quick_gpx"
+          android:layout_width="wrap_content"
+          android:layout_height="44dp"
+          android:layout_marginEnd="8dp"
+          android:background="@drawable/bg_areamap_chip"
+          android:clickable="true"
+          android:focusable="true"
+          android:foreground="?attr/selectableItemBackground"
+          android:gravity="center_vertical"
+          android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:tint="@color/areamap_text_secondary"
+            app:srcCompat="@drawable/ic_import" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="@string/areamap_quick_gpx"
+            android:textColor="@color/areamap_text"
+            android:textSize="14sp" />
+      </LinearLayout>
+
+      <LinearLayout
+          android:id="@+id/areamap_quick_trip"
+          android:layout_width="wrap_content"
+          android:layout_height="44dp"
+          android:layout_marginEnd="8dp"
+          android:background="@drawable/bg_areamap_chip"
+          android:clickable="true"
+          android:focusable="true"
+          android:foreground="?attr/selectableItemBackground"
+          android:gravity="center_vertical"
+          android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:tint="@color/areamap_text_secondary"
+            app:srcCompat="@drawable/ic_areamap_hike" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="@string/areamap_nav_trip"
+            android:textColor="@color/areamap_text"
+            android:textSize="14sp" />
+      </LinearLayout>
+
+      <LinearLayout
+          android:id="@+id/areamap_quick_sos"
+          android:layout_width="wrap_content"
+          android:layout_height="44dp"
+          android:background="@drawable/bg_areamap_chip"
+          android:clickable="true"
+          android:focusable="true"
+          android:foreground="?attr/selectableItemBackground"
+          android:gravity="center_vertical"
+          android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:tint="@color/areamap_red"
+            app:srcCompat="@drawable/warning_icon" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="@string/areamap_nav_sos"
+            android:textColor="@color/areamap_text"
+            android:textSize="14sp" />
+      </LinearLayout>
+    </LinearLayout>
+  </HorizontalScrollView>
 
   <LinearLayout
-      android:id="@+id/areamap_nav_search"
-      style="@style/AreaMap.BottomNavItem"
-      android:contentDescription="@string/areamap_nav_search">
+      android:id="@+id/areamap_search_pill"
+      android:layout_width="match_parent"
+      android:layout_height="58dp"
+      android:layout_marginStart="14dp"
+      android:layout_marginEnd="14dp"
+      android:layout_marginTop="10dp"
+      android:background="@drawable/bg_areamap_search_pill"
+      android:clickable="true"
+      android:focusable="true"
+      android:foreground="?attr/selectableItemBackground"
+      android:gravity="center_vertical"
+      android:orientation="horizontal"
+      android:paddingStart="14dp"
+      android:paddingEnd="14dp">
+
     <ImageView
-        style="@style/AreaMap.BottomNavIcon"
+        android:layout_width="26dp"
+        android:layout_height="26dp"
+        android:tint="@color/areamap_text_secondary"
         app:srcCompat="@drawable/ic_search" />
-    <TextView
-        style="@style/AreaMap.BottomNavLabel"
-        android:text="@string/areamap_nav_search" />
-  </LinearLayout>
 
-  <LinearLayout
-      android:id="@+id/areamap_nav_route"
-      style="@style/AreaMap.BottomNavItem"
-      android:contentDescription="@string/areamap_nav_route">
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+      <TextView
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:text="@string/areamap_search_hint"
+          android:textColor="@color/areamap_text"
+          android:textSize="16sp"
+          android:textStyle="bold" />
+
+      <TextView
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_marginTop="1dp"
+          android:text="@string/areamap_search_subtitle"
+          android:textColor="@color/areamap_text_muted"
+          android:textSize="11sp" />
+    </LinearLayout>
+
     <ImageView
-        style="@style/AreaMap.BottomNavIcon"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:tint="@color/areamap_text_muted"
         app:srcCompat="@drawable/ic_manage_route" />
-    <TextView
-        style="@style/AreaMap.BottomNavLabel"
-        android:text="@string/areamap_nav_route" />
   </LinearLayout>
 
   <LinearLayout
-      android:id="@+id/areamap_nav_sos"
-      style="@style/AreaMap.BottomNavItem"
-      android:contentDescription="@string/areamap_nav_sos">
-    <ImageView
-        style="@style/AreaMap.BottomNavIcon"
-        app:srcCompat="@drawable/warning_icon" />
-    <TextView
-        style="@style/AreaMap.BottomNavLabel"
-        android:text="@string/areamap_nav_sos" />
-  </LinearLayout>
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="6dp"
+      android:gravity="center"
+      android:orientation="horizontal"
+      android:paddingStart="4dp"
+      android:paddingEnd="4dp"
+      android:paddingBottom="4dp">
 
-  <LinearLayout
-      android:id="@+id/areamap_nav_guides"
-      style="@style/AreaMap.BottomNavItem"
-      android:contentDescription="@string/areamap_nav_guides">
-    <ImageView
-        style="@style/AreaMap.BottomNavIcon"
-        app:srcCompat="@drawable/ic_wiki" />
-    <TextView
-        style="@style/AreaMap.BottomNavLabel"
-        android:text="@string/areamap_nav_guides" />
+    <LinearLayout
+        android:id="@+id/areamap_nav_search"
+        style="@style/AreaMap.BottomNavItem"
+        android:contentDescription="@string/areamap_nav_search">
+      <ImageView
+          style="@style/AreaMap.BottomNavIcon"
+          android:tint="@color/areamap_green"
+          app:srcCompat="@drawable/ic_search" />
+      <TextView
+          style="@style/AreaMap.BottomNavLabel"
+          android:text="@string/areamap_nav_search"
+          android:textColor="@color/areamap_green" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/areamap_nav_route"
+        style="@style/AreaMap.BottomNavItem"
+        android:contentDescription="@string/areamap_nav_route">
+      <ImageView
+          style="@style/AreaMap.BottomNavIcon"
+          app:srcCompat="@drawable/ic_manage_route" />
+      <TextView
+          style="@style/AreaMap.BottomNavLabel"
+          android:text="@string/areamap_nav_route" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/areamap_nav_trip"
+        style="@style/AreaMap.BottomNavItem"
+        android:contentDescription="@string/areamap_nav_trip">
+      <ImageView
+          style="@style/AreaMap.BottomNavIcon"
+          app:srcCompat="@drawable/ic_areamap_hike" />
+      <TextView
+          style="@style/AreaMap.BottomNavLabel"
+          android:text="@string/areamap_nav_trip" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/areamap_nav_sos"
+        style="@style/AreaMap.BottomNavItem"
+        android:contentDescription="@string/areamap_nav_sos">
+      <ImageView
+          style="@style/AreaMap.BottomNavIcon"
+          app:srcCompat="@drawable/warning_icon" />
+      <TextView
+          style="@style/AreaMap.BottomNavLabel"
+          android:text="@string/areamap_nav_sos" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/areamap_nav_guides"
+        style="@style/AreaMap.BottomNavItem"
+        android:contentDescription="@string/areamap_nav_guides">
+      <ImageView
+          style="@style/AreaMap.BottomNavIcon"
+          app:srcCompat="@drawable/ic_wiki" />
+      <TextView
+          style="@style/AreaMap.BottomNavLabel"
+          android:text="@string/areamap_nav_guides" />
+    </LinearLayout>
   </LinearLayout>
 </LinearLayout>
