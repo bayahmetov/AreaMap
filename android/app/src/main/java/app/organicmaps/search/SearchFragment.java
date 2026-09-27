@@ -991,6 +991,12 @@ public class SearchFragment extends Fragment implements SearchListener, Categori
     if (mResults != null)
       ViewCompat.setNestedScrollingEnabled(mResults, hasQuery);
 
+    // The AreaMap Explore feed is a NestedScrollView. It must own nested scrolling while
+    // the search box is empty, otherwise the bottom sheet intercepts the swipe and the
+    // "For your hike" cards below the fold can never be reached on shorter screens/with IME open.
+    if (mHomeFrame != null)
+      ViewCompat.setNestedScrollingEnabled(mHomeFrame, !hasQuery);
+
     if (mTabAdapter != null)
     {
       for (int i = 0; i < mTabAdapter.getCount(); i++)
