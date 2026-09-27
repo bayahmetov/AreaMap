@@ -1,6 +1,8 @@
 package app.organicmaps.safety;
 
+import android.content.Context;
 import androidx.annotation.NonNull;
+import app.organicmaps.R;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -12,12 +14,14 @@ public final class GuideArticles
     public final String title;
     public final String tags;
     public final String body;
+    public final int imageResId;
 
     Article(String title, String tags, String body)
     {
       this.title = title;
       this.tags = tags;
       this.body = body;
+      this.imageResId = heroFor(tags);
     }
 
     public boolean matches(@NonNull String query)
@@ -32,10 +36,35 @@ public final class GuideArticles
   private GuideArticles() {}
 
   @NonNull
+  public static List<Article> all(@NonNull Context context)
+  {
+    final Locale locale = context.getResources().getConfiguration().getLocales().get(0);
+    return "ru".equals(locale.getLanguage()) ? russian() : english();
+  }
+
+  @NonNull
   public static List<Article> all()
   {
     final boolean ru = Locale.getDefault().getLanguage().equals("ru");
     return ru ? russian() : english();
+  }
+
+  private static int heroFor(@NonNull String tags)
+  {
+    final String normalized = tags.toLowerCase(Locale.ROOT);
+    if (normalized.contains("cold") || normalized.contains("hypothermia")
+        || normalized.contains("холод") || normalized.contains("переох"))
+      return R.drawable.guide_hero_cold;
+    if (normalized.contains("storm") || normalized.contains("lightning")
+        || normalized.contains("гроза") || normalized.contains("молния"))
+      return R.drawable.guide_hero_storm;
+    if (normalized.contains("first aid") || normalized.contains("bleeding")
+        || normalized.contains("fracture") || normalized.contains("head")
+        || normalized.contains("cpr") || normalized.contains("первая помощь")
+        || normalized.contains("кров") || normalized.contains("перелом")
+        || normalized.contains("голова") || normalized.contains("слр"))
+      return R.drawable.guide_hero_first_aid;
+    return R.drawable.guide_hero_mountain;
   }
 
   @NonNull
