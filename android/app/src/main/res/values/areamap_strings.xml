@@ -128,4 +128,9 @@
   <string name="areamap_back">Back</string>
   <string name="areamap_trip_route_summary">%1$s → %2$s\n%3$.1f km · ~%4$s\nExpected finish: %5$s</string>
   <string name="areamap_trip_checkpoint_preview">%1$d. %2$s · ~%3$s · %4$.1f km%5$s</string>
+  <string name="areamap_return_detected_title">Back near the start?</string>
+  <string name="areamap_return_detected_message">AreaMap detected that you left the start area and are now back within about 150 m. Confirm only when the trip is actually finished.\n\n%1$s</string>
+  <string name="areamap_not_returned_yet">Not yet</string>
+  <string name="areamap_finish_and_send">Finish and send return</string>
+  <string name="areamap_trip_completed">Trip marked as returned.</string>
 </resources>
