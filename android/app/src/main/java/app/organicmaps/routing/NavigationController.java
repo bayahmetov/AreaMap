@@ -218,6 +218,7 @@ public class NavigationController implements TrafficManager.TrafficCallback, Nav
     {
       mMapButtonsViewModel.setTopHeaderHeight(0);
       mTripSheetShownForSession = false;
+      mNavMenu.resetHikeSession();
     }
   }
 
