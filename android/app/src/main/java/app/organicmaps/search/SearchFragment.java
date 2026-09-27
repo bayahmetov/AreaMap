@@ -761,7 +761,7 @@ public class SearchFragment extends Fragment implements SearchListener, Categori
 
     if (tokens.size() >= 2)
       return bestMatches < Math.min(2, tokens.size());
-    return SearchQueryVariants.hasGenericType(qualityQuery) && bestMatches == 0;
+    return SearchQueryVariants.hasGenericType(originalQuery) && bestMatches == 0;
   }
 
   private boolean startSearchVariant(int index)
