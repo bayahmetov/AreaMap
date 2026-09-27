@@ -105,4 +105,27 @@
   <string name="areamap_report_last_fix">Last fix: %1$s</string>
   <string name="areamap_duration_minutes">%1$d min</string>
   <string name="areamap_duration_hours_minutes">%1$d h %2$d min</string>
+  <string name="areamap_start_mode_title">Start this route</string>
+  <string name="areamap_start_mode_message">Choose a registered safety trip or a demo run. Registered mode requires contact details and a final confirmation before the route report is handed to the current DCHS demo channel.</string>
+  <string name="areamap_start_registered">Register and start</string>
+  <string name="areamap_start_demo">Demo without sending</string>
+  <string name="areamap_demo_notice">Demo mode: navigation starts normally, but no personal or route data is sent.</string>
+  <string name="areamap_trip_registration_title">Trip registration</string>
+  <string name="areamap_trip_name">Full name</string>
+  <string name="areamap_trip_phone">Phone number</string>
+  <string name="areamap_trip_group_size">People in the group</string>
+  <string name="areamap_trip_emergency_name">Emergency contact name</string>
+  <string name="areamap_trip_emergency_phone">Emergency contact phone</string>
+  <string name="areamap_trip_consent">I confirm that these contact details, the route, expected finish time and checkpoints may be sent for this trip.</string>
+  <string name="areamap_continue">Continue</string>
+  <string name="areamap_required_field">Required field</string>
+  <string name="areamap_phone_error">Enter a valid phone number</string>
+  <string name="areamap_group_error">Enter at least 1 person</string>
+  <string name="areamap_consent_required">Confirm sending the trip data to continue.</string>
+  <string name="areamap_confirm_send_title">Confirm trip data</string>
+  <string name="areamap_confirm_send_body">%1$s · %2$s\nGroup: %3$d\nEmergency: %4$s · %5$s</string>
+  <string name="areamap_confirm_and_start">Confirm, send and start</string>
+  <string name="areamap_back">Back</string>
+  <string name="areamap_trip_route_summary">%1$s → %2$s\n%3$.1f km · ~%4$s\nExpected finish: %5$s</string>
+  <string name="areamap_trip_checkpoint_preview">%1$d. %2$s · ~%3$s · %4$.1f km%5$s</string>
 </resources>
