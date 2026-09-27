@@ -16,6 +16,7 @@ import app.organicmaps.MwmApplication;
 import app.organicmaps.R;
 import app.organicmaps.safety.DarknessUtil;
 import app.organicmaps.safety.HikingTiming;
+import app.organicmaps.safety.TripSafety;
 import app.organicmaps.sdk.Router;
 import app.organicmaps.sdk.routing.RoutingInfo;
 import app.organicmaps.sdk.sound.TtsPlayer;
@@ -47,6 +48,7 @@ public class NavMenu implements DefaultLifecycleObserver
   private final TextView mDistanceValue;
   private final TextView mDistanceUnits;
   private final LinearProgressIndicator mRouteProgress;
+  private final View mTripReturn;
 
   private final AppCompatActivity mActivity;
   private final NavMenuListener mNavMenuListener;
@@ -115,6 +117,9 @@ public class NavMenu implements DefaultLifecycleObserver
     mDistanceValue = bottomFrame.findViewById(R.id.distance_value);
     mDistanceUnits = bottomFrame.findViewById(R.id.distance_dimen);
     mRouteProgress = bottomFrame.findViewById(R.id.navigation_progress);
+    mTripReturn = bottomFrame.findViewById(R.id.areamap_trip_return);
+    mTripReturn.setOnClickListener(v -> mNavMenuListener.onTripReturnClicked());
+    refreshTripState();
 
     // Bottom frame buttons
     ImageView mSettings = bottomFrame.findViewById(R.id.settings);
@@ -194,6 +199,7 @@ public class NavMenu implements DefaultLifecycleObserver
 
   public void refreshTts()
   {
+    refreshTripState();
     final Drawable icon;
     switch (TtsPlayer.getState())
     {
@@ -265,6 +271,7 @@ public class NavMenu implements DefaultLifecycleObserver
 
   public void update(@NonNull RoutingInfo info)
   {
+    refreshTripState();
     updateSpeedView(info);
     updateTime(info.totalTimeInSeconds);
     mDistanceValue.setText(info.distToTarget.mDistanceStr);
@@ -329,6 +336,11 @@ public class NavMenu implements DefaultLifecycleObserver
     mTimeEstimate.setText(detail);
   }
 
+  private void refreshTripState()
+  {
+    UiUtils.showIf(Router.get() == Router.Pedestrian && TripSafety.get(mActivity).hasActiveTrip(), mTripReturn);
+  }
+
   private void resetHikingTiming()
   {
     mHikeStartedElapsedMs = 0;
@@ -344,5 +356,7 @@ public class NavMenu implements DefaultLifecycleObserver
     void onSettingsClicked();
 
     void onTtsVoiceSettingsClicked();
+
+    void onTripReturnClicked();
   }
 }
