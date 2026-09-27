@@ -33,6 +33,7 @@ import app.organicmaps.R;
 import app.organicmaps.downloader.CountrySuggestFragment;
 import app.organicmaps.maplayer.MapButtonsViewModel;
 import app.organicmaps.routing.RoutePointLabels;
+import app.organicmaps.safety.AreaMapLocale;
 import app.organicmaps.safety.GuideArticleActivity;
 import app.organicmaps.safety.TripSafetyActivity;
 import app.organicmaps.sdk.Framework;
@@ -857,8 +858,10 @@ public class SearchFragment extends Fragment implements SearchListener, Categori
     final SearchRequest request = mSearchViewModel.getPendingRequest();
     // Locale applies only to this initial query; consume the request so later manual edits fall
     // back to the keyboard locale.
-    mSearchLocale =
-        (request != null && request.locale != null) ? request.locale : Language.getKeyboardLocale(requireContext());
+    final String selectedAppLanguage = AreaMapLocale.selectedTag(requireContext());
+    mSearchLocale = (request != null && request.locale != null)
+        ? request.locale
+        : (!selectedAppLanguage.isEmpty() ? selectedAppLanguage : Language.getKeyboardLocale(requireContext()));
     mSearchViewModel.clearPendingRequest();
 
     mSearchVariants = SearchQueryVariants.build(getQuery());
