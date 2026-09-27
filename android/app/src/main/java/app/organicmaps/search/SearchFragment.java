@@ -68,6 +68,7 @@ public class SearchFragment extends Fragment implements SearchListener, Categori
   private SearchFragmentListener mSearchFragmentListener;
   private View mResultsFrame;
   private View mHomeFrame;
+  private View mSearchResultsHost;
   @Nullable
   private RecyclerView mResults;
   private int mNavH = 0;
@@ -250,6 +251,9 @@ public class SearchFragment extends Fragment implements SearchListener, Categori
     final boolean hasQuery = mToolbarController.hasQuery();
 
     UiUtils.showIf(hasQuery, mResultsFrame);
+    // The home feed and the legacy/results host both used layout_weight=1. If the results host
+    // stays laid out while browsing, it steals half the sheet and visually clips the Explore feed.
+    UiUtils.showIf(hasQuery, mSearchResultsHost);
     // AreaMap uses the empty search state as its home feed. History/categories remain available
     // through the regular menu, while the expanded sheet presents destinations and safety guides.
     UiUtils.showIf(!hasQuery, mHomeFrame);
@@ -452,6 +456,7 @@ public class SearchFragment extends Fragment implements SearchListener, Categori
     mTabLayout = root.findViewById(R.id.tabs);
     mTabFrame = root.findViewById(R.id.tab_frame);
     mHomeFrame = root.findViewById(R.id.areamap_home_frame);
+    mSearchResultsHost = root.findViewById(R.id.search_results_host);
     mPickerActions = root.findViewById(R.id.picker_actions);
     mSearchIcon = root.findViewById(R.id.search_icon);
     mSearchIconWidth = mSearchIcon.getLayoutParams().width;
