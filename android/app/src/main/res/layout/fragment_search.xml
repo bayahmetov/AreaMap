@@ -5,7 +5,7 @@
   xmlns:android="http://schemas.android.com/apk/res/android"
   android:layout_width="match_parent"
   android:layout_height="match_parent"
-  android:background="?windowBackgroundForced">
+  android:background="@color/areamap_surface">
   <include
     android:id="@+id/pull_icon_container"
     layout="@layout/bottom_sheet_handle" />
@@ -33,10 +33,10 @@
       android:layout_width="match_parent"
       android:layout_height="0dp"
       android:layout_weight="1"
-      android:background="?windowBackgroundForced"
+      android:background="@color/areamap_surface"
       android:clipToPadding="false"
       android:fillViewport="true"
-      android:paddingBottom="112dp"
+      android:paddingBottom="48dp"
       android:visibility="gone">
       <LinearLayout
         android:layout_width="match_parent"
@@ -44,15 +44,15 @@
         android:orientation="vertical"
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
-        android:paddingBottom="40dp">
+        android:paddingBottom="28dp">
 
         <TextView
           android:layout_width="match_parent"
           android:layout_height="wrap_content"
-          android:layout_marginTop="12dp"
+          android:layout_marginTop="10dp"
           android:text="@string/areamap_home_title"
-          android:textAppearance="?android:attr/textAppearanceLarge"
-          android:textColor="?android:attr/textColorPrimary"
+          android:textColor="@color/areamap_text"
+          android:textSize="27sp"
           android:textStyle="bold" />
 
         <TextView
@@ -60,7 +60,7 @@
           android:layout_height="wrap_content"
           android:layout_marginTop="4dp"
           android:text="@string/areamap_home_subtitle"
-          android:textColor="?android:attr/textColorSecondary"
+          android:textColor="@color/areamap_text_secondary"
           android:textSize="14sp" />
 
         <TextView
@@ -68,84 +68,147 @@
           android:layout_height="wrap_content"
           android:layout_marginTop="24dp"
           android:text="@string/areamap_popular_destinations"
-          android:textAppearance="?android:attr/textAppearanceMedium"
-          android:textColor="?android:attr/textColorPrimary"
+          android:textColor="@color/areamap_text"
+          android:textSize="21sp"
           android:textStyle="bold" />
 
-        <HorizontalScrollView
+        <LinearLayout
           android:layout_width="match_parent"
           android:layout_height="wrap_content"
-          android:layout_marginTop="10dp"
-          android:clipToPadding="false"
-          android:scrollbars="none">
+          android:layout_marginTop="12dp"
+          android:baselineAligned="false"
+          android:orientation="horizontal">
+
           <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-            <LinearLayout
-              android:id="@+id/areamap_destination_furmanov"
-              style="@style/AreaMap.HomeCard"
-              android:background="@drawable/bg_areamap_home_card_green">
-              <TextView style="@style/AreaMap.HomeCardTitle" android:text="@string/areamap_destination_furmanov_title" />
-              <TextView style="@style/AreaMap.HomeCardSubtitle" android:text="@string/areamap_destination_furmanov_subtitle" />
-              <TextView style="@style/AreaMap.HomeCardMeta" android:text="@string/areamap_destination_furmanov_meta" />
-            </LinearLayout>
+            android:id="@+id/areamap_destination_furmanov"
+            android:layout_width="0dp"
+            android:layout_height="300dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="6dp"
+            android:background="@drawable/bg_areamap_feed_card"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground"
+            android:gravity="bottom"
+            android:orientation="vertical"
+            android:padding="18dp">
+            <TextView style="@style/AreaMap.HomeCardTitle" android:text="@string/areamap_destination_furmanov_title" />
+            <TextView style="@style/AreaMap.HomeCardSubtitle" android:text="@string/areamap_destination_furmanov_subtitle" />
+            <TextView style="@style/AreaMap.HomeCardMeta" android:text="@string/areamap_destination_furmanov_meta" />
+          </LinearLayout>
+
+          <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="300dp"
+            android:layout_weight="1"
+            android:layout_marginStart="6dp"
+            android:orientation="vertical">
+
             <LinearLayout
               android:id="@+id/areamap_destination_bao"
-              style="@style/AreaMap.HomeCard"
-              android:background="@drawable/bg_areamap_home_card_blue">
+              android:layout_width="match_parent"
+              android:layout_height="0dp"
+              android:layout_weight="1"
+              android:layout_marginBottom="6dp"
+              android:background="@drawable/bg_areamap_feed_card_alt"
+              android:clickable="true"
+              android:focusable="true"
+              android:foreground="?attr/selectableItemBackground"
+              android:gravity="bottom"
+              android:orientation="vertical"
+              android:padding="16dp">
               <TextView style="@style/AreaMap.HomeCardTitle" android:text="@string/areamap_destination_bao_title" />
               <TextView style="@style/AreaMap.HomeCardSubtitle" android:text="@string/areamap_destination_bao_subtitle" />
-              <TextView style="@style/AreaMap.HomeCardMeta" android:text="@string/areamap_destination_bao_meta" />
             </LinearLayout>
+
             <LinearLayout
               android:id="@+id/areamap_destination_kimasar"
-              style="@style/AreaMap.HomeCard"
-              android:background="@drawable/bg_areamap_home_card_orange">
+              android:layout_width="match_parent"
+              android:layout_height="0dp"
+              android:layout_weight="1"
+              android:layout_marginTop="6dp"
+              android:background="@drawable/bg_areamap_feed_card_warn"
+              android:clickable="true"
+              android:focusable="true"
+              android:foreground="?attr/selectableItemBackground"
+              android:gravity="bottom"
+              android:orientation="vertical"
+              android:padding="16dp">
               <TextView style="@style/AreaMap.HomeCardTitle" android:text="@string/areamap_destination_kimasar_title" />
               <TextView style="@style/AreaMap.HomeCardSubtitle" android:text="@string/areamap_destination_kimasar_subtitle" />
-              <TextView style="@style/AreaMap.HomeCardMeta" android:text="@string/areamap_destination_kimasar_meta" />
             </LinearLayout>
           </LinearLayout>
-        </HorizontalScrollView>
+        </LinearLayout>
 
         <TextView
           android:layout_width="match_parent"
           android:layout_height="wrap_content"
-          android:layout_marginTop="26dp"
-          android:text="@string/areamap_guides_section"
-          android:textAppearance="?android:attr/textAppearanceMedium"
-          android:textColor="?android:attr/textColorPrimary"
+          android:layout_marginTop="28dp"
+          android:text="@string/areamap_home_tools"
+          android:textColor="@color/areamap_text"
+          android:textSize="21sp"
           android:textStyle="bold" />
 
         <LinearLayout
-          android:id="@+id/areamap_guides_card"
-          style="@style/AreaMap.HomeWideCard"
-          android:layout_marginTop="10dp"
-          android:background="@drawable/bg_areamap_home_card_safety">
-          <TextView style="@style/AreaMap.HomeCardTitle" android:text="@string/areamap_guide_lost_title" />
-          <TextView style="@style/AreaMap.HomeCardSubtitle" android:text="@string/areamap_home_guide_lost_summary" />
-          <TextView style="@style/AreaMap.HomeCardAction" android:text="@string/areamap_open_guides" />
-        </LinearLayout>
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:layout_marginTop="12dp"
+          android:baselineAligned="false"
+          android:orientation="horizontal">
 
-        <LinearLayout
-          android:id="@+id/areamap_guides_weather_card"
-          style="@style/AreaMap.HomeWideCard"
-          android:layout_marginTop="10dp"
-          android:background="@drawable/bg_areamap_home_card_dark">
-          <TextView style="@style/AreaMap.HomeCardTitle" android:text="@string/areamap_guide_cold_title" />
-          <TextView style="@style/AreaMap.HomeCardSubtitle" android:text="@string/areamap_home_guide_weather_summary" />
-          <TextView style="@style/AreaMap.HomeCardAction" android:text="@string/areamap_open_guides" />
+          <LinearLayout
+            android:id="@+id/areamap_guides_card"
+            android:layout_width="0dp"
+            android:layout_height="180dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="6dp"
+            android:background="@drawable/bg_areamap_feed_card"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground"
+            android:gravity="bottom"
+            android:orientation="vertical"
+            android:padding="16dp">
+            <TextView style="@style/AreaMap.HomeCardTitle" android:text="@string/areamap_guide_lost_title" />
+            <TextView style="@style/AreaMap.HomeCardSubtitle" android:text="@string/areamap_home_guide_lost_summary" />
+            <TextView style="@style/AreaMap.HomeCardAction" android:text="@string/areamap_open_guides" />
+          </LinearLayout>
+
+          <LinearLayout
+            android:id="@+id/areamap_guides_weather_card"
+            android:layout_width="0dp"
+            android:layout_height="180dp"
+            android:layout_weight="1"
+            android:layout_marginStart="6dp"
+            android:background="@drawable/bg_areamap_feed_card_alt"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground"
+            android:gravity="bottom"
+            android:orientation="vertical"
+            android:padding="16dp">
+            <TextView style="@style/AreaMap.HomeCardTitle" android:text="@string/areamap_guide_cold_title" />
+            <TextView style="@style/AreaMap.HomeCardSubtitle" android:text="@string/areamap_home_guide_weather_summary" />
+            <TextView style="@style/AreaMap.HomeCardAction" android:text="@string/areamap_open_guides" />
+          </LinearLayout>
         </LinearLayout>
 
         <LinearLayout
           android:id="@+id/areamap_home_sos_card"
-          style="@style/AreaMap.HomeWideCard"
-          android:layout_marginTop="18dp"
-          android:background="@drawable/bg_areamap_home_card_sos">
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:minHeight="120dp"
+          android:layout_marginTop="12dp"
+          android:background="@drawable/bg_areamap_feed_card_sos"
+          android:clickable="true"
+          android:focusable="true"
+          android:foreground="?attr/selectableItemBackground"
+          android:gravity="center_vertical"
+          android:orientation="vertical"
+          android:padding="18dp">
           <TextView style="@style/AreaMap.HomeCardTitle" android:text="@string/areamap_sos" />
           <TextView style="@style/AreaMap.HomeCardSubtitle" android:text="@string/areamap_home_sos_summary" />
-          <TextView style="@style/AreaMap.HomeCardAction" android:text="@string/areamap_open_sos" />
+          <TextView style="@style/AreaMap.HomeCardAction" android:text="@string/areamap_open_sos" android:textColor="@color/areamap_red" />
         </LinearLayout>
       </LinearLayout>
     </ScrollView>
@@ -186,7 +249,7 @@
         android:clickable="true"
         android:focusable="true"
         android:visibility="gone"
-        android:background="?windowBackgroundForced">
+        android:background="@color/areamap_surface">
 
         <androidx.recyclerview.widget.RecyclerView
           android:id="@+id/recycler"
