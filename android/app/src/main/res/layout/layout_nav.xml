@@ -26,6 +26,7 @@
     <FrameLayout
       android:id="@+id/nav_bottom_sheet"
       style="?attr/bottomSheetStyle"
+      android:background="@drawable/bg_areamap_sheet"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
       app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
@@ -40,5 +41,5 @@
     android:layout_width="0dp"
     android:layout_height="0dp"
     android:layout_gravity="bottom|center"
-    android:background="?cardBackground"/>
+    android:background="@color/areamap_surface"/>
 </FrameLayout>
