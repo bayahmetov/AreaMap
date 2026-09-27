@@ -395,6 +395,7 @@ public class SearchFragmentController extends Fragment implements SearchFragment
     // Dismiss the keyboard on every programmatic close path (X button, back, place page, forceCloseSearchFragment).
     // Otherwise the IME inset lingers and the routing panel re-appearing underneath gets pushed down by it.
     InputUtils.hideKeyboard(mSearchPageContainer);
+    mBottomSheetBehavior.setDraggable(true);
     mBottomSheetBehavior.setHideable(true);
     mBottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
   }
@@ -406,5 +407,8 @@ public class SearchFragmentController extends Fragment implements SearchFragment
   {
     mBottomSheetBehavior.setState(state);
     mBottomSheetBehavior.setHideable(false);
+    // Explore/search is a full-page sheet now. Lock the sheet itself while expanded so vertical
+    // gestures belong to its NestedScrollView/RecyclerView instead of getting captured as sheet drags.
+    mBottomSheetBehavior.setDraggable(state != BottomSheetBehavior.STATE_EXPANDED);
   }
 }
