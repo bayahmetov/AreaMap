@@ -1,223 +1,178 @@
-<div align="center">
-  <img src="qt/res/logo.png" height="100"/>
-</div>
-<h1 align="center">Organic Maps</h1>
+# AreaMap
 
-**Organic Maps** is a privacy-first offline maps & GPS app for hiking, cycling, biking, and driving. Absolutely free. No ads. No tracking. Created and maintained by MapsWithMe (MAPS.ME) founders, developed with love by the open-source community. Powered by [OpenStreetMap](https://www.openstreetmap.org) data. Installed by [over 6 million users worldwide](https://organicmaps.app/news/2025-12-31/organic-maps-2025-year-in-review/).
+**Офлайн-карты и планирование горных походов на Android.**
 
-[<img src="docs/badges/apple-appstore.png" alt="App Store" width="140">](https://apps.apple.com/app/organic-maps/id1567437057)
-[<img src="docs/badges/google-play.png" alt="Google Play" width="140">](https://play.google.com/store/apps/details?id=app.organicmaps)
-[<img src="docs/badges/huawei-appgallery.png" alt="AppGallery" width="140">](https://appgallery.huawei.com/#/app/C104325611)
-[<img src="docs/badges/obtainium.png" alt="Obtainium" width="140">](https://github.com/organicmaps/organicmaps/wiki/Installing-Organic-Maps-from-GitHub-using-Obtainium)
-[<img src="docs/badges/fdroid.png" alt="F-Droid" width="140">](https://f-droid.org/en/packages/app.organicmaps/)
-[<img src="docs/badges/accrescent.png" alt="Accrescent" width="140">](https://accrescent.app/app/app.organicmaps)
+AreaMap — приложение на базе [Organic Maps Project](https://organicmaps.app),
+с картографическими данными [OpenStreetMap](https://www.openstreetmap.org/copyright).
+Наша надстройка объединяет походный интерфейс, оценку времени и перепадов высот,
+гайды, сопровождение GPX и SOS-карточку с последним известным местоположением.
 
-<p float="left">
-  <img src="android/app/src/fdroid/play/listings/en-US/graphics/phone-screenshots/1.jpg" width="400" />
-  <img src="android/app/src/fdroid/play/listings/en-US/graphics/phone-screenshots/2.jpg" width="400" />
-  <img src="android/app/src/fdroid/play/listings/en-US/graphics/phone-screenshots/3.jpg" width="400" />
-  <img src="android/app/src/fdroid/play/listings/en-US/graphics/phone-screenshots/4.jpg" width="400" />
-</p>
+Статус: **прототип для тестирования**. Основная работа над AreaMap находится в ветке
+[`feature/areamap-trip-safety`](https://github.com/bayahmetov/AreaMap/tree/feature/areamap-trip-safety).
+Исходники iOS, desktop и Wear унаследованы от Organic Maps; наличие этих каталогов
+не означает, что надстройки AreaMap реализованы и проверены на всех платформах.
 
-## Features
+[Релизы](https://github.com/bayahmetov/AreaMap/releases) ·
+[Как собрать и выпустить APK](docs/AREAMAP_RELEASE.md) ·
+[Технический разбор](docs/AREAMAP_REVIEW.md) ·
+[Сообщить об ошибке](https://github.com/bayahmetov/AreaMap/issues)
 
-Organic Maps is the ultimate companion app for travellers, tourists, hikers, and cyclists:
+## Возможности
 
-- Detailed offline maps with places that don't exist on other maps, thanks to [OpenStreetMap](https://openstreetmap.org)
-- Cycling routes, hiking trails, and walking paths
-- Contour lines, elevation profiles, peaks, and slopes
-- Turn-by-turn walking, cycling, and car navigation with voice guidance
-- Subway maps and public transport routes
-- Fast offline search on the map
-- Bookmarks and tracks import and export in KML, KMZ, GPX, GeoJSON formats
-- Dark Mode to protect your eyes
-- Countries and regions don't take a lot of space
-- Wikipedia articles for places of interest
-- Free and open-source
+| Возможность | Что реализовано |
+| --- | --- |
+| Офлайн-карты и маршруты | Движок Organic Maps: поиск, отображение карты, пешеходные и другие маршруты по загруженным данным |
+| Главный экран | Нижняя панель AreaMap, поиск, популярные направления и карточки материалов |
+| Походные тайминги | Оценка времени до старта, темп и состояние маршрута во время движения |
+| Высоты | Профиль, набор и сброс высоты, расчётные контрольные точки при наличии высотных данных |
+| GPX | Импорт линии на карту и отдельное сопровождение поддерживаемого трека: остаток пути, время, отклонение |
+| Гайды | Встроенные статьи и отдельные экраны списка и чтения |
+| SOS | Текст с последними координатами, точностью и временем фиксации; системная отправка и открытие набора 112 |
+| План похода | Демо-старт либо форма участника и группы, план возвращения и подготовка отчёта |
+| Напоминания | Локальные уведомления об отставании для активного зарегистрированного похода при обычной навигации |
+| Поиск и язык | Варианты названий, включая «БАО» и «Фурмановка»; выбор языка оболочки: русский, английский, системный |
 
-## Why Organic?
+Функции перечислены по текущему коду. Это не означает, что все сценарии прошли
+полевую проверку. Известные ограничения приведены ниже и в техническом разборе.
 
-Organic Maps is pure and organic, made with love:
+## Как пользоваться
 
-- Respects your privacy
-- Saves your battery
-- No unexpected mobile data charges
-- Offline and fast
-- Open-source alternative to Google Maps, Apple Maps, and MAPS.ME
+1. Установите APK подходящей архитектуры из опубликованного релиза, если он доступен,
+   либо соберите приложение самостоятельно.
+2. Заранее загрузите карту нужного региона и разрешите геолокацию.
+3. Найдите вершину или выберите точку на карте, откройте её карточку и построение маршрута.
+   Для горных троп выбирайте **пешеходный режим**.
+4. До старта проверьте расстояние, оценку времени и высоты. Начните поход в демо-режиме
+   либо заполните форму и подтвердите передачу отчёта.
+5. GPX импортируется через экран похода. Для поддерживаемого файла можно включить
+   сопровождение трека. Маршрут к началу GPX — отдельный маршрут, а не сам трек.
+6. Кнопка SOS открывает карточку для передачи через доступное приложение или звонка.
 
-Organic Maps is free from trackers and other bad stuff:
+Карты, встроенные статьи и вычисления могут работать без интернета после подготовки
+данных. Загрузка карт и отправка через Telegram требуют интернета. SOS не создаёт
+связь при отсутствии сети и не подтверждает получение сообщения спасателями.
 
-- No ads
-- No tracking
-- No data collection
-- No phoning home
-- No annoying registration
-- No mandatory tutorials
-- No noisy email spam
-- No push notifications
-- No crapware
-- ~~No pesticides~~ Purely organic!
+## Откуда берутся время и высоты
 
-The Android application is verified by the <a href="https://reports.exodus-privacy.eu.org/en/reports/app.organicmaps/latest/">Exodus Privacy Project:
-<img src="docs/privacy/exodus.png" width="400"></a>
+Сейчас нет базы среднего темпа других туристов и нет обучаемой модели.
+`HikingTiming` использует оценку движка и походную формулу:
 
-The iOS application is verified by <a href="https://ios.trackercontrol.org/analysis/app.organicmaps">TrackerControl for iOS:
-<img src="docs/privacy/trackercontrol-ios.png" width="400"></a>
+```text
+время = расстояние / 4,5 км/ч + 10 минут на каждые 100 м набора
+оценка до старта = максимум(время движка, время по формуле)
+```
 
-<br/>
+Для GPX оставшееся время уточняется по текущему движению после накопления достаточного
+прогресса. Высоты берутся из доступного профиля маршрута или элементов `ele` в GPX.
+Без высотных данных приложение не может полноценно учитывать рельеф.
+Погода, снег, техническая сложность и состояние троп автоматически не учитываются.
 
-Organic Maps doesn't request excessive permissions to spy on you:
+## Ограничения прототипа
 
-<p float="left">
-  <img src="docs/privacy/om.jpg" width="400">
-  <img src="docs/privacy/mm.jpg" width="400">
-</p>
+- GPX-сопровождение поддерживает одну непрерывную линию, до 20 000 точек.
+  KML/KMZ и неподдерживаемые GPX могут импортироваться для отображения, без такого сопровождения.
+- Сессия GPX хранится в памяти процесса. Это не полноценная фоновая навигация
+  с восстановлением после закрытия приложения, голосовыми командами и перестроением.
+- «Регистрация похода» в текущей реализации сохраняет данные локально и предлагает
+  отправку через Telegram. Подтверждённой интеграции с ДЧС в коде нет.
+- Напоминания зависят от навигации, обновлений геопозиции и разрешения на уведомления.
+  Они не являются удалённым наблюдением за туристом.
+- Названия объектов зависят от данных карты; выбор языка интерфейса не переводит все топонимы.
+- Публичная сборка требует отдельной подготовки идентификатора приложения, подписи,
+  брендинга и конфигурации отправки. Подробности — в [инструкции релиза](docs/AREAMAP_RELEASE.md).
 
-At Organic Maps, we believe that privacy is a fundamental human right:
+## Сборка Android
 
-- Organic Maps is an indie community-driven open-source project
-- We protect your privacy from Big Tech's prying eyes
-- Stay safe no matter where you are
+Параметры проверены по конфигурации ветки на 27 сентября 2026 года:
 
-Reject surveillance - embrace your freedom.
+| Компонент | Значение в проекте |
+| --- | --- |
+| Минимальный Android | API 21 / Android 5.0; это заявленный минимум, не матрица протестированных устройств |
+| Compile / Target SDK | 36 / 36 |
+| Android NDK | 29.0.14206865 |
+| CMake | 3.22.1 или выше |
+| Gradle wrapper / Android Gradle Plugin | 9.6.0 / 9.2.1 |
+| Java source / target | 17 |
 
-[**Give Organic Maps a try!**](#install)
+Используйте Android Studio, совместимую с указанным AGP, и настроенный Gradle JDK.
+Нужны Git, Python 3 и не менее 30 ГБ свободного места; зависимости и несколько ABI
+могут потребовать больше. Полная инструкция базы: [docs/INSTALL.md](docs/INSTALL.md).
 
-## Who is paying for the development?
+Для новой копии (Git Bash на Windows, bash на Linux/macOS):
 
-The app is free for everyone, so we rely on your donations. Please donate at [organicmaps.app/donate](https://organicmaps.app/donate/) to support the project!
+```bash
+git clone --branch feature/areamap-trip-safety --recurse-submodules --shallow-submodules https://github.com/bayahmetov/AreaMap.git
+cd AreaMap
+```
 
-Beloved institutional sponsors below have provided targeted grants to cover some infrastructure costs and fund development of new selected features:
+На Windows до клонирования включите Developer Mode и поддержку symlink в Git,
+как описано в `docs/INSTALL.md`. Откройте в Android Studio именно каталог **android**,
+дождитесь Gradle Sync и выберите вариант **fdroidDebug**.
 
-<table>
-  <tr>
-    <td>
-      <a href="https://nlnet.nl/"><img src="docs/sponsors/nlnet.svg" alt="The NLnet Foundation" width="200px"></a>
-    </td>
-    <td>
-      <a href="https://github.com/organicmaps/organicmaps/milestone/7">The Search & Fonts improvement project</a> has been <a href="https://nlnet.nl/project/OrganicMaps/">funded</a> through NGI0 Entrust Fund. <a href="https://nlnet.nl/entrust/">NGI0 Entrust Fund</a> is established by the <a href="https://nlnet.nl/">NLnet Foundation</a> with financial support from the European Commission's <a href="https://www.ngi.eu/">Next Generation Internet programme</a>, under the aegis of DG Communications Networks, Content and Technology under grant agreement No 101069594.
-    </td>
-  </tr>
-  <tr>
-    <td>
-      <a href="https://summerofcode.withgoogle.com/"><img src="docs/sponsors/gsoc.svg" alt="Google Summer of Code" width="200px"></a>
-    </td>
-    <td>
-      <a href="https://summerofcode.withgoogle.com/">Google</a> backed 5 student's projects in the Google Summer of Code program during <a href="https://summerofcode.withgoogle.com/programs/2022/organizations/organic-maps">2022</a> and <a href="https://summerofcode.withgoogle.com/programs/2023/organizations/organic-maps">2023</a> programs. Noteworthy projects included Android Auto and Wikipedia Dump Extractor.
-    </td>
-  </tr>
-  <tr>
-    <td>
-      <a href="https://www.mythic-beasts.com/"><img src="docs/sponsors/mythic-beasts.png" alt="Mythic Beasts" width="200px"></a>
-    </td>
-    <td>
-      <a href="https://www.mythic-beasts.com/">Mythic Beasts</a> ISP <a href="https://www.mythic-beasts.com/blog/2021/10/06/improving-the-world-bit-by-expensive-bit/">provides us</a> two virtual servers with 400 TB/month of free bandwidth to host and serve maps downloads and updates.
-    </td>
-  </tr>
-  <tr>
-    <td>
-      <a href="https://44plus.vn"><img src="docs/sponsors/44plus.svg" alt="44+ Technologies" width="200px"></a>
-    </td>
-    <td>
-      <a href="https://44plus.vn">44+ Technologies</a> is <a href="https://44plus.vn/organicmaps">providing us </a>with a free dedicated server worth around $12,000/year to serve maps across Vietnam & Southeast Asia.
-    </td>
-  </tr>
-  <tr>
-    <td>
-      <a href="https://futo.org"><img src="docs/sponsors/futo.svg" alt="FUTO" width="200px"></a>
-    </td>
-    <td>
-      <a href="https://futo.org">FUTO</a> has <a href="https://www.youtube.com/watch?v=fJJclgBHrEw">awarded $1000 micro-grant</a> to Organic Maps in February 2023.
-    </td>
-  </tr>
-</table>
+Сборка APK для телефона ARM64:
 
-The majority of all expenses have been funded by founders of the project since its inception. The project is far from achieving any sort of financial sustainability. The current level of voluntary donations falls significantly short of covering efforts needed to sustain the app. Any new developments of features are beyond the scope of possibility due to the absence of the necessary financial resources.
+```bash
+cd android
+./gradlew :app:assembleFdroidDebug -Parm64
+```
 
-Please consider [donating](https://organicmaps.app/donate/) if you want to see this open-source project thriving, not dying. There are [other ways how to support the project](#contributing). No coding skills required.
+В PowerShell используйте `./gradlew.bat` вместо `./gradlew`.
+APK появится в `android/app/build/outputs/apk/fdroid/debug/` относительно корня репозитория.
+Для x86_64-эмулятора замените `-Parm64` на `-Px86_64`.
 
-## Governance
+Существующая рабочая копия обновляется из нужной ветки:
 
-See [docs/GOVERNANCE.md](docs/GOVERNANCE.md).
+```bash
+git switch feature/areamap-trip-safety
+git pull --ff-only origin feature/areamap-trip-safety
+git submodule update --init --recursive
+```
 
-<a name="contributing">
+Перед переключением сохраните свои изменения. При конфликте или незавершённом `git am`
+сначала проверьте `git status`; не применяйте старые патчи поверх уже обновлённой ветки.
 
-## Contributing
+## Структура проекта
 
-If you want to build the project, check [docs/INSTALL.md](docs/INSTALL.md). If you want to help the project,
-see [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md). You can [help in many ways](https://organicmaps.app/support-us/), the ability to code is not necessary.
+| Каталог | Назначение |
+| --- | --- |
+| `android/app` | Android-приложение: карта, поиск, маршруты и оболочка AreaMap |
+| `android/app/src/main/java/app/organicmaps/safety` | Тайминги, GPX, статьи, SOS, план похода и отправка отчётов |
+| `android/app/src/main/res` | Разметка, стили, иконки и строки интерфейса |
+| `android/sdk` | Java/Kotlin API и JNI-мост к C++-ядру |
+| `android/libs` | Android-модули маршрутов, загрузки, брендинга и интеграций |
+| `libs` | C++-ядро: карта, поиск, маршрутизация, геометрия, хранилище и рендеринг |
+| `data`, `generator` | Картографические ресурсы, локализации и генерация данных |
+| `iphone`, `xcode`, `qt`, `android/wear` | Другие платформы исходного проекта |
+| `tools`, `docs` | Инструменты разработки и документация |
 
-## Beta
+## Проверки и участие
 
-Please join our beta program, suggest your features, and report bugs:
+Из каталога `android`:
 
-- [iOS Beta (TestFlight)](https://testflight.apple.com/join/lrKCl08I)
-- [Android Beta (Firebase)](https://appdistribution.firebase.dev/i/f3e918f9abc40c9c)
+```bash
+./gradlew :app:testFdroidDebugUnitTest :sdk:testDebugUnitTest -Parm64
+./gradlew lintAllModules
+```
 
-## Feedback
+Перед выпуском также проверьте подписанный APK на телефоне: запуск, выдачу разрешений,
+маршрут до пика в пешем режиме, офлайн-поиск, импорт GPX, поворот экрана, крупный шрифт,
+сворачивание приложения и SOS без сохранённой геопозиции.
 
-- **Rate us on the [App Store](https://apps.apple.com/app/organic-maps/id1567437057)
-and [Google Play](https://play.google.com/store/apps/details?id=app.organicmaps)**.
-- **Star us on Github**.
-- Report bugs or issues to [the issue tracker](https://github.com/organicmaps/organicmaps/issues).
-- Subscribe to our [Telegram Channel](https://t.me/OrganicMapsApp) or to the [[matrix] space](https://matrix.to/#/#organicmaps:matrix.org) for updates.
-- Join our [Telegram Group](https://t.me/OrganicMaps) to discuss with other users.
-  - Присоединяйтесь к нашей [русскоязычной группе в Telegram](https://t.me/OrganicMapsRu) для обратной связи и помощи.
-  - Diğer kullanıcılarla tartışmak için [Telegram Grubumuza](https://t.me/OrganicMapsTR) katılın.
-  - Rejoignez notre groupe [Telegram](https://t.me/OrganicMapsFR) pour obtenir de l'aide.
-- Contact us by [email](mailto:hello@organicmaps.app).
-- Follow our updates in social media:
-   - [Mastodon](https://fosstodon.org/@organicmaps)
-   - [Facebook](https://facebook.com/OrganicMaps)
-   - [X (Twitter)](https://x.com/OrganicMapsApp)
-   - [Instagram](https://instagram.com/organicmaps.app/)
-   - [Bluesky](https://bsky.app/profile/organicmaps.bsky.social)
-   - [Threads](https://www.threads.net/@organicmaps)
-   - [Reddit](https://www.reddit.com/r/organicmaps/)
-   - [LinkedIn](https://www.linkedin.com/company/organic-maps/)
-   - [TikTok](https://www.tiktok.com/@organicmaps)
+В сообщении об ошибке указывайте коммит, вариант сборки, модель телефона, версию Android,
+шаги воспроизведения и Logcat при падении. Не прикладывайте личные контакты и ключи.
+Правила разработки: [AGENTS.md](AGENTS.md), [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md).
 
-The Organic Maps community abides by the CNCF [code of conduct](https://github.com/organicmaps/organicmaps/blob/master/docs/CODE_OF_CONDUCT.md).
+## Основа и лицензии
 
-## License and Copyrights
+Картографический движок, офлайн-поиск, маршрутизация и большая часть инфраструктуры
+разработаны **Organic Maps Project** и его участниками. AreaMap добавляет собственные
+Android-сценарии поверх этой основы.
 
-The code is Licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE), [NOTICE](NOTICE),
-[data/copyright.html](http://htmlpreview.github.io/?https://github.com/organicmaps/organicmaps/blob/master/data/copyright.html) and [.reuse/dep5](https://github.com/organicmaps/organicmaps/blob/master/.reuse/dep5) for more information.
+См. [LICENSE](LICENSE), [NOTICE](NOTICE), [DATA_LICENSE.txt](DATA_LICENSE.txt)
+и [data/copyright.html](data/copyright.html). Исходный код и бинарные картографические
+данные имеют отдельные условия использования. В `DATA_LICENSE.txt` этой версии
+есть требования к атрибуции и письменному разрешению на ребрендинг бинарных данных;
+их нужно учесть перед распространением AreaMap.
 
-Binary data files (including, but not limited to `.mwm` map files) are provided under a separate license.
-See [DATA_LICENSE.txt](https://github.com/organicmaps/organicmaps/blob/master/DATA_LICENSE.txt) for details.
-
-[![REUSE status](https://api.reuse.software/badge/github.com/organicmaps/organicmaps)](https://api.reuse.software/info/github.com/organicmaps/organicmaps)
-
-### Attribution for forks and derivative apps based on Organic Maps
-
-If you use Organic Maps binary data (e.g. maps), source code, or its user interface in your project, include a visible, human-readable mention of the “Organic Maps Project” and a clickable link to https://organicmaps.app.
-To respect the work of all project contributors and to comply with license attribution terms, this notice should appear in user-visible locations, such as the product’s “About” and “Main Menu” screens.
-
-### 🤝 White-label
-
-For inquiries about white-labeling or using our servers for your products, please contact us in advance at:
-
-**legal@organicmaps.app**
-
-Thank you!
-Executing tasks: [:app:assembleFdroidDebug] in project C:\ProgProjects\AreaMap\android
-
-
-cd /c/ProgProjects/AreaMap
-
-for module in app sdk libs/car libs/downloader libs/routing; do
-  for locale in HK MO; do
-    for name in strings.xml types_strings.xml; do
-      file="android/$module/src/main/res/values-zh-r$locale/$name"
-      if [ -f "$file" ] && [ ! -L "$file" ] && [ "$(cat "$file")" = "../values-zh-rTW/$name" ]; then
-        cp "android/$module/src/main/res/values-zh-rTW/$name" "$file" || exit 1
-      fi
-    done
-  done
-done
-
-For more on this, please refer to https://docs.gradle.org/9.6.0/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
-
-BUILD FAILED in 3m 1s
-254 actionable tasks: 214 executed, 40 from cache
+Map data © [OpenStreetMap](https://www.openstreetmap.org/copyright) and
+[Organic Maps](https://organicmaps.app).
