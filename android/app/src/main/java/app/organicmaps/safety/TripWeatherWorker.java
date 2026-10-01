@@ -5,6 +5,7 @@ import androidx.annotation.NonNull;
 import androidx.work.ExistingPeriodicWorkPolicy;
 import androidx.work.ExistingWorkPolicy;
 import androidx.work.OneTimeWorkRequest;
+import androidx.work.OutOfQuotaPolicy;
 import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
 import androidx.work.Worker;
@@ -40,7 +41,9 @@ public final class TripWeatherWorker extends Worker
   {
     final WorkManager manager = WorkManager.getInstance(context);
     manager.enqueueUniqueWork(UNIQUE_NOW, ExistingWorkPolicy.REPLACE,
-        new OneTimeWorkRequest.Builder(TripWeatherWorker.class).build());
+        new OneTimeWorkRequest.Builder(TripWeatherWorker.class)
+            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+            .build());
     manager.enqueueUniquePeriodicWork(UNIQUE_PERIODIC, ExistingPeriodicWorkPolicy.UPDATE,
         new PeriodicWorkRequest.Builder(TripWeatherWorker.class, 1, TimeUnit.HOURS).build());
   }
