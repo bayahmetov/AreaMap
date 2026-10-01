@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="areamap_nav_profile">Profile</string>
+  <string name="areamap_profile_name">Aidar Sartayev</string>
+  <string name="areamap_profile_tagline">Mountains, routes, new horizons.</string>
+  <string name="areamap_profile_location">Almaty and surroundings</string>
+  <string name="areamap_profile_edit">Edit</string>
+  <string name="areamap_profile_peaks">Peaks</string>
+  <string name="areamap_profile_hikes">Hikes</string>
+  <string name="areamap_profile_saved">Saved routes</string>
+  <string name="areamap_profile_offline">Offline regions</string>
+  <string name="areamap_profile_favorites">Favorites</string>
+  <string name="areamap_profile_my_routes">My routes</string>
+  <string name="areamap_profile_achievements">Achievements</string>
+  <string name="areamap_profile_history">Hike history</string>
+  <string name="areamap_profile_safety">Safety settings</string>
+  <string name="areamap_profile_content">My content</string>
+  <string name="areamap_profile_achievements_title">My achievements</string>
+  <string name="areamap_profile_first_peak">First summit</string>
+  <string name="areamap_profile_ten_hikes">10 hikes</string>
+  <string name="areamap_profile_safe_hiker">Safe hiker</string>
+  <string name="areamap_profile_almaty_explorer">Almaty explorer</string>
+  <string name="areamap_profile_progress">7/10</string>
+
+  <string name="areamap_sos_page_title">Emergency situation</string>
+  <string name="areamap_sos_page_subtitle">Call for help and share your location</string>
+  <string name="areamap_sos_hold">SOS</string>
+  <string name="areamap_sos_hold_hint">Press and hold for 3 seconds</string>
+  <string name="areamap_sos_location_title">Your current location</string>
+  <string name="areamap_sos_copy">Copy</string>
+  <string name="areamap_sos_route_title">Current route</string>
+  <string name="areamap_sos_route_value">Big Almaty Lake</string>
+  <string name="areamap_sos_route_meta">Almaty · Day hike</string>
+  <string name="areamap_sos_nearest_title">Nearest point</string>
+  <string name="areamap_sos_nearest_value">BAO checkpoint</string>
+  <string name="areamap_sos_nearest_meta">3.2 km · about 1 h 5 min on foot</string>
+  <string name="areamap_sos_altitude">Current altitude</string>
+  <string name="areamap_sos_battery">Device battery</string>
+  <string name="areamap_sos_share_location">Share location</string>
+  <string name="areamap_sos_warning_title">Attention!</string>
+  <string name="areamap_sos_warning">Do not make a false emergency call. When SOS is activated, your coordinates and route information may be shared with emergency services.</string>
+  <string name="areamap_sos_copied">Coordinates copied</string>
+
+  <string name="areamap_guides_hero_kicker">GUIDES</string>
+  <string name="areamap_guides_hero_title">Knowledge for safe adventures</string>
+  <string name="areamap_guides_hero_subtitle">Practical mountain guides, checklists and safety advice.</string>
+  <string name="areamap_guides_categories">Guide categories</string>
+  <string name="areamap_guides_category_route">Route preparation</string>
+  <string name="areamap_guides_category_weather">Weather & gear</string>
+  <string name="areamap_guides_category_survival">Mountain survival</string>
+  <string name="areamap_guides_category_wildlife">Wildlife</string>
+  <string name="areamap_guides_category_plants">Plants</string>
+  <string name="areamap_guides_category_water">Water sources</string>
+  <string name="areamap_guides_popular">Popular guides</string>
+
+  <string name="areamap_trip_center_title">Hike center</string>
+  <string name="areamap_trip_center_subtitle">Route status, safety tools and offline navigation in one place.</string>
+  <string name="areamap_trip_current_title">Current hike</string>
+  <string name="areamap_trip_quick_actions">Quick actions</string>
+  <string name="areamap_trip_import_title">Offline route</string>
+  <string name="areamap_trip_import_subtitle">Import GPX/KML and keep the route available without mobile service.</string>
+  <string name="areamap_trip_tools_title">Tools</string>
+  <string name="areamap_trip_language_row">App language</string>
+  <string name="areamap_trip_notifications_row">Schedule notification demo</string>
+
+  <string name="areamap_registration_intro">Registration sends route and contact details for the demo safety workflow.</string>
+  <string name="areamap_registration_participant">Participant details</string>
+  <string name="areamap_registration_emergency">Emergency contact</string>
+  <string name="areamap_registration_demo_note">Demo mode uses Telegram for the training example. It does not contact emergency services automatically.</string>
+</resources>
