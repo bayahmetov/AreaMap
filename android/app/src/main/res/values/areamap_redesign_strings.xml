@@ -46,7 +46,7 @@
   <string name="areamap_guides_hero_subtitle">Practical mountain guides, checklists and safety advice.</string>
   <string name="areamap_guides_categories">Guide categories</string>
   <string name="areamap_guides_category_route">Route preparation</string>
-  <string name="areamap_guides_category_weather">Weather & gear</string>
+  <string name="areamap_guides_category_weather">Weather &amp; gear</string>
   <string name="areamap_guides_category_survival">Mountain survival</string>
   <string name="areamap_guides_category_wildlife">Wildlife</string>
   <string name="areamap_guides_category_plants">Plants</string>
