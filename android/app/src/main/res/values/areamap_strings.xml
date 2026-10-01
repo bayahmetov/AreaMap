@@ -191,4 +191,28 @@
   <string name="areamap_schedule_demo_sent">Test schedule notification sent.</string>
   <string name="areamap_schedule_demo_permission">Notifications are disabled for AreaMap. Allow notifications and try again.</string>
   <string name="areamap_schedule_demo_permission_request">Allow notifications, then tap the demo button again.</string>
+
+  <string name="areamap_weather_title">Route weather</string>
+  <string name="areamap_weather_refresh">Refresh forecast</string>
+  <string name="areamap_weather_refresh_queued">Forecast refresh started. The saved forecast remains available offline.</string>
+  <string name="areamap_weather_no_trip">Forecast appears after a registered hike starts.</string>
+  <string name="areamap_weather_no_cache">Forecast has not been downloaded yet. When a connection is available AreaMap will cache it for offline use.</string>
+  <string name="areamap_weather_never_updated">not updated yet</string>
+  <string name="areamap_weather_highest_point">Highest point · %1$d m</string>
+  <string name="areamap_weather_destination">Destination</string>
+  <string name="areamap_weather_summary">%1$s · around %2$s\n%3$s · %4$.0f °C · rain %5$d%% · gusts up to %6$.0f km/h\nForecast updated: %7$s</string>
+  <string name="areamap_weather_channel">AreaMap hike weather</string>
+  <string name="areamap_weather_channel_description">Warnings about hazardous weather during an active hike.</string>
+  <string name="areamap_weather_alert_title">Weather on the route is worsening</string>
+  <string name="areamap_weather_alert_storm">%1$s: thunderstorm expected around %2$s. Avoid exposed ridges and summits.</string>
+  <string name="areamap_weather_alert_wind">%1$s: gusts up to %3$.0f km/h around %2$s.</string>
+  <string name="areamap_weather_alert_ice">%1$s: around %2$s temperature is near %3$.0f °C with precipitation. Ice and slippery terrain are possible.</string>
+  <string name="areamap_weather_alert_rain">%1$s: precipitation probability is %3$d%% around %2$s.</string>
+  <string name="areamap_weather_clear">clear</string>
+  <string name="areamap_weather_cloudy">cloudy</string>
+  <string name="areamap_weather_fog">fog</string>
+  <string name="areamap_weather_rain">rain</string>
+  <string name="areamap_weather_snow">snow</string>
+  <string name="areamap_weather_storm">thunderstorm</string>
+  <string name="areamap_weather_unknown">variable weather</string>
 </resources>
