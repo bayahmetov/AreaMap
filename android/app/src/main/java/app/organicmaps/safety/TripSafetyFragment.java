@@ -46,7 +46,7 @@ public class TripSafetyFragment extends BaseMwmFragment
 
     view.findViewById(R.id.guide_import)
         .setOnClickListener(v -> startActivity(new Intent(requireContext(), RouteImportActivity.class)));
-    view.findViewById(R.id.trip_sos).setOnClickListener(v -> showSos());
+    view.findViewById(R.id.trip_sos).setOnClickListener(v -> startActivity(new Intent(requireContext(), SosActivity.class)));
     view.findViewById(R.id.active_trip_resend)
         .setOnClickListener(v -> TripReportSender.shareToTelegram(requireActivity(), mSos.startReport()));
     view.findViewById(R.id.active_trip_finish).setOnClickListener(v -> confirmManualReturn());
@@ -60,11 +60,6 @@ public class TripSafetyFragment extends BaseMwmFragment
     refreshLastLocation(view);
     refreshActiveTrip(view);
 
-    if (requireActivity().getIntent().getBooleanExtra(TripSafetyActivity.EXTRA_SHOW_SOS, false))
-    {
-      requireActivity().getIntent().removeExtra(TripSafetyActivity.EXTRA_SHOW_SOS);
-      view.post(this::showSos);
-    }
   }
 
   private void showScheduleDemo()
