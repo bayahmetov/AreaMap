@@ -585,4 +585,45 @@
     <item name="textAllCaps">false</item>
     <item name="android:textAllCaps">false</item>
   </style>
+
+  <style name="AreaMap.ProfileStat" parent="">
+    <item name="android:layout_width">0dp</item>
+    <item name="android:layout_height">104dp</item>
+    <item name="android:layout_weight">1</item>
+    <item name="android:layout_margin">3dp</item>
+    <item name="android:background">@drawable/bg_areamap_stat</item>
+    <item name="android:gravity">center</item>
+    <item name="android:textAlignment">center</item>
+    <item name="android:textColor">@color/areamap_text</item>
+    <item name="android:textSize">14sp</item>
+    <item name="android:textStyle">bold</item>
+    <item name="android:padding">8dp</item>
+  </style>
+
+  <style name="AreaMap.ProfileRow" parent="">
+    <item name="android:layout_width">match_parent</item>
+    <item name="android:layout_height">62dp</item>
+    <item name="android:gravity">center_vertical</item>
+    <item name="android:textColor">@color/areamap_text</item>
+    <item name="android:textSize">17sp</item>
+    <item name="android:textStyle">bold</item>
+    <item name="android:clickable">true</item>
+    <item name="android:focusable">true</item>
+    <item name="android:foreground">?attr/selectableItemBackground</item>
+  </style>
+
+  <style name="AreaMap.AchievementCard" parent="">
+    <item name="android:layout_width">0dp</item>
+    <item name="android:layout_height">138dp</item>
+    <item name="android:layout_weight">1</item>
+    <item name="android:layout_margin">4dp</item>
+    <item name="android:background">@drawable/bg_areamap_stat</item>
+    <item name="android:gravity">center</item>
+    <item name="android:textAlignment">center</item>
+    <item name="android:textColor">@color/areamap_text</item>
+    <item name="android:textSize">13sp</item>
+    <item name="android:textStyle">bold</item>
+    <item name="android:padding">8dp</item>
+  </style>
+
 </resources>
