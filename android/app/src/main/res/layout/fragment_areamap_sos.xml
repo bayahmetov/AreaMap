@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/areamap_bg"
+    android:fillViewport="true">
+
+  <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:orientation="vertical"
+      android:paddingStart="18dp"
+      android:paddingEnd="18dp"
+      android:paddingTop="18dp"
+      android:paddingBottom="36dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/areamap_sos_page_title"
+        android:textColor="@color/areamap_red"
+        android:textSize="26sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="@string/areamap_sos_page_subtitle"
+        android:textColor="@color/areamap_text_secondary"
+        android:textSize="15sp" />
+
+    <LinearLayout
+        android:id="@+id/sos_hold"
+        android:layout_width="250dp"
+        android:layout_height="250dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="28dp"
+        android:background="@drawable/bg_areamap_sos_circle"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center"
+        android:orientation="vertical">
+
+      <TextView
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:text="@string/areamap_sos_hold"
+          android:textColor="@android:color/white"
+          android:textSize="46sp"
+          android:textStyle="bold" />
+
+      <TextView
+          android:layout_width="170dp"
+          android:layout_height="wrap_content"
+          android:layout_marginTop="8dp"
+          android:gravity="center"
+          android:text="@string/areamap_sos_hold_hint"
+          android:textColor="@android:color/white"
+          android:textSize="14sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="28dp"
+        android:background="@drawable/bg_areamap_outline"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="18dp">
+
+      <LinearLayout
+          android:layout_width="0dp"
+          android:layout_height="wrap_content"
+          android:layout_weight="1"
+          android:orientation="vertical">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/areamap_sos_location_title"
+            android:textColor="@color/areamap_text_secondary"
+            android:textSize="13sp" />
+        <TextView
+            android:id="@+id/sos_coordinates"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textColor="@color/areamap_text"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+      </LinearLayout>
+
+      <com.google.android.material.button.MaterialButton
+          android:id="@+id/sos_copy"
+          style="@style/AreaMap.SecondaryButton"
+          android:layout_width="wrap_content"
+          android:layout_height="46dp"
+          android:minHeight="46dp"
+          android:text="@string/areamap_sos_copy" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:background="@drawable/bg_areamap_outline"
+        android:orientation="vertical"
+        android:padding="18dp">
+      <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/areamap_sos_route_title" android:textColor="@color/areamap_text_secondary" android:textSize="13sp"/>
+      <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="@string/areamap_sos_route_value" android:textColor="@color/areamap_text" android:textSize="18sp" android:textStyle="bold"/>
+      <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="3dp" android:text="@string/areamap_sos_route_meta" android:textColor="@color/areamap_text_secondary" android:textSize="13sp"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:background="@drawable/bg_areamap_outline"
+        android:orientation="vertical"
+        android:padding="18dp">
+      <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/areamap_sos_nearest_title" android:textColor="@color/areamap_text_secondary" android:textSize="13sp"/>
+      <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="@string/areamap_sos_nearest_value" android:textColor="@color/areamap_text" android:textSize="17sp" android:textStyle="bold"/>
+      <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="3dp" android:text="@string/areamap_sos_nearest_meta" android:textColor="@color/areamap_text_secondary" android:textSize="13sp"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:orientation="horizontal"
+        android:baselineAligned="false">
+      <LinearLayout android:layout_width="0dp" android:layout_height="92dp" android:layout_weight="1" android:layout_marginEnd="6dp" android:background="@drawable/bg_areamap_outline" android:gravity="center" android:orientation="vertical">
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/areamap_sos_altitude" android:textColor="@color/areamap_text_secondary" android:textSize="12sp"/>
+        <TextView android:id="@+id/sos_altitude_value" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="5dp" android:textColor="@color/areamap_text" android:textSize="21sp" android:textStyle="bold"/>
+      </LinearLayout>
+      <LinearLayout android:layout_width="0dp" android:layout_height="92dp" android:layout_weight="1" android:layout_marginStart="6dp" android:background="@drawable/bg_areamap_outline" android:gravity="center" android:orientation="vertical">
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/areamap_sos_battery" android:textColor="@color/areamap_text_secondary" android:textSize="12sp"/>
+        <TextView android:id="@+id/sos_battery_value" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="5dp" android:textColor="@color/areamap_text" android:textSize="21sp" android:textStyle="bold"/>
+      </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:orientation="horizontal">
+
+      <com.google.android.material.button.MaterialButton
+          android:id="@+id/sos_call"
+          style="@style/AreaMap.ActionButton"
+          android:layout_width="0dp"
+          android:layout_height="58dp"
+          android:layout_weight="1"
+          android:layout_marginEnd="6dp"
+          android:text="@string/areamap_dial"
+          android:textColor="@android:color/white"
+          app:backgroundTint="@color/areamap_red" />
+
+      <com.google.android.material.button.MaterialButton
+          android:id="@+id/sos_share"
+          style="@style/AreaMap.SecondaryButton"
+          android:layout_width="0dp"
+          android:layout_height="58dp"
+          android:layout_weight="1"
+          android:layout_marginStart="6dp"
+          android:text="@string/areamap_sos_share_location" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:background="@drawable/bg_areamap_outline_red"
+        android:orientation="vertical"
+        android:padding="18dp">
+      <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/areamap_sos_warning_title" android:textColor="@color/areamap_red" android:textSize="18sp" android:textStyle="bold"/>
+      <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:text="@string/areamap_sos_warning" android:textColor="@color/areamap_text_secondary" android:textSize="13sp" android:lineSpacingExtra="3dp"/>
+    </LinearLayout>
+  </LinearLayout>
+</ScrollView>
