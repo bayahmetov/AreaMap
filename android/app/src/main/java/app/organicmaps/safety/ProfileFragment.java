@@ -13,7 +13,6 @@ import app.organicmaps.base.BaseMwmFragment;
 
 public class ProfileFragment extends BaseMwmFragment
 {
-  // AreaMap redesign profile entry point.
   @Nullable
   @Override
   public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle state)
