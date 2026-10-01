@@ -126,6 +126,11 @@ public final class TripSafety
         .putString("trip_finish_lon", Double.toString(plan.finishLon))
         .putString("trip_distance", Double.toString(plan.distanceMeters))
         .putString("trip_checkpoints", encodeCheckpoints(plan))
+        .putString("trip_weather_lat", Double.toString(plan.weatherLat))
+        .putString("trip_weather_lon", Double.toString(plan.weatherLon))
+        .putInt("trip_weather_altitude", plan.weatherAltitudeMeters)
+        .putInt("trip_weather_eta_seconds", plan.weatherEtaSeconds)
+        .putBoolean("trip_weather_highest", plan.weatherAtHighestPoint)
         .putBoolean("trip_departed_start", false)
         .putBoolean("trip_return_detected", false)
         .putBoolean("trip_return_prompt_dismissed", false)
@@ -134,6 +139,9 @@ public final class TripSafety
         .putInt("trip_timing_offset_seconds", 0)
         .putLong("trip_last_ok", 0)
         .apply();
+
+    TripWeatherRepository.clearAlertState(mContext);
+    TripWeatherWorker.start(mContext);
   }
 
   public boolean hasActiveTrip()
@@ -144,6 +152,35 @@ public final class TripSafety
   public boolean ownsTrackRecording()
   {
     return hasActiveTrip() && mPrefs.getBoolean("trip_owns_track_recording", false);
+  }
+
+  public double weatherLat()
+  {
+    return parseDouble("trip_weather_lat");
+  }
+
+  public double weatherLon()
+  {
+    return parseDouble("trip_weather_lon");
+  }
+
+  public int weatherAltitudeMeters()
+  {
+    return mPrefs.getInt("trip_weather_altitude", -1);
+  }
+
+  public boolean weatherAtHighestPoint()
+  {
+    return mPrefs.getBoolean("trip_weather_highest", false);
+  }
+
+  public long weatherTargetAtMillis()
+  {
+    final long startedAt = mPrefs.getLong("trip_started_at", 0L);
+    final int weatherEtaSeconds = mPrefs.getInt("trip_weather_eta_seconds",
+                                                mPrefs.getInt("trip_planned_seconds", 0));
+    final int offsetSeconds = mPrefs.getInt("trip_timing_offset_seconds", 0);
+    return startedAt + (weatherEtaSeconds + offsetSeconds) * 1000L;
   }
 
   public boolean shouldSuggestReturn()
@@ -203,6 +240,7 @@ public final class TripSafety
 
   public void completeTrip()
   {
+    TripWeatherWorker.stop(mContext);
     mPrefs.edit()
         .putBoolean("trip_active", false)
         .putBoolean("trip_return_detected", false)

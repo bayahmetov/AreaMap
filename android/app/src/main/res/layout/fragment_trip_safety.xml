@@ -59,6 +59,56 @@
           android:textSize="14sp"
           android:lineSpacingExtra="3dp" />
 
+      <TextView
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:layout_marginTop="16dp"
+          android:text="@string/areamap_weather_title"
+          android:textColor="@color/areamap_text"
+          android:textSize="16sp"
+          android:textStyle="bold" />
+
+      <TextView
+          android:id="@+id/active_trip_weather"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:layout_marginTop="6dp"
+          android:textColor="@color/areamap_text_secondary"
+          android:textSize="13sp"
+          android:lineSpacingExtra="3dp" />
+
+      <com.google.android.material.button.MaterialButton
+          android:id="@+id/active_trip_weather_refresh"
+          style="@style/AreaMap.SecondaryButton"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:layout_marginTop="10dp"
+          android:text="@string/areamap_weather_refresh" />
+
+      <LinearLayout
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:layout_marginTop="10dp"
+          android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/active_trip_ok"
+            style="@style/AreaMap.SecondaryButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/areamap_trip_im_ok" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/active_trip_break"
+            style="@style/AreaMap.SecondaryButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:text="@string/areamap_trip_break_20" />
+      </LinearLayout>
+
       <com.google.android.material.button.MaterialButton
           android:id="@+id/active_trip_resend"
           style="@style/AreaMap.SecondaryButton"
