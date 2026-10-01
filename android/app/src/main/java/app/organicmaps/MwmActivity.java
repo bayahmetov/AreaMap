@@ -679,7 +679,6 @@ public class MwmActivity extends BaseMwmFragmentActivity
     final View searchAction = nav.findViewById(R.id.areamap_nav_search);
     final View routeAction = nav.findViewById(R.id.areamap_nav_route);
     final View tripAction = nav.findViewById(R.id.areamap_nav_trip);
-    final View sosAction = nav.findViewById(R.id.areamap_nav_sos);
 
     searchAction.setOnClickListener(v -> showSearch(""));
     routeAction.setOnClickListener(v -> {
@@ -705,6 +704,8 @@ public class MwmActivity extends BaseMwmFragmentActivity
                           .putExtra(app.organicmaps.safety.TripSafetyActivity.EXTRA_SHOW_SOS, true)));
     nav.findViewById(R.id.areamap_nav_guides).setOnClickListener(v ->
         startActivity(new Intent(this, app.organicmaps.safety.GuideListActivity.class)));
+    nav.findViewById(R.id.areamap_nav_profile).setOnClickListener(v ->
+        startActivity(new Intent(this, app.organicmaps.safety.ProfileActivity.class)));
     nav.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) -> {
       if (b - t != ob - ot)
         refreshAreaMapBottomNav();
