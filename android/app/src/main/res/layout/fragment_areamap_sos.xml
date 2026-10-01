@@ -108,8 +108,8 @@
         android:orientation="vertical"
         android:padding="18dp">
       <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/areamap_sos_route_title" android:textColor="@color/areamap_text_secondary" android:textSize="13sp"/>
-      <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="@string/areamap_sos_route_value" android:textColor="@color/areamap_text" android:textSize="18sp" android:textStyle="bold"/>
-      <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="3dp" android:text="@string/areamap_sos_route_meta" android:textColor="@color/areamap_text_secondary" android:textSize="13sp"/>
+      <TextView android:id="@+id/sos_route_value" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="@string/areamap_sos_route_value" android:textColor="@color/areamap_text" android:textSize="18sp" android:textStyle="bold"/>
+      <TextView android:id="@+id/sos_route_meta" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="3dp" android:text="@string/areamap_sos_route_meta" android:textColor="@color/areamap_text_secondary" android:textSize="13sp"/>
     </LinearLayout>
 
     <LinearLayout
