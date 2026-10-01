@@ -547,6 +547,13 @@ public final class TripSafety
   @NonNull
   public String card()
   {
-    return mContext.getString(R.string.areamap_card, coordinates());
+    final StringBuilder out = new StringBuilder(mContext.getString(R.string.areamap_card, coordinates()));
+    if (hasActiveTrip())
+    {
+      out.append("\n\n").append(activeTripSummary());
+      out.append("\n\n").append(mContext.getString(R.string.areamap_weather_title)).append(":\n")
+         .append(TripWeatherNotifier.summary(mContext, this));
+    }
+    return out.toString();
   }
 }
