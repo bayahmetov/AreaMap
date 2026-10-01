@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-  <color name="areamap_bg">#111312</color>
-  <color name="areamap_surface">#1C1F1E</color>
-  <color name="areamap_surface_2">#262928</color>
-  <color name="areamap_surface_3">#303332</color>
-  <color name="areamap_text">#F4F6F5</color>
-  <color name="areamap_text_secondary">#A5AAA7</color>
-  <color name="areamap_text_muted">#737976</color>
-  <color name="areamap_green">#39D86F</color>
-  <color name="areamap_green_dark">#143D24</color>
-  <color name="areamap_amber">#F6B94A</color>
-  <color name="areamap_red">#F15E68</color>
-  <color name="areamap_stroke">#363A38</color>
+  <color name="areamap_bg">#08100F</color>
+  <color name="areamap_surface">#101817</color>
+  <color name="areamap_surface_2">#17201F</color>
+  <color name="areamap_surface_3">#202A28</color>
+  <color name="areamap_text">#F7F9F8</color>
+  <color name="areamap_text_secondary">#AEB6B2</color>
+  <color name="areamap_text_muted">#77817C</color>
+  <color name="areamap_green">#42F27B</color>
+  <color name="areamap_green_dark">#123922</color>
+  <color name="areamap_amber">#FFBD42</color>
+  <color name="areamap_red">#FF5364</color>
+  <color name="areamap_stroke">#34403C</color>
 </resources>
