@@ -191,4 +191,28 @@
   <string name="areamap_schedule_demo_sent">Тестовое уведомление графика отправлено.</string>
   <string name="areamap_schedule_demo_permission">Уведомления AreaMap выключены. Разрешите уведомления и попробуйте снова.</string>
   <string name="areamap_schedule_demo_permission_request">Разрешите уведомления, затем нажмите кнопку демо ещё раз.</string>
+
+  <string name="areamap_weather_title">Погода по маршруту</string>
+  <string name="areamap_weather_refresh">Обновить прогноз</string>
+  <string name="areamap_weather_refresh_queued">Обновление прогноза запущено. Сохранённый прогноз останется доступен офлайн.</string>
+  <string name="areamap_weather_no_trip">Прогноз появится после запуска зарегистрированного похода.</string>
+  <string name="areamap_weather_no_cache">Прогноз ещё не загружен. При наличии связи AreaMap сохранит его для офлайн-доступа.</string>
+  <string name="areamap_weather_never_updated">ещё не обновлялся</string>
+  <string name="areamap_weather_highest_point">Высшая точка · %1$d м</string>
+  <string name="areamap_weather_destination">Конечная точка</string>
+  <string name="areamap_weather_summary">%1$s · около %2$s\n%3$s · %4$.0f °C · дождь %5$d%% · порывы до %6$.0f км/ч\nПрогноз обновлён: %7$s</string>
+  <string name="areamap_weather_channel">Погода в походе AreaMap</string>
+  <string name="areamap_weather_channel_description">Предупреждения об опасной погоде во время активного похода.</string>
+  <string name="areamap_weather_alert_title">Погода на маршруте ухудшается</string>
+  <string name="areamap_weather_alert_storm">%1$s: около %2$s ожидается гроза. Избегайте открытых гребней и вершин.</string>
+  <string name="areamap_weather_alert_wind">%1$s: около %2$s порывы ветра до %3$.0f км/ч.</string>
+  <string name="areamap_weather_alert_ice">%1$s: около %2$s температура около %3$.0f °C и осадки. Возможен лёд и скользкие участки.</string>
+  <string name="areamap_weather_alert_rain">%1$s: около %2$s вероятность осадков %3$d%%.</string>
+  <string name="areamap_weather_clear">ясно</string>
+  <string name="areamap_weather_cloudy">облачно</string>
+  <string name="areamap_weather_fog">туман</string>
+  <string name="areamap_weather_rain">дождь</string>
+  <string name="areamap_weather_snow">снег</string>
+  <string name="areamap_weather_storm">гроза</string>
+  <string name="areamap_weather_unknown">переменная погода</string>
 </resources>
