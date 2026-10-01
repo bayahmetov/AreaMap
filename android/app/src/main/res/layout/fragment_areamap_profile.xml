@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/areamap_bg"
+    android:fillViewport="true">
+
+  <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:orientation="vertical"
+      android:paddingStart="18dp"
+      android:paddingEnd="18dp"
+      android:paddingTop="18dp"
+      android:paddingBottom="36dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+      <ImageView
+          android:layout_width="94dp"
+          android:layout_height="94dp"
+          android:background="@drawable/bg_areamap_stat"
+          android:padding="18dp"
+          android:src="@drawable/profile_generic"
+          android:tint="@color/areamap_text_secondary" />
+
+      <LinearLayout
+          android:layout_width="0dp"
+          android:layout_height="wrap_content"
+          android:layout_weight="1"
+          android:layout_marginStart="18dp"
+          android:orientation="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/areamap_profile_name"
+            android:textColor="@color/areamap_text"
+            android:textSize="26sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/areamap_profile_tagline"
+            android:textColor="@color/areamap_text_secondary"
+            android:textSize="14sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="@string/areamap_profile_location"
+            android:textColor="@color/areamap_text_secondary"
+            android:textSize="14sp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/profile_edit"
+            style="@style/AreaMap.SecondaryButton"
+            android:layout_width="wrap_content"
+            android:layout_height="42dp"
+            android:layout_marginTop="12dp"
+            android:minHeight="42dp"
+            android:text="@string/areamap_profile_edit" />
+      </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="18dp"
+        android:baselineAligned="false"
+        android:orientation="horizontal">
+
+      <TextView style="@style/AreaMap.ProfileStat" android:text="24&#10;Покорено&#10;вершин" />
+      <TextView style="@style/AreaMap.ProfileStat" android:text="56&#10;Всего&#10;походов" />
+      <TextView style="@style/AreaMap.ProfileStat" android:text="18&#10;Сохранено&#10;маршрутов" />
+      <TextView style="@style/AreaMap.ProfileStat" android:text="3&#10;Офлайн&#10;региона" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="18dp"
+        android:background="@drawable/bg_areamap_outline"
+        android:orientation="vertical"
+        android:paddingStart="18dp"
+        android:paddingEnd="18dp">
+
+      <TextView android:id="@+id/profile_favorites" style="@style/AreaMap.ProfileRow" android:text="@string/areamap_profile_favorites" />
+      <TextView android:id="@+id/profile_routes" style="@style/AreaMap.ProfileRow" android:text="@string/areamap_profile_my_routes" />
+      <TextView android:id="@+id/profile_achievements" style="@style/AreaMap.ProfileRow" android:text="@string/areamap_profile_achievements" />
+      <TextView android:id="@+id/profile_history" style="@style/AreaMap.ProfileRow" android:text="@string/areamap_profile_history" />
+      <TextView android:id="@+id/profile_safety" style="@style/AreaMap.ProfileRow" android:text="@string/areamap_profile_safety" />
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="26dp"
+        android:text="@string/areamap_profile_achievements_title"
+        android:textColor="@color/areamap_text"
+        android:textSize="22sp"
+        android:textStyle="bold" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:orientation="horizontal"
+        android:baselineAligned="false">
+
+      <TextView style="@style/AreaMap.AchievementCard" android:text="🏔&#10;&#10;Первая вершина" />
+      <TextView style="@style/AreaMap.AchievementCard" android:text="🥾&#10;&#10;10 походов" />
+      <TextView style="@style/AreaMap.AchievementCard" android:text="🛡&#10;&#10;Безопасный турист" />
+      <TextView style="@style/AreaMap.AchievementCard" android:text="🌄&#10;&#10;Алматы 7/10" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/profile_content"
+        style="@style/AreaMap.ProfileRow"
+        android:layout_marginTop="18dp"
+        android:background="@drawable/bg_areamap_outline"
+        android:paddingStart="18dp"
+        android:paddingEnd="18dp"
+        android:text="@string/areamap_profile_content" />
+
+  </LinearLayout>
+</ScrollView>
