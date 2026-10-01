@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="areamap_nav_profile">Профиль</string>
+  <string name="areamap_profile_name">Айдар Сартаев</string>
+  <string name="areamap_profile_tagline">Горы, маршруты, новые горизонты.</string>
+  <string name="areamap_profile_location">Алматы и окрестности</string>
+  <string name="areamap_profile_edit">Редактировать</string>
+  <string name="areamap_profile_peaks">Покорено вершин</string>
+  <string name="areamap_profile_hikes">Всего походов</string>
+  <string name="areamap_profile_saved">Сохранено маршрутов</string>
+  <string name="areamap_profile_offline">Офлайн региона</string>
+  <string name="areamap_profile_favorites">Избранное</string>
+  <string name="areamap_profile_my_routes">Мои маршруты</string>
+  <string name="areamap_profile_achievements">Достижения</string>
+  <string name="areamap_profile_history">История походов</string>
+  <string name="areamap_profile_safety">Настройки безопасности</string>
+  <string name="areamap_profile_content">Мой контент</string>
+  <string name="areamap_profile_achievements_title">Мои достижения</string>
+  <string name="areamap_profile_first_peak">Первая вершина</string>
+  <string name="areamap_profile_ten_hikes">10 походов</string>
+  <string name="areamap_profile_safe_hiker">Безопасный турист</string>
+  <string name="areamap_profile_almaty_explorer">Исследователь Алматы</string>
+  <string name="areamap_profile_progress">7/10</string>
+
+  <string name="areamap_sos_page_title">Экстренная ситуация</string>
+  <string name="areamap_sos_page_subtitle">Вызов помощи и передача вашей локации</string>
+  <string name="areamap_sos_hold">SOS</string>
+  <string name="areamap_sos_hold_hint">Нажмите и удерживайте 3 секунды</string>
+  <string name="areamap_sos_location_title">Ваше текущее местоположение</string>
+  <string name="areamap_sos_copy">Скопировать</string>
+  <string name="areamap_sos_route_title">Текущий маршрут</string>
+  <string name="areamap_sos_route_value">Большое Алматинское озеро</string>
+  <string name="areamap_sos_route_meta">Алматы · Однодневный маршрут</string>
+  <string name="areamap_sos_nearest_title">Ближайший пункт</string>
+  <string name="areamap_sos_nearest_value">БАО (контрольно-пропускной пункт)</string>
+  <string name="areamap_sos_nearest_meta">3.2 км · ~ 1 ч 5 мин пешком</string>
+  <string name="areamap_sos_altitude">Текущая высота</string>
+  <string name="areamap_sos_battery">Заряд устройства</string>
+  <string name="areamap_sos_share_location">Поделиться локацией</string>
+  <string name="areamap_sos_warning_title">Внимание!</string>
+  <string name="areamap_sos_warning">Не совершайте ложный вызов. При активации SOS координаты и данные маршрута могут быть переданы экстренным службам.</string>
+  <string name="areamap_sos_copied">Координаты скопированы</string>
+
+  <string name="areamap_guides_hero_kicker">ГАЙДЫ</string>
+  <string name="areamap_guides_hero_title">Знания для безопасных приключений</string>
+  <string name="areamap_guides_hero_subtitle">Практичные гайды, советы и чек-листы для гор.</string>
+  <string name="areamap_guides_categories">Категории гайдов</string>
+  <string name="areamap_guides_category_route">Подготовка маршрута</string>
+  <string name="areamap_guides_category_weather">Погода и снаряжение</string>
+  <string name="areamap_guides_category_survival">Выживание в горах</string>
+  <string name="areamap_guides_category_wildlife">Медведи и животные</string>
+  <string name="areamap_guides_category_plants">Растения</string>
+  <string name="areamap_guides_category_water">Источники воды</string>
+  <string name="areamap_guides_popular">Популярные гайды</string>
+
+  <string name="areamap_trip_center_title">Центр похода</string>
+  <string name="areamap_trip_center_subtitle">Статус маршрута, безопасность и офлайн-навигация в одном месте.</string>
+  <string name="areamap_trip_current_title">Текущий поход</string>
+  <string name="areamap_trip_quick_actions">Быстрые действия</string>
+  <string name="areamap_trip_import_title">Офлайн-маршрут</string>
+  <string name="areamap_trip_import_subtitle">Импортируйте GPX/KML и сохраните маршрут доступным без мобильной связи.</string>
+  <string name="areamap_trip_tools_title">Инструменты</string>
+  <string name="areamap_trip_language_row">Язык приложения</string>
+  <string name="areamap_trip_notifications_row">Демо уведомления по графику</string>
+
+  <string name="areamap_registration_intro">Регистрация передаёт маршрут и контактные данные в демонстрационный сценарий безопасности.</string>
+  <string name="areamap_registration_participant">Данные участника</string>
+  <string name="areamap_registration_emergency">Экстренный контакт</string>
+  <string name="areamap_registration_demo_note">Для демо-режима используется Telegram. Это учебный пример и он не вызывает экстренные службы автоматически.</string>
+</resources>
