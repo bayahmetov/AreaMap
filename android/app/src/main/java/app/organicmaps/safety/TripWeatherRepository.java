@@ -2,6 +2,9 @@ package app.organicmaps.safety;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkCapabilities;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import java.io.BufferedReader;
@@ -72,6 +75,9 @@ public final class TripWeatherRepository
     if (!moved && prefs.contains(KEY_JSON) && now - prefs.getLong(KEY_FETCHED_AT, 0L) < REFRESH_MS)
       return true;
 
+    if (!isNetworkConnected(context))
+      return prefs.contains(KEY_JSON);
+
     HttpURLConnection connection = null;
     try
     {
@@ -80,7 +86,7 @@ public final class TripWeatherRepository
           "https://api.open-meteo.com/v1/forecast"
               + "?latitude=%.6f&longitude=%.6f%s"
               + "&hourly=temperature_2m,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_gusts_10m"
-              + "&forecast_days=2&timezone=auto",
+              + "&forecast_days=2&timeformat=unixtime&timezone=GMT",
           lat, lon, altitude);
 
       connection = (HttpURLConnection) new URL(endpoint).openConnection();
@@ -140,15 +146,9 @@ public final class TripWeatherRepository
 
       long bestDistance = Long.MAX_VALUE;
       Hour best = null;
-      final java.text.SimpleDateFormat parser =
-          new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm", Locale.US);
-      parser.setLenient(false);
       for (int i = 0; i < times.length(); i++)
       {
-        final java.util.Date parsed = parser.parse(times.getString(i));
-        if (parsed == null)
-          continue;
-        final long time = parsed.getTime();
+        final long time = times.getLong(i) * 1000L;
         final long distance = Math.abs(time - targetMillis);
         if (distance >= bestDistance)
           continue;
@@ -176,15 +176,12 @@ public final class TripWeatherRepository
       final JSONObject root = new JSONObject(raw);
       final JSONObject hourly = root.getJSONObject("hourly");
       final JSONArray times = hourly.getJSONArray("time");
-      final java.text.SimpleDateFormat parser =
-          new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm", Locale.US);
-      parser.setLenient(false);
       for (int i = 0; i < times.length(); i++)
       {
-        final java.util.Date parsed = parser.parse(times.getString(i));
-        if (parsed == null || parsed.getTime() < fromMillis || parsed.getTime() > toMillis)
+        final long time = times.getLong(i) * 1000L;
+        if (time < fromMillis || time > toMillis)
           continue;
-        final Hour hour = hourAt(hourly, i, parsed.getTime());
+        final Hour hour = hourAt(hourly, i, time);
         if (isHazard(hour))
           return hour;
       }
@@ -243,6 +240,19 @@ public final class TripWeatherRepository
         hourly.optJSONArray("weather_code").optInt(i, 0),
         hourly.optJSONArray("wind_speed_10m").optDouble(i, 0.0),
         hourly.optJSONArray("wind_gusts_10m").optDouble(i, 0.0));
+  }
+
+  private static boolean isNetworkConnected(@NonNull Context context)
+  {
+    final ConnectivityManager manager =
+        (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+    if (manager == null)
+      return false;
+    final Network network = manager.getActiveNetwork();
+    if (network == null)
+      return false;
+    final NetworkCapabilities capabilities = manager.getNetworkCapabilities(network);
+    return capabilities != null && capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET);
   }
 
   @NonNull
