@@ -50,6 +50,20 @@ public class TripSafetyFragment extends BaseMwmFragment
     view.findViewById(R.id.active_trip_resend)
         .setOnClickListener(v -> TripReportSender.shareToTelegram(requireActivity(), mSos.startReport()));
     view.findViewById(R.id.active_trip_finish).setOnClickListener(v -> confirmManualReturn());
+    view.findViewById(R.id.active_trip_ok).setOnClickListener(v -> {
+      mSos.markImOk();
+      Toast.makeText(requireContext(), R.string.areamap_trip_ok_saved, Toast.LENGTH_SHORT).show();
+      refreshActiveTrip(view);
+    });
+    view.findViewById(R.id.active_trip_break).setOnClickListener(v -> {
+      mSos.addBreakMinutes(20);
+      Toast.makeText(requireContext(), R.string.areamap_trip_break_added, Toast.LENGTH_SHORT).show();
+      refreshActiveTrip(view);
+    });
+    view.findViewById(R.id.active_trip_weather_refresh).setOnClickListener(v -> {
+      TripWeatherWorker.refreshNow(requireContext());
+      Toast.makeText(requireContext(), R.string.areamap_weather_refresh_queued, Toast.LENGTH_SHORT).show();
+    });
     view.findViewById(R.id.schedule_demo_notification)
         .setOnClickListener(v -> showScheduleDemo());
     view.findViewById(R.id.language_change)
@@ -100,6 +114,8 @@ public class TripSafetyFragment extends BaseMwmFragment
     }
     section.setVisibility(View.VISIBLE);
     ((TextView) view.findViewById(R.id.active_trip_summary)).setText(mSos.activeTripSummary());
+    ((TextView) view.findViewById(R.id.active_trip_weather))
+        .setText(TripWeatherNotifier.summary(requireContext(), mSos));
   }
 
   private void confirmManualReturn()
