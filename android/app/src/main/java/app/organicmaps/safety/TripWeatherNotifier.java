@@ -45,10 +45,13 @@ public final class TripWeatherNotifier
 
     final long now = System.currentTimeMillis();
     final long target = safety.weatherTargetAtMillis();
-    final long untilTarget = Math.max(0L, target - now);
-    final long end = now + Math.max(LOOKAHEAD_MS, untilTarget + 30 * 60 * 1000L);
+    if (target <= 0L || target - now > LOOKAHEAD_MS || now - target > 30 * 60 * 1000L)
+      return;
+
+    final long from = Math.max(now, target - 60 * 60 * 1000L);
+    final long end = target + 60 * 60 * 1000L;
     final TripWeatherRepository.Hour hazard =
-        TripWeatherRepository.firstHazard(context, now, end);
+        TripWeatherRepository.firstHazard(context, from, end);
     if (hazard == null || !TripWeatherRepository.markAlertIfNew(context, hazard))
       return;
 
