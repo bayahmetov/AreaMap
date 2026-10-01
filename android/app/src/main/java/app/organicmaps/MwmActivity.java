@@ -699,9 +699,6 @@ public class MwmActivity extends BaseMwmFragmentActivity
     });
     tripAction.setOnClickListener(v ->
         startActivity(new Intent(this, app.organicmaps.safety.TripSafetyActivity.class)));
-    sosAction.setOnClickListener(v ->
-        startActivity(new Intent(this, app.organicmaps.safety.TripSafetyActivity.class)
-                          .putExtra(app.organicmaps.safety.TripSafetyActivity.EXTRA_SHOW_SOS, true)));
     nav.findViewById(R.id.areamap_nav_guides).setOnClickListener(v ->
         startActivity(new Intent(this, app.organicmaps.safety.GuideListActivity.class)));
     nav.findViewById(R.id.areamap_nav_profile).setOnClickListener(v ->
