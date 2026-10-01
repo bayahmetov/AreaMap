@@ -550,6 +550,18 @@
         android:parentActivityName="app.organicmaps.MwmActivity" />
 
     <activity
+        android:name=".safety.ProfileActivity"
+        android:label="@string/areamap_nav_profile"
+        android:exported="false"
+        android:parentActivityName="app.organicmaps.MwmActivity" />
+
+    <activity
+        android:name=".safety.SosActivity"
+        android:label="@string/areamap_sos_page_title"
+        android:exported="false"
+        android:parentActivityName="app.organicmaps.MwmActivity" />
+
+    <activity
         android:name=".safety.GuideListActivity"
         android:label="@string/areamap_nav_guides"
         android:exported="false"
