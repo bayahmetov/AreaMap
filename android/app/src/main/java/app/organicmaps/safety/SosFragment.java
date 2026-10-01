@@ -46,6 +46,14 @@ public class SosFragment extends BaseMwmFragment
 
     final String coordinates = safety.coordinates();
     ((TextView) view.findViewById(R.id.sos_coordinates)).setText(coordinates);
+
+    final String tripSummary = safety.activeTripSummary();
+    final int newline = tripSummary.indexOf('\n');
+    ((TextView) view.findViewById(R.id.sos_route_value))
+        .setText(newline >= 0 ? tripSummary.substring(0, newline) : tripSummary);
+    ((TextView) view.findViewById(R.id.sos_route_meta))
+        .setText(newline >= 0 ? tripSummary.substring(newline + 1) : "");
+
     ((TextView) view.findViewById(R.id.sos_altitude_value)).setText(
         location != null && location.hasAltitude()
             ? String.format(Locale.getDefault(), "%.0f м", location.getAltitude())
