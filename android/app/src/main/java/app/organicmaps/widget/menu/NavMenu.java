@@ -14,7 +14,6 @@ import androidx.lifecycle.DefaultLifecycleObserver;
 import androidx.lifecycle.LifecycleOwner;
 import app.organicmaps.MwmApplication;
 import app.organicmaps.R;
-import app.organicmaps.safety.TripSafety;
 import app.organicmaps.sdk.routing.RoutingInfo;
 import app.organicmaps.sdk.sound.TtsPlayer;
 import app.organicmaps.sdk.util.StringUtils;
@@ -117,7 +116,6 @@ public class NavMenu implements DefaultLifecycleObserver
     mTts.setOnClickListener(v -> onTtsClicked());
     mTripSafety = bottomFrame.findViewById(R.id.areamap_trip_safety);
     mTripSafety.setOnClickListener(v -> onTripSafetyClicked());
-    UiUtils.showIf(TripSafety.get(mActivity).hasActiveTrip(), mTripSafety);
     Button stop = bottomFrame.findViewById(R.id.stop);
     stop.setOnClickListener(v -> onStopClicked());
     UiUtils.updateRedButton(stop);
@@ -267,7 +265,6 @@ public class NavMenu implements DefaultLifecycleObserver
 
   public void update(@NonNull RoutingInfo info)
   {
-    UiUtils.showIf(TripSafety.get(mActivity).hasActiveTrip(), mTripSafety);
     updateSpeedView(info);
     updateTime(info.totalTimeInSeconds);
     mDistanceValue.setText(info.distToTarget.mDistanceStr);
