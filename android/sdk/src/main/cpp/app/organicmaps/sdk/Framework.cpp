@@ -1399,6 +1399,37 @@ JNIEXPORT void Java_app_organicmaps_sdk_Framework_nativeRouteRemoveElevationActi
     frm()->GetDrapeEngine()->DeselectObject(false);
 }
 
+JNIEXPORT void Java_app_organicmaps_sdk_Framework_nativeShowAreaMapCheckpoints(
+    JNIEnv * env, jclass, jdoubleArray jLats, jdoubleArray jLons)
+{
+  auto session = frm()->GetBookmarkManager().GetEditSession();
+  session.ClearGroup(UserMark::Type::COLORED);
+
+  if (jLats == nullptr || jLons == nullptr)
+    return;
+
+  jsize const count = std::min(env->GetArrayLength(jLats), env->GetArrayLength(jLons));
+  if (count <= 0)
+    return;
+
+  std::vector<jdouble> lats(static_cast<size_t>(count));
+  std::vector<jdouble> lons(static_cast<size_t>(count));
+  env->GetDoubleArrayRegion(jLats, 0, count, lats.data());
+  env->GetDoubleArrayRegion(jLons, 0, count, lons.data());
+
+  for (jsize i = 0; i < count; ++i)
+  {
+    auto * mark = session.CreateUserMark<AreaMapCheckpointMark>(
+        mercator::FromLatLon(lats[static_cast<size_t>(i)], lons[static_cast<size_t>(i)]));
+    mark->SetNumber(std::to_string(i + 1));
+  }
+}
+
+JNIEXPORT void Java_app_organicmaps_sdk_Framework_nativeClearAreaMapCheckpoints(JNIEnv *, jclass)
+{
+  frm()->GetBookmarkManager().GetEditSession().ClearGroup(UserMark::Type::COLORED);
+}
+
 JNIEXPORT void Java_app_organicmaps_sdk_Framework_nativeShowCountry(JNIEnv * env, jclass, jstring countryId,
                                                                     jboolean zoomToDownloadButton)
 {
