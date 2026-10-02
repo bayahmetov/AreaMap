@@ -279,6 +279,36 @@ public final class TripSafety
   }
 
   @NonNull
+  public String okReport()
+  {
+    final Profile profile = getProfile();
+    final StringBuilder out = new StringBuilder();
+    out.append(mContext.getString(R.string.areamap_report_ok_header)).append('\n');
+    out.append(mContext.getString(R.string.areamap_report_trip_id, mPrefs.getString("trip_id", "—"))).append('\n');
+    out.append(mContext.getString(R.string.areamap_report_person, profile.name, profile.phone)).append('\n');
+    out.append(mContext.getString(R.string.areamap_report_ok_time,
+                                  formatTime(System.currentTimeMillis()))).append('\n');
+    out.append(mContext.getString(R.string.areamap_report_last_fix, coordinates())).append('\n');
+    out.append(mContext.getString(R.string.areamap_nav_return_eta,
+                                  formatClock(mPrefs.getLong("trip_planned_return", 0))));
+    return out.toString();
+  }
+
+  @NonNull
+  public String breakReport(int addedMinutes)
+  {
+    final Profile profile = getProfile();
+    final StringBuilder out = new StringBuilder();
+    out.append(mContext.getString(R.string.areamap_report_break_header)).append('\n');
+    out.append(mContext.getString(R.string.areamap_report_trip_id, mPrefs.getString("trip_id", "—"))).append('\n');
+    out.append(mContext.getString(R.string.areamap_report_person, profile.name, profile.phone)).append('\n');
+    out.append(mContext.getString(R.string.areamap_report_break_time, addedMinutes,
+                                  formatClock(mPrefs.getLong("trip_planned_return", 0)))).append('\n');
+    out.append(mContext.getString(R.string.areamap_report_last_fix, coordinates()));
+    return out.toString();
+  }
+
+  @NonNull
   private String report(boolean returned)
   {
     final Profile profile = getProfile();
