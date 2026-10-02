@@ -480,6 +480,75 @@ final class RoutingBottomMenuController
     UiUtils.show(mAltitudeDifference, mAltitudeChart);
   }
 
+  private void updateAreaMapPreview(@NonNull TripPlan plan, int ascentMeters)
+  {
+    final String routeName;
+    if (!plan.startTitle.isEmpty() && !plan.finishTitle.isEmpty())
+      routeName = plan.startTitle + " — " + plan.finishTitle;
+    else if (!plan.finishTitle.isEmpty())
+      routeName = plan.finishTitle;
+    else
+      routeName = mContext.getString(R.string.areamap_route_untitled);
+
+    mAreaMapRouteName.setText(routeName);
+    mAreaMapMetricDistance.setText(
+        mContext.getString(R.string.areamap_route_metric_distance, plan.distanceMeters / 1000.0));
+    mAreaMapMetricAscent.setText(
+        mContext.getString(R.string.areamap_route_metric_ascent, ascentMeters));
+    mAreaMapMetricTime.setText(
+        mContext.getString(R.string.areamap_route_metric_time,
+                           Utils.formatRoutingTime(mContext, plan.plannedSeconds,
+                                                   R.dimen.text_size_body_3).toString()));
+
+    final int count = plan.checkpoints.size();
+    final double[] lats = new double[count];
+    final double[] lons = new double[count];
+    for (int i = 0; i < count; ++i)
+    {
+      final TripPlan.Checkpoint checkpoint = plan.checkpoints.get(i);
+      lats[i] = checkpoint.lat;
+      lons[i] = checkpoint.lon;
+    }
+    Framework.nativeShowAreaMapCheckpoints(lats, lons);
+
+    final TripSafety safety = TripSafety.get(mContext);
+    safety.saveWeatherPreview(plan);
+    updateAreaMapWeatherText(safety);
+
+    final String key = String.format(java.util.Locale.US, "%.5f:%.5f:%d",
+                                     plan.weatherLat, plan.weatherLon, plan.weatherAltitudeMeters);
+    if (key.equals(mWeatherPreviewKey))
+      return;
+    mWeatherPreviewKey = key;
+    mAreaMapWeather.setText(R.string.areamap_route_weather_loading);
+
+    new Thread(() -> {
+      TripWeatherRepository.refreshIfNeeded(mContext, safety);
+      mContext.runOnUiThread(() -> {
+        if (key.equals(mWeatherPreviewKey))
+          updateAreaMapWeatherText(safety);
+      });
+    }, "AreaMapWeatherPreview").start();
+  }
+
+  private void updateAreaMapWeatherText(@NonNull TripSafety safety)
+  {
+    final TripWeatherRepository.Hour hour =
+        TripWeatherRepository.closestHour(mContext, safety.weatherTargetAtMillis());
+    if (hour == null)
+    {
+      mAreaMapWeather.setText(R.string.areamap_weather_no_cache);
+      return;
+    }
+
+    final String point = safety.weatherAtHighestPoint()
+        ? mContext.getString(R.string.areamap_weather_highest_point, safety.weatherAltitudeMeters())
+        : mContext.getString(R.string.areamap_weather_destination);
+    mAreaMapWeather.setText(mContext.getString(R.string.areamap_route_weather_compact, point,
+                                               hour.temperatureC, hour.precipitationProbability,
+                                               hour.gustKmh));
+  }
+
   private void showRoutingDetails()
   {
     final RoutingInfo rinfo = RoutingController.get().getCachedRoutingInfo();
