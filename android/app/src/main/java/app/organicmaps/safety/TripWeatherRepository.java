@@ -77,7 +77,7 @@ public final class TripWeatherRepository
       return true;
 
     if (!isNetworkConnected(context))
-      return prefs.contains(KEY_JSON);
+      return !moved && prefs.contains(KEY_JSON);
 
     HttpURLConnection connection = null;
     try
@@ -125,6 +125,20 @@ public final class TripWeatherRepository
       if (connection != null)
         connection.disconnect();
     }
+  }
+
+  public static boolean hasForecastForPoint(@NonNull Context context, double lat, double lon, int alt)
+  {
+    final SharedPreferences prefs = prefs(context);
+    if (!prefs.contains(KEY_JSON))
+      return false;
+
+    final double cachedLat = parseDouble(prefs.getString(KEY_LAT, "999"));
+    final double cachedLon = parseDouble(prefs.getString(KEY_LON, "999"));
+    final int cachedAlt = prefs.getInt(KEY_ALT, -10000);
+    return Math.abs(lat - cachedLat) <= 0.002
+        && Math.abs(lon - cachedLon) <= 0.002
+        && (alt < 0 || cachedAlt < 0 || Math.abs(alt - cachedAlt) <= 100);
   }
 
   @Nullable
