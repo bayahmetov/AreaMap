@@ -213,7 +213,9 @@ public class MwmActivity extends BaseMwmFragmentActivity
   private ActivityResultLauncher<String[]> mLocationPermissionRequest;
   private boolean mLocationPermissionRequestedForRecording = false;
   private boolean mLocationPermissionRequestedForGpx = false;
-  private boolean mPendingAreaMapNavigationAfterLocationPermission = false;
+  private boolean mLocationPermissionRequestedForAreaMapTrip = false;
+  @Nullable private TripPlan mPendingRegisteredTripPlan;
+  @Nullable private TripSafety.Profile mPendingRegisteredTripProfile;
 
   @SuppressWarnings("NotNullFieldNotInitialized")
   private ActivityResultLauncher<String> mPostNotificationPermissionRequest;
@@ -1412,7 +1414,8 @@ public class MwmActivity extends BaseMwmFragmentActivity
       return;
     }
 
-    TripStartFlow.show(this, plan, this::startAreaMapNavigationNow, this::startAreaMapNavigationNow);
+    TripStartFlow.show(this, plan, this::startAreaMapNavigationNow,
+                       profile -> startRegisteredAreaMapRoute(plan, profile));
   }
 
   private void showAreaMapRoutingDisclaimer(@NonNull TripPlan plan)
@@ -1440,28 +1443,48 @@ public class MwmActivity extends BaseMwmFragmentActivity
 
   private void startAreaMapNavigationNow()
   {
-    final TripSafety safety = TripSafety.get(this);
-    if (safety.hasActiveTrip())
-    {
-      requestPostNotificationsPermission();
-      if (safety.ownsTrackRecording() && !LocationUtils.checkFineLocationPermission(this))
-      {
-        mPendingAreaMapNavigationAfterLocationPermission = true;
-        mLocationPermissionRequestedForRecording = true;
-        mLocationPermissionRequest.launch(new String[] {ACCESS_COARSE_LOCATION, ACCESS_FINE_LOCATION});
-        return;
-      }
+    continueAreaMapNavigationNow();
+  }
 
-      if (safety.ownsTrackRecording() && !TrackRecorder.nativeIsTrackRecordingEnabled())
-        startTrackRecording();
+  private void startRegisteredAreaMapRoute(@NonNull TripPlan plan, @NonNull TripSafety.Profile profile)
+  {
+    if (!LocationUtils.checkFineLocationPermission(this))
+    {
+      mPendingRegisteredTripPlan = plan;
+      mPendingRegisteredTripProfile = profile;
+      mLocationPermissionRequestedForAreaMapTrip = true;
+      mLocationPermissionRequest.launch(new String[] {ACCESS_COARSE_LOCATION, ACCESS_FINE_LOCATION});
+      return;
     }
 
+    beginRegisteredAreaMapRoute(plan, profile);
+  }
+
+  private void beginRegisteredAreaMapRoute(@NonNull TripPlan plan, @NonNull TripSafety.Profile profile)
+  {
+    clearPendingRegisteredAreaMapTrip();
+
+    final boolean ownsTrackRecording = !TrackRecorder.nativeIsTrackRecordingEnabled();
+    final TripSafety safety = TripSafety.get(this);
+    safety.startMonitoredTrip(plan, profile, ownsTrackRecording);
+    requestPostNotificationsPermission();
+
+    if (ownsTrackRecording)
+      startTrackRecording();
+
     continueAreaMapNavigationNow();
+    TripReportSender.shareToTelegram(this, safety.startReport());
+  }
+
+  private void clearPendingRegisteredAreaMapTrip()
+  {
+    mLocationPermissionRequestedForAreaMapTrip = false;
+    mPendingRegisteredTripPlan = null;
+    mPendingRegisteredTripProfile = null;
   }
 
   private void continueAreaMapNavigationNow()
   {
-    mPendingAreaMapNavigationAfterLocationPermission = false;
     hideAreaMapRoutePanel();
     closeFloatingPanels();
     setFullscreen(false);
@@ -2063,6 +2086,7 @@ public class MwmActivity extends BaseMwmFragmentActivity
 
     boolean requestedForRecording = mLocationPermissionRequestedForRecording;
     boolean requestedForGpx = mLocationPermissionRequestedForGpx;
+    boolean requestedForAreaMapTrip = mLocationPermissionRequestedForAreaMapTrip;
     mLocationPermissionRequestedForRecording = false;
     mLocationPermissionRequestedForGpx = false;
     if (LocationUtils.checkLocationPermission(this))
@@ -2073,10 +2097,16 @@ public class MwmActivity extends BaseMwmFragmentActivity
         LocationState.nativeSwitchToNextMode();
 
       if (requestedForRecording && hasFineLocationPermission)
-      {
         startTrackRecording();
-        if (mPendingAreaMapNavigationAfterLocationPermission)
-          continueAreaMapNavigationNow();
+
+      if (requestedForAreaMapTrip && hasFineLocationPermission)
+      {
+        final TripPlan pendingPlan = mPendingRegisteredTripPlan;
+        final TripSafety.Profile pendingProfile = mPendingRegisteredTripProfile;
+        if (pendingPlan != null && pendingProfile != null)
+          beginRegisteredAreaMapRoute(pendingPlan, pendingProfile);
+        else
+          clearPendingRegisteredAreaMapTrip();
       }
 
       if (requestedForGpx && hasFineLocationPermission)
@@ -2091,8 +2121,8 @@ public class MwmActivity extends BaseMwmFragmentActivity
       }
       else
       {
-        if (requestedForRecording)
-          mPendingAreaMapNavigationAfterLocationPermission = false;
+        if (requestedForAreaMapTrip)
+          clearPendingRegisteredAreaMapTrip();
         Logger.w(LOCATION_TAG, "Only ACCESS_COARSE_LOCATION permission granted");
         if (mLocationErrorDialog != null && mLocationErrorDialog.isShowing())
         {
@@ -2127,8 +2157,8 @@ public class MwmActivity extends BaseMwmFragmentActivity
       return;
     }
 
-    if (requestedForRecording)
-      mPendingAreaMapNavigationAfterLocationPermission = false;
+    if (requestedForAreaMapTrip)
+      clearPendingRegisteredAreaMapTrip();
     Logger.w(LOCATION_TAG, "Permissions ACCESS_COARSE_LOCATION and ACCESS_FINE_LOCATION have been refused");
     // Calls onMyPositionModeChanged(NOT_FOLLOW_NO_POSITION).
     LocationState.nativeOnLocationError(LocationState.ERROR_DENIED);
