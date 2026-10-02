@@ -117,8 +117,8 @@ public final class TripWeatherRepository
     }
     catch (Exception ignored)
     {
-      // Offline is an expected state in the mountains. Keep the previous forecast.
-      return prefs.contains(KEY_JSON);
+      // Network failures are expected in the mountains. Reuse cache only for the same route point.
+      return hasForecastForPoint(context, lat, lon, alt);
     }
     finally
     {
