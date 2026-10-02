@@ -196,9 +196,10 @@ public final class TripSafety
 
   public void markImOk()
   {
+    // Acknowledging an alert must not reset its delay bucket, otherwise the next GPS fix
+    // can immediately post the same warning again.
     mPrefs.edit()
         .putLong("trip_last_ok", System.currentTimeMillis())
-        .putInt("trip_schedule_alert_bucket", 0)
         .apply();
   }
 
