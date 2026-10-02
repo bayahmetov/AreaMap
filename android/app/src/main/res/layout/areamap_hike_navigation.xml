@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/areamap_hike_navigation_panel"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="12dp"
+    android:layout_marginEnd="12dp"
+    android:layout_marginBottom="18dp"
+    android:background="@drawable/bg_areamap_dock"
+    android:elevation="24dp"
+    android:orientation="vertical"
+    android:padding="14dp"
+    android:visibility="gone">
+
+  <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:gravity="center_vertical"
+      android:orientation="horizontal">
+
+    <TextView
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="@string/areamap_trip_current_title"
+        android:textColor="@color/areamap_green"
+        android:textSize="13sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/areamap_hike_nav_weather"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:maxWidth="190dp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textColor="@color/areamap_text_secondary"
+        android:textSize="11sp" />
+  </LinearLayout>
+
+  <TextView
+      android:id="@+id/areamap_hike_nav_checkpoint"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="6dp"
+      android:textColor="@color/areamap_text"
+      android:textSize="16sp"
+      android:textStyle="bold" />
+
+  <TextView
+      android:id="@+id/areamap_hike_nav_return"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="3dp"
+      android:textColor="@color/areamap_text_secondary"
+      android:textSize="12sp" />
+
+  <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="10dp"
+      android:orientation="horizontal">
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/areamap_hike_nav_sos"
+        style="@style/AreaMap.ActionButton"
+        android:layout_width="0dp"
+        android:layout_height="44dp"
+        android:layout_weight="1"
+        android:layout_marginEnd="4dp"
+        android:minHeight="44dp"
+        android:text="@string/areamap_sos"
+        android:textColor="@android:color/white"
+        app:backgroundTint="@color/areamap_red" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/areamap_hike_nav_ok"
+        style="@style/AreaMap.SecondaryButton"
+        android:layout_width="0dp"
+        android:layout_height="44dp"
+        android:layout_weight="1"
+        android:layout_marginStart="4dp"
+        android:layout_marginEnd="4dp"
+        android:minHeight="44dp"
+        android:text="@string/areamap_trip_im_ok" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/areamap_hike_nav_break"
+        style="@style/AreaMap.SecondaryButton"
+        android:layout_width="0dp"
+        android:layout_height="44dp"
+        android:layout_weight="1"
+        android:layout_marginStart="4dp"
+        android:minHeight="44dp"
+        android:text="@string/areamap_trip_break_20" />
+  </LinearLayout>
+</LinearLayout>
