@@ -63,7 +63,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/routing_bottom_buttons_padding"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:visibility="gone">
 
             <com.google.android.material.floatingactionbutton.FloatingActionButton
               android:id="@+id/routing_btn_search"
