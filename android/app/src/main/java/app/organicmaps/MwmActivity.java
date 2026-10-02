@@ -1408,6 +1408,11 @@ public class MwmActivity extends BaseMwmFragmentActivity
 
   private void startAreaMapNavigationNow()
   {
+    final TripSafety safety = TripSafety.get(this);
+    if (safety.hasActiveTrip() && safety.ownsTrackRecording()
+        && LocationUtils.checkFineLocationPermission(this))
+      TrackRecordingService.startForegroundService(this);
+
     hideAreaMapRoutePanel();
     closeFloatingPanels();
     setFullscreen(false);
