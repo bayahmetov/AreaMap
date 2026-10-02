@@ -63,6 +63,16 @@
       app:tint="?iconTint" />
 
     <Button
+      android:id="@+id/areamap_trip_safety"
+      android:layout_width="0dp"
+      android:layout_height="@dimen/nav_button_height"
+      android:layout_marginEnd="@dimen/nav_bottom_gap"
+      android:layout_weight="0.3"
+      android:text="@string/areamap_nav_trip"
+      android:visibility="gone"
+      tools:visibility="visible" />
+
+    <Button
       android:id="@+id/stop"
       android:layout_width="0dp"
       android:layout_height="@dimen/nav_button_height"
