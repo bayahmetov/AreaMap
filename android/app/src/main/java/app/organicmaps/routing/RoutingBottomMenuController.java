@@ -327,6 +327,8 @@ final class RoutingBottomMenuController
   {
     UiUtils.hide(mAltitudeChart, mTimeVehicle, mTimeElevationLine, mTransitTime, mTimeRuler, mTransitRecyclerView,
                  mAreaMapPanel);
+    Framework.nativeClearAreaMapCheckpoints();
+    mWeatherPreviewKey = null;
     notifyVisibilityChanged();
   }
 
@@ -579,6 +581,7 @@ final class RoutingBottomMenuController
             Math.max(rinfo.totalTimeInSeconds, HikingTiming.estimateSeconds(distanceMeters, reverseAscent));
         final int roundTripSeconds = plannedSeconds + returnSeconds;
         final String pace = HikingTiming.formatPace(HikingTiming.secondsPerKm(plannedSeconds, distanceMeters));
+        final TripPlan plan = TripPlan.current();
         mTime.setText(TextUtils.concat(
             Utils.formatRoutingTime(mContext, plannedSeconds, R.dimen.text_size_routing_number),
             " · ", rinfo.distToTarget.toString(mContext), "\n", mContext.getString(R.string.areamap_pace, pace),
@@ -587,6 +590,14 @@ final class RoutingBottomMenuController
                 Utils.formatArrivalTime(roundTripSeconds))));
 
         UiUtils.show(mAreaMapPanel);
+        if (plan != null)
+        {
+          updateAreaMapPreview(plan, (int) Math.round(ascent));
+          UiUtils.hide(mTimeElevationLine);
+        }
+        else
+          Framework.nativeClearAreaMapCheckpoints();
+
         final Location location = MwmApplication.from(mContext).getLocationHelper().getSavedLocation();
         final boolean afterDark = location != null
             && DarknessUtil.routeTouchesDarkness(System.currentTimeMillis(), roundTripSeconds,
@@ -629,17 +640,21 @@ final class RoutingBottomMenuController
           final StringBuilder checkpoints =
               new StringBuilder(mContext.getString(R.string.areamap_checkpoints_title));
           int checkpointNumber = 1;
-          for (RouteSafetyAnalysis.Checkpoint checkpoint : analysis.checkpoints)
+          if (plan != null)
           {
-            final CharSequence eta = Utils.formatRoutingTime(mContext, checkpoint.etaSeconds,
-                                                             R.dimen.text_size_routing_number);
-            final String arrival = Utils.formatArrivalTime(checkpoint.etaSeconds);
-            checkpoints.append("\n").append(mContext.getString(
-                R.string.areamap_checkpoint_item, checkpointNumber++, eta.toString(), arrival,
-                checkpoint.distanceMeters / 1000.0, checkpoint.altitudeMeters));
+            for (TripPlan.Checkpoint checkpoint : plan.checkpoints)
+            {
+              final CharSequence eta = Utils.formatRoutingTime(mContext, checkpoint.etaSeconds,
+                                                               R.dimen.text_size_routing_number);
+              final String arrival = Utils.formatArrivalTime(checkpoint.etaSeconds);
+              checkpoints.append("\n").append(mContext.getString(
+                  R.string.areamap_checkpoint_item_coords, checkpointNumber++, eta.toString(), arrival,
+                  checkpoint.distanceMeters / 1000.0, checkpoint.altitudeMeters,
+                  checkpoint.lat, checkpoint.lon));
+            }
           }
           mAreaMapCheckpoints.setText(checkpoints.toString());
-          UiUtils.show(mAreaMapCheckpoints);
+          UiUtils.showIf(plan != null && !plan.checkpoints.isEmpty(), mAreaMapCheckpoints);
 
           final StringBuilder peaks = new StringBuilder(mContext.getString(R.string.areamap_peaks_title));
           if (analysis.peaks.isEmpty())
@@ -668,6 +683,8 @@ final class RoutingBottomMenuController
       }
       else
       {
+        Framework.nativeClearAreaMapCheckpoints();
+        mWeatherPreviewKey = null;
         UiUtils.hide(mAreaMapPanel);
         mTime.setText(spanned);
       }
