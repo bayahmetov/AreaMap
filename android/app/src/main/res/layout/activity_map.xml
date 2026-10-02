@@ -65,6 +65,13 @@
     android:layout_height="wrap_content"
     android:layout_gravity="bottom|center_horizontal" />
 
+  <include
+    android:id="@+id/areamap_track_navigation"
+    layout="@layout/areamap_track_navigation"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_gravity="top|center_horizontal" />
+
   <androidx.fragment.app.FragmentContainerView
     android:id="@+id/place_page_container_fragment"
     android:name="app.organicmaps.widget.placepage.PlacePageController"
