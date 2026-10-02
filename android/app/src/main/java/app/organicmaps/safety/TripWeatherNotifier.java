@@ -82,6 +82,25 @@ public final class TripWeatherNotifier
   }
 
   @NonNull
+  public static String summaryForPlan(@NonNull Context context, @NonNull TripPlan plan)
+  {
+    final long targetMillis = System.currentTimeMillis() + plan.weatherEtaSeconds * 1000L;
+    final TripWeatherRepository.Hour hour = TripWeatherRepository.closestHour(context, targetMillis);
+    if (hour == null)
+      return context.getString(R.string.areamap_weather_no_cache);
+
+    final String point = plan.weatherAtHighestPoint
+        ? context.getString(R.string.areamap_weather_highest_point, plan.weatherAltitudeMeters)
+        : context.getString(R.string.areamap_weather_destination);
+    final String time = DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date(hour.timeMillis));
+    final long fetchedAt = TripWeatherRepository.fetchedAt(context);
+    final String updated = fetchedAt <= 0 ? context.getString(R.string.areamap_weather_never_updated)
+        : DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date(fetchedAt));
+    return context.getString(R.string.areamap_weather_summary, point, time, weatherLabel(context, hour.weatherCode),
+                             hour.temperatureC, hour.precipitationProbability, hour.gustKmh, updated);
+  }
+
+  @NonNull
   private static String hazardText(@NonNull Context context, @NonNull TripSafety safety,
                                    @NonNull TripWeatherRepository.Hour hour)
   {
