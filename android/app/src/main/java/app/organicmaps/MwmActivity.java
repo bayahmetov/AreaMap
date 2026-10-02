@@ -1688,6 +1688,8 @@ public class MwmActivity extends BaseMwmFragmentActivity
     mMapButtonsViewModel.setLayoutMode(MapButtonsController.LayoutMode.regular);
     refreshLightStatusBar();
     Utils.keepScreenOn(Config.isKeepScreenOnEnabled(), getWindow());
+    Framework.nativeClearAreaMapCheckpoints();
+    updateAreaMapHikeNavigation();
   }
 
   private void restoreRoutingUI(@NonNull MapButtonsController.LayoutMode layoutMode)
@@ -1723,6 +1725,8 @@ public class MwmActivity extends BaseMwmFragmentActivity
     final TripSafety safety = TripSafety.get(this);
     if (safety.hasActiveTrip() && safety.ownsTrackRecording() && !TrackRecorder.nativeIsTrackRecordingEnabled())
       startTrackRecording();
+    showAreaMapRouteCheckpoints();
+    updateAreaMapHikeNavigation();
     Utils.keepScreenOn(true, getWindow());
   }
 
@@ -1731,6 +1735,8 @@ public class MwmActivity extends BaseMwmFragmentActivity
   {
     closeFloatingToolbarsAndPanels();
     mMapButtonsViewModel.setLayoutMode(MapButtonsController.LayoutMode.regular);
+    Framework.nativeClearAreaMapCheckpoints();
+    updateAreaMapHikeNavigation();
     refreshLightStatusBar();
   }
 
@@ -1963,6 +1969,7 @@ public class MwmActivity extends BaseMwmFragmentActivity
     dismissLocationErrorDialog();
     updateGpxBanner();
     TripSafety.get(this).onLocation(location);
+    updateAreaMapHikeNavigation();
     maybePromptTripReturn();
 
     final RoutingController routing = RoutingController.get();
