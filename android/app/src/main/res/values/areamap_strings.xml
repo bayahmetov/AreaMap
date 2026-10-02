@@ -228,4 +228,7 @@
   <string name="areamap_rebuild_weather_loading">Updating forecast for the key point…</string>
   <string name="areamap_rebuild_edit_route">Edit route</string>
   <string name="areamap_rebuild_start">START</string>
+
+  <string name="areamap_nav_profile">Profile</string>
+  <string name="areamap_map_search_placeholder">Search places, routes and peaks…</string>
 </resources>
