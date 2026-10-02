@@ -77,4 +77,5 @@
   <string name="areamap_route_weather_loading">Обновляем прогноз…</string>
   <string name="areamap_checkpoint_item_coords">Чекпоинт %1$d · ~%2$s · %3$s · %4$.1f км · %5$d м\n%6$.5f, %7$.5f</string>
 
+  <string name="areamap_route_weather_compact">%1$s · %2$.0f °C · дождь %3$d%% · порывы %4$.0f км/ч</string>
 </resources>
