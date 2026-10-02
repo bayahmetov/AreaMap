@@ -79,6 +79,33 @@ void ColoredMarkPoint::SetRadius(float radius)
   m_coloredSymbols.m_zoomInfo.begin()->second.m_radiusInPixels = radius * vs;
 }
 
+AreaMapCheckpointMark::AreaMapCheckpointMark(m2::PointD const & ptOrg) : ColoredMarkPoint(ptOrg)
+{
+  SetColor(dp::Color(66, 242, 123));
+  SetRadius(11.0f);
+  m_titleDecl.m_anchor = dp::Center;
+  m_titleDecl.m_primaryTextFont.m_color = dp::Color::White();
+  m_titleDecl.m_primaryTextFont.m_outlineColor = dp::Color(10, 24, 19);
+  m_titleDecl.m_primaryTextFont.m_size = 12.0f;
+}
+
+void AreaMapCheckpointMark::SetNumber(std::string const & number)
+{
+  if (m_titleDecl.m_primaryText == number)
+    return;
+  m_titleDecl.m_primaryText = number;
+  SetDirty();
+}
+
+drape_ptr<df::UserPointMark::TitlesInfo> AreaMapCheckpointMark::GetTitleDecl() const
+{
+  if (m_titleDecl.m_primaryText.empty())
+    return nullptr;
+  auto titles = make_unique_dp<TitlesInfo>();
+  titles->push_back(m_titleDecl);
+  return titles;
+}
+
 drape_ptr<df::UserPointMark::ColoredSymbolZoomInfo> ColoredMarkPoint::GetColoredSymbols() const
 {
   return make_unique_dp<ColoredSymbolZoomInfo>(m_coloredSymbols);
