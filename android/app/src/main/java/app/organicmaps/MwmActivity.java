@@ -1411,6 +1411,12 @@ public class MwmActivity extends BaseMwmFragmentActivity
       return;
     }
 
+    if (mAreaMapRoutePanelActive && shouldUseAreaMapRoutePanel())
+    {
+      mMapButtonsViewModel.setBottomButtonsHidden(true);
+      return;
+    }
+
     if (controller.isPlanning())
     {
       mMapButtonsViewModel.setBottomButtonsHidden(true);
@@ -1495,6 +1501,7 @@ public class MwmActivity extends BaseMwmFragmentActivity
   @Override
   public void onNavigationCancelled()
   {
+    hideAreaMapRoutePanel();
     RouteCheckpointBookmarks.clear();
     closeFloatingToolbarsAndPanels();
     ThemeSwitcher.INSTANCE.synchronizeApplicationTheme();
@@ -1521,6 +1528,7 @@ public class MwmActivity extends BaseMwmFragmentActivity
   @Override
   public void onNavigationStarted()
   {
+    hideAreaMapRoutePanel();
     closeFloatingToolbarsAndPanels();
     ThemeSwitcher.INSTANCE.synchronizeApplicationTheme();
     ThemeSwitcher.INSTANCE.synchronizeMapStyle(this, mMapController.isRenderingActive());
@@ -1542,6 +1550,7 @@ public class MwmActivity extends BaseMwmFragmentActivity
   @Override
   public void onPlanningCancelled()
   {
+    hideAreaMapRoutePanel();
     RouteCheckpointBookmarks.clear();
     closeFloatingToolbarsAndPanels();
     mMapButtonsViewModel.setLayoutMode(MapButtonsController.LayoutMode.regular);
@@ -1551,6 +1560,7 @@ public class MwmActivity extends BaseMwmFragmentActivity
   @Override
   public void onPlanningStarted()
   {
+    hideAreaMapRoutePanel();
     closeFloatingToolbarsAndPanels();
     mMapButtonsViewModel.setLayoutMode(MapButtonsController.LayoutMode.planning);
     refreshLightStatusBar();
@@ -1559,6 +1569,7 @@ public class MwmActivity extends BaseMwmFragmentActivity
   @Override
   public void onResetToPlanningState()
   {
+    hideAreaMapRoutePanel();
     closeFloatingToolbarsAndPanels();
     ThemeSwitcher.INSTANCE.synchronizeApplicationTheme();
     ThemeSwitcher.INSTANCE.synchronizeMapStyle(this, mMapController.isRenderingActive());
@@ -1600,15 +1611,21 @@ public class MwmActivity extends BaseMwmFragmentActivity
   {
     if (Router.get() != Router.Pedestrian)
     {
+      hideAreaMapRoutePanel();
       RouteCheckpointBookmarks.clear();
       return;
     }
 
     final TripPlan plan = TripPlan.current();
     if (plan == null)
+    {
+      hideAreaMapRoutePanel();
       RouteCheckpointBookmarks.clear();
-    else
-      RouteCheckpointBookmarks.show(this, plan);
+      return;
+    }
+
+    RouteCheckpointBookmarks.show(this, plan);
+    showAreaMapRoutePanel(plan);
   }
 
   @Override
