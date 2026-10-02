@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/areamap_route_panel_v2"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="10dp"
+    android:layout_marginEnd="10dp"
+    android:layout_marginBottom="12dp"
+    android:background="@drawable/bg_areamap_sheet"
+    android:elevation="24dp"
+    android:orientation="vertical"
+    android:paddingStart="16dp"
+    android:paddingTop="10dp"
+    android:paddingEnd="16dp"
+    android:paddingBottom="14dp"
+    android:visibility="gone">
+
+  <View
+      android:layout_width="42dp"
+      android:layout_height="4dp"
+      android:layout_gravity="center_horizontal"
+      android:layout_marginBottom="8dp"
+      android:background="@color/areamap_stroke" />
+
+  <TextView
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:text="@string/areamap_rebuild_route"
+      android:textColor="@color/areamap_green"
+      android:textSize="12sp"
+      android:textStyle="bold" />
+
+  <TextView
+      android:id="@+id/areamap_route_v2_title"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="3dp"
+      android:ellipsize="end"
+      android:maxLines="2"
+      android:text="@string/areamap_rebuild_route_unknown"
+      android:textColor="@color/areamap_text"
+      android:textSize="22sp"
+      android:textStyle="bold" />
+
+  <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="12dp"
+      android:baselineAligned="false"
+      android:orientation="horizontal">
+
+    <TextView
+        android:id="@+id/areamap_route_v2_distance"
+        android:layout_width="0dp"
+        android:layout_height="62dp"
+        android:layout_weight="1"
+        android:layout_marginEnd="4dp"
+        android:background="@drawable/bg_areamap_feed_card"
+        android:gravity="center"
+        android:padding="6dp"
+        android:textColor="@color/areamap_text"
+        android:textSize="12sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/areamap_route_v2_ascent"
+        android:layout_width="0dp"
+        android:layout_height="62dp"
+        android:layout_weight="1"
+        android:layout_marginStart="4dp"
+        android:layout_marginEnd="4dp"
+        android:background="@drawable/bg_areamap_feed_card"
+        android:gravity="center"
+        android:padding="6dp"
+        android:textColor="@color/areamap_text"
+        android:textSize="12sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/areamap_route_v2_time"
+        android:layout_width="0dp"
+        android:layout_height="62dp"
+        android:layout_weight="1"
+        android:layout_marginStart="4dp"
+        android:background="@drawable/bg_areamap_feed_card"
+        android:gravity="center"
+        android:padding="6dp"
+        android:textColor="@color/areamap_text"
+        android:textSize="12sp"
+        android:textStyle="bold" />
+  </LinearLayout>
+
+  <TextView
+      android:id="@+id/areamap_route_v2_warning"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="10dp"
+      android:background="@drawable/bg_areamap_feed_card_warn"
+      android:padding="10dp"
+      android:textColor="@color/areamap_amber"
+      android:textSize="12sp"
+      android:textStyle="bold"
+      android:visibility="gone" />
+
+  <TextView
+      android:id="@+id/areamap_route_v2_weather"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="10dp"
+      android:background="@drawable/bg_areamap_feed_card_alt"
+      android:padding="10dp"
+      android:text="@string/areamap_rebuild_weather_loading"
+      android:textColor="@color/areamap_text_secondary"
+      android:textSize="12sp"
+      android:lineSpacingExtra="2dp" />
+
+  <TextView
+      android:id="@+id/areamap_route_v2_checkpoints"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="10dp"
+      android:textColor="@color/areamap_text_secondary"
+      android:textSize="12sp"
+      android:lineSpacingExtra="2dp" />
+
+  <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="12dp"
+      android:orientation="horizontal">
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/areamap_route_v2_guides"
+        style="@style/AreaMap.SecondaryButton"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:layout_weight="1"
+        android:layout_marginEnd="4dp"
+        android:minHeight="48dp"
+        android:text="@string/areamap_guide_button" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/areamap_route_v2_sos"
+        style="@style/AreaMap.SecondaryButton"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:layout_weight="1"
+        android:layout_marginStart="4dp"
+        android:minHeight="48dp"
+        android:text="@string/areamap_nav_sos"
+        android:textColor="@color/areamap_red"
+        app:strokeColor="@color/areamap_red" />
+  </LinearLayout>
+
+  <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="8dp"
+      android:orientation="horizontal">
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/areamap_route_v2_edit"
+        style="@style/AreaMap.SecondaryButton"
+        android:layout_width="0dp"
+        android:layout_height="50dp"
+        android:layout_weight="1"
+        android:layout_marginEnd="4dp"
+        android:minHeight="50dp"
+        android:text="@string/areamap_rebuild_edit_route" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/areamap_route_v2_start"
+        style="@style/AreaMap.ActionButton"
+        android:layout_width="0dp"
+        android:layout_height="50dp"
+        android:layout_weight="1.35"
+        android:layout_marginStart="4dp"
+        android:minHeight="50dp"
+        android:text="@string/areamap_rebuild_start" />
+  </LinearLayout>
+</LinearLayout>
