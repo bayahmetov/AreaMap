@@ -144,6 +144,25 @@ public final class TripSafety
     TripWeatherWorker.start(mContext);
   }
 
+  public void saveWeatherPreview(@NonNull TripPlan plan)
+  {
+    if (hasActiveTrip())
+      return;
+    mPrefs.edit()
+        .putString("trip_weather_lat", Double.toString(plan.weatherLat))
+        .putString("trip_weather_lon", Double.toString(plan.weatherLon))
+        .putInt("trip_weather_altitude", plan.weatherAltitudeMeters)
+        .putInt("trip_weather_eta_seconds", plan.weatherEtaSeconds)
+        .putBoolean("trip_weather_highest", plan.weatherAtHighestPoint)
+        .putLong("trip_weather_preview_started_at", System.currentTimeMillis())
+        .apply();
+  }
+
+  public boolean hasWeatherPoint()
+  {
+    return mPrefs.contains("trip_weather_lat") && mPrefs.contains("trip_weather_lon");
+  }
+
   public boolean hasActiveTrip()
   {
     return mPrefs.getBoolean("trip_active", false);
@@ -176,7 +195,9 @@ public final class TripSafety
 
   public long weatherTargetAtMillis()
   {
-    final long startedAt = mPrefs.getLong("trip_started_at", 0L);
+    final long startedAt = hasActiveTrip()
+        ? mPrefs.getLong("trip_started_at", 0L)
+        : mPrefs.getLong("trip_weather_preview_started_at", System.currentTimeMillis());
     final int weatherEtaSeconds = mPrefs.getInt("trip_weather_eta_seconds",
                                                 mPrefs.getInt("trip_planned_seconds", 0));
     final int offsetSeconds = mPrefs.getInt("trip_timing_offset_seconds", 0);
