@@ -228,4 +228,7 @@
   <string name="areamap_rebuild_weather_loading">Обновляем прогноз для ключевой точки…</string>
   <string name="areamap_rebuild_edit_route">Изменить маршрут</string>
   <string name="areamap_rebuild_start">СТАРТ</string>
+
+  <string name="areamap_nav_profile">Профиль</string>
+  <string name="areamap_map_search_placeholder">Поиск мест, маршрутов, вершин…</string>
 </resources>
