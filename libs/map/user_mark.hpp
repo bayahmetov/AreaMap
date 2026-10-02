@@ -156,4 +156,26 @@ private:
   ColoredSymbolZoomInfo m_coloredSymbols;
 };
 
+/// Temporary numbered marker used by AreaMap to draw route checkpoints on the map.
+/// It lives in the non-persistent COLORED user-mark layer and is cleared whenever
+/// the route preview disappears.
+class AreaMapCheckpointMark : public ColoredMarkPoint
+{
+public:
+  explicit AreaMapCheckpointMark(m2::PointD const & ptOrg);
+
+  void SetNumber(std::string const & number);
+  drape_ptr<TitlesInfo> GetTitleDecl() const override;
+  bool HasTitlePriority() const override { return true; }
+  int GetMinTitleZoom() const override { return 1; }
+  bool GetDepthTestEnabled() const override { return false; }
+  df::SpecialDisplacement GetDisplacement() const override
+  {
+    return df::SpecialDisplacement::SpecialModeUserMark;
+  }
+
+private:
+  dp::TitleDecl m_titleDecl;
+};
+
 std::string DebugPrint(UserMark::Type type);
