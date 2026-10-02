@@ -1271,7 +1271,6 @@ public class MwmActivity extends BaseMwmFragmentActivity
     }
   }
 
-  @Override
   private boolean shouldUseAreaMapRoutePanel()
   {
     final RoutingController controller = RoutingController.get();
@@ -1415,6 +1414,7 @@ public class MwmActivity extends BaseMwmFragmentActivity
     RoutingController.get().start();
   }
 
+  @Override
   public void updateMenu()
   {
     final RoutingController controller = RoutingController.get();
