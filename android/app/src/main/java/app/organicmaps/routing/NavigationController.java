@@ -2,6 +2,7 @@ package app.organicmaps.routing;
 
 import static app.organicmaps.sdk.util.Utils.dimen;
 
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.location.Location;
 import android.text.TextUtils;
@@ -17,6 +18,7 @@ import androidx.core.view.ViewCompat;
 import androidx.lifecycle.ViewModelProvider;
 import app.organicmaps.MwmApplication;
 import app.organicmaps.R;
+import app.organicmaps.safety.TripSafetyActivity;
 import app.organicmaps.maplayer.MapButtonsViewModel;
 import app.organicmaps.sdk.Router;
 import app.organicmaps.sdk.maplayer.traffic.TrafficManager;
@@ -273,6 +275,12 @@ public class NavigationController implements TrafficManager.TrafficCallback, Nav
   public void onExpiredApp()
   {
     // no op
+  }
+
+  @Override
+  public void onTripSafetyClicked()
+  {
+    mActivity.startActivity(new Intent(mActivity, TripSafetyActivity.class));
   }
 
   @Override
