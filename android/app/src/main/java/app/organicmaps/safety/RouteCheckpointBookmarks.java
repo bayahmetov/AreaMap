@@ -8,6 +8,7 @@ import app.organicmaps.sdk.bookmarks.data.Bookmark;
 import app.organicmaps.sdk.bookmarks.data.BookmarkCategory;
 import app.organicmaps.sdk.bookmarks.data.BookmarkInfo;
 import app.organicmaps.sdk.bookmarks.data.BookmarkManager;
+import app.organicmaps.sdk.bookmarks.data.MapObject;
 
 /**
  * Renders route checkpoints as real Organic Maps bookmarks.
@@ -56,6 +57,15 @@ public final class RouteCheckpointBookmarks
       }
       number++;
     }
+  }
+
+  public static boolean isCheckpoint(@NonNull MapObject object)
+  {
+    if (!(object instanceof Bookmark bookmark))
+      return false;
+
+    final BookmarkCategory category = BookmarkManager.INSTANCE.getCategoryById(bookmark.getCategoryId());
+    return category != null && CATEGORY.equals(category.getName());
   }
 
   public static void clear()
