@@ -1257,6 +1257,149 @@ public class MwmActivity extends BaseMwmFragmentActivity
   }
 
   @Override
+  private boolean shouldUseAreaMapRoutePanel()
+  {
+    final RoutingController controller = RoutingController.get();
+    return Router.get() == Router.Pedestrian && controller.isBuilt();
+  }
+
+  private void showAreaMapRoutePanel(@NonNull TripPlan plan)
+  {
+    final View panel = findViewById(R.id.areamap_route_panel_v2);
+    if (panel == null)
+      return;
+
+    mAreaMapRoutePanelActive = true;
+    mRoutingPlanViewModel.setShowRoutingBottomSheet(false);
+    setRoutingBottomSheetActive(false);
+    mMapButtonsViewModel.setBottomButtonsHidden(true);
+
+    final String start = TextUtils.isEmpty(plan.startTitle) ? getString(R.string.areamap_route_start) : plan.startTitle;
+    final String finish = TextUtils.isEmpty(plan.finishTitle) ? getString(R.string.areamap_route_finish) : plan.finishTitle;
+    ((TextView) panel.findViewById(R.id.areamap_route_v2_title)).setText(start + " — " + finish);
+
+    final RouteAltitudeData altitude = Framework.nativeGetRouteAltitudeData();
+    final int ascent = altitude == null ? 0 : altitude.getTotalAscent();
+    ((TextView) panel.findViewById(R.id.areamap_route_v2_distance))
+        .setText(getString(R.string.areamap_rebuild_distance, plan.distanceMeters / 1000.0));
+    ((TextView) panel.findViewById(R.id.areamap_route_v2_ascent))
+        .setText(getString(R.string.areamap_rebuild_ascent, ascent));
+    ((TextView) panel.findViewById(R.id.areamap_route_v2_time))
+        .setText(getString(R.string.areamap_rebuild_time,
+                           Utils.formatRoutingTime(this, plan.plannedSeconds,
+                                                   R.dimen.text_size_body_3).toString()));
+
+    ((TextView) panel.findViewById(R.id.areamap_route_v2_checkpoints))
+        .setText(getString(R.string.areamap_rebuild_checkpoints, plan.checkpoints.size()));
+
+    final TextView warning = panel.findViewById(R.id.areamap_route_v2_warning);
+    final Location location = MwmApplication.from(this).getLocationHelper().getSavedLocation();
+    final boolean afterDark = location != null
+        && DarknessUtil.routeTouchesDarkness(System.currentTimeMillis(),
+                                             plan.plannedSeconds + plan.returnSeconds,
+                                             location.getLatitude(), location.getLongitude());
+    warning.setVisibility(afterDark ? View.VISIBLE : View.GONE);
+    if (afterDark)
+      warning.setText(R.string.areamap_night_warning);
+
+    panel.findViewById(R.id.areamap_route_v2_guides).setOnClickListener(v ->
+        startActivity(new Intent(this, GuideListActivity.class)));
+    panel.findViewById(R.id.areamap_route_v2_sos).setOnClickListener(v ->
+        startActivity(new Intent(this, TripSafetyActivity.class)
+                          .putExtra(TripSafetyActivity.EXTRA_SHOW_SOS, true)));
+    panel.findViewById(R.id.areamap_route_v2_edit).setOnClickListener(v -> editAreaMapRoute());
+    panel.findViewById(R.id.areamap_route_v2_start).setOnClickListener(v -> startAreaMapRoute(plan));
+
+    panel.setVisibility(View.VISIBLE);
+    refreshAreaMapWeather(plan);
+  }
+
+  private void hideAreaMapRoutePanel()
+  {
+    mAreaMapRoutePanelActive = false;
+    final View panel = findViewById(R.id.areamap_route_panel_v2);
+    if (panel != null)
+      panel.setVisibility(View.GONE);
+  }
+
+  private void editAreaMapRoute()
+  {
+    hideAreaMapRoutePanel();
+    RouteCheckpointBookmarks.clear();
+    mRoutingPlanViewModel.setShowRoutingBottomSheet(true);
+    setRoutingBottomSheetActive(true);
+    updateMenu();
+  }
+
+  private void refreshAreaMapWeather(@NonNull TripPlan plan)
+  {
+    final View panel = findViewById(R.id.areamap_route_panel_v2);
+    if (panel == null)
+      return;
+    final TextView weather = panel.findViewById(R.id.areamap_route_v2_weather);
+    weather.setText(TripWeatherNotifier.summaryForPlan(this, plan));
+
+    final double expectedLat = plan.weatherLat;
+    final double expectedLon = plan.weatherLon;
+    new Thread(() -> {
+      TripWeatherRepository.refreshForPoint(this, expectedLat, expectedLon, plan.weatherAltitudeMeters);
+      runOnUiThread(() -> {
+        if (isFinishing() || isDestroyed() || !mAreaMapRoutePanelActive)
+          return;
+        final TripPlan current = TripPlan.current();
+        if (current == null || Math.abs(current.weatherLat - expectedLat) > 0.00001
+            || Math.abs(current.weatherLon - expectedLon) > 0.00001)
+          return;
+        weather.setText(TripWeatherNotifier.summaryForPlan(this, current));
+      });
+    }, "AreaMapRouteWeather").start();
+  }
+
+  private void startAreaMapRoute(@NonNull TripPlan plan)
+  {
+    if (!showStartPointNotice())
+      return;
+
+    if (!Config.isRoutingDisclaimerAccepted())
+    {
+      showAreaMapRoutingDisclaimer(plan);
+      return;
+    }
+
+    TripStartFlow.show(this, plan, this::startAreaMapNavigationNow, this::startAreaMapNavigationNow);
+  }
+
+  private void showAreaMapRoutingDisclaimer(@NonNull TripPlan plan)
+  {
+    final StringBuilder builder = new StringBuilder();
+    for (int resId :
+         new int[] {R.string.dialog_routing_disclaimer_priority, R.string.dialog_routing_disclaimer_precision,
+                    R.string.dialog_routing_disclaimer_recommendations, R.string.dialog_routing_disclaimer_borders,
+                    R.string.dialog_routing_disclaimer_beware})
+      builder.append(getString(resId)).append("\n\n");
+
+    dismissAlertDialog();
+    mAlertDialog = new MaterialAlertDialogBuilder(this, R.style.MwmTheme_AlertDialog)
+                       .setTitle(R.string.dialog_routing_disclaimer_title)
+                       .setMessage(builder.toString())
+                       .setCancelable(false)
+                       .setNegativeButton(R.string.decline, null)
+                       .setPositiveButton(R.string.accept, (dialog, which) -> {
+                         Config.acceptRoutingDisclaimer();
+                         startAreaMapRoute(plan);
+                       })
+                       .setOnDismissListener(dialog -> mAlertDialog = null)
+                       .show();
+  }
+
+  private void startAreaMapNavigationNow()
+  {
+    hideAreaMapRoutePanel();
+    closeFloatingPanels();
+    setFullscreen(false);
+    RoutingController.get().start();
+  }
+
   public void updateMenu()
   {
     final RoutingController controller = RoutingController.get();
