@@ -1014,7 +1014,7 @@ public class MwmActivity extends BaseMwmFragmentActivity
   {
     super.onResume();
 
-    final GpxNavigation session = GpxNavigation.current;
+    final GpxNavigation session = GpxNavigation.restore(this);
     if (session != null && session != mGpxSession)
     {
       mGpxSession = session;
@@ -1541,7 +1541,7 @@ public class MwmActivity extends BaseMwmFragmentActivity
     ((TextView) banner.findViewById(R.id.areamap_track_status)).setText(status);
     banner.setOnClickListener(v -> showGpxRouteChoices(session));
     banner.findViewById(R.id.areamap_track_stop).setOnClickListener(v -> {
-      GpxNavigation.current = null;
+      GpxNavigation.stop(this);
       mGpxSession = null;
       UiUtils.hide(banner);
     });
