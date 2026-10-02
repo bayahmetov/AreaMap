@@ -93,7 +93,7 @@ public class RouteImportActivity extends AppCompatActivity
       dialog.setMessage(getString(R.string.areamap_gpx_preview, track.length / 1000, minutes / 60, minutes % 60)
           + "\n\n" + getString(R.string.areamap_gpx_explanation))
           .setPositiveButton(R.string.areamap_follow_track, (d, w) -> {
-            GpxNavigation.current = new GpxNavigation(track);
+            GpxNavigation.activate(this, track);
             startActivity(new Intent(this, MwmActivity.class)
                 .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP));
             finish();
