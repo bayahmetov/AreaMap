@@ -67,4 +67,14 @@
   <string name="areamap_registration_participant">Данные участника</string>
   <string name="areamap_registration_emergency">Экстренный контакт</string>
   <string name="areamap_registration_demo_note">Для демо-режима используется Telegram. Это учебный пример и он не вызывает экстренные службы автоматически.</string>
+
+  <string name="areamap_route_kicker">МАРШРУТ</string>
+  <string name="areamap_route_untitled">Горный маршрут</string>
+  <string name="areamap_route_metric_distance">%1$.1f км\nДистанция</string>
+  <string name="areamap_route_metric_ascent">%1$d м\nНабор</string>
+  <string name="areamap_route_metric_time">%1$s\nВ пути</string>
+  <string name="areamap_route_weather_preview_title">Погода в ключевой точке</string>
+  <string name="areamap_route_weather_loading">Обновляем прогноз…</string>
+  <string name="areamap_checkpoint_item_coords">Чекпоинт %1$d · ~%2$s · %3$s · %4$.1f км · %5$d м\n%6$.5f, %7$.5f</string>
+
 </resources>
