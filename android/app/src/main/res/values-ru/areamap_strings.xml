@@ -238,4 +238,6 @@
   <string name="areamap_track_off_course">Отклонение от трека примерно %1$.0f м</string>
   <string name="areamap_track_arrived">Финиш GPX достигнут</string>
   <string name="areamap_track_progress">Осталось %1$.1f км · примерно %2$d ч %3$d мин</string>
+
+  <string name="areamap_nav_safety">Безопасность</string>
 </resources>
