@@ -661,6 +661,7 @@ public class MwmActivity extends BaseMwmFragmentActivity
 
     initNavigationButtons();
     initAreaMapBottomNav();
+    initAreaMapHikeNavigation();
 
     mNavigationController = new NavigationController(
         this, v -> onSettingsOptionSelected(), v -> openVoiceInstructionsSettings(),
@@ -668,6 +669,67 @@ public class MwmActivity extends BaseMwmFragmentActivity
     // TrafficManager.INSTANCE.attach(mNavigationController);
     initOnmapDownloader();
     initPositionChooser();
+  }
+
+  private void initAreaMapHikeNavigation()
+  {
+    final View panel = findViewById(R.id.areamap_hike_navigation);
+    if (panel == null)
+      return;
+
+    panel.findViewById(R.id.areamap_hike_nav_sos).setOnClickListener(v ->
+        startActivity(new Intent(this, app.organicmaps.safety.SosActivity.class)));
+    panel.findViewById(R.id.areamap_hike_nav_ok).setOnClickListener(v -> {
+      TripSafety.get(this).markImOk();
+      Toast.makeText(this, R.string.areamap_trip_ok_saved, Toast.LENGTH_SHORT).show();
+      updateAreaMapHikeNavigation();
+    });
+    panel.findViewById(R.id.areamap_hike_nav_break).setOnClickListener(v -> {
+      TripSafety.get(this).addBreakMinutes(20);
+      app.organicmaps.safety.TripWeatherWorker.refreshNow(this);
+      Toast.makeText(this, R.string.areamap_trip_break_added, Toast.LENGTH_SHORT).show();
+      updateAreaMapHikeNavigation();
+    });
+    updateAreaMapHikeNavigation();
+  }
+
+  private void updateAreaMapHikeNavigation()
+  {
+    final View panel = findViewById(R.id.areamap_hike_navigation);
+    if (panel == null)
+      return;
+
+    final TripSafety safety = TripSafety.get(this);
+    final boolean visible = RoutingController.get().isNavigating() && safety.hasActiveTrip();
+    panel.setVisibility(visible ? View.VISIBLE : View.GONE);
+    if (!visible)
+      return;
+
+    final RoutingInfo info = Framework.nativeGetRouteFollowingInfo();
+    final double completion = info == null ? 0.0 : info.completionPercent;
+    ((TextView) panel.findViewById(R.id.areamap_hike_nav_checkpoint))
+        .setText(safety.navigationCheckpointSummary(completion));
+    ((TextView) panel.findViewById(R.id.areamap_hike_nav_return))
+        .setText(safety.navigationReturnSummary());
+    ((TextView) panel.findViewById(R.id.areamap_hike_nav_weather))
+        .setText(app.organicmaps.safety.TripWeatherNotifier.summary(this, safety).replace("\n", " · "));
+  }
+
+  private void showAreaMapRouteCheckpoints()
+  {
+    final app.organicmaps.safety.TripPlan plan = app.organicmaps.safety.TripPlan.current();
+    if (plan == null || plan.checkpoints.isEmpty())
+      return;
+
+    final int count = plan.checkpoints.size();
+    final double[] lats = new double[count];
+    final double[] lons = new double[count];
+    for (int i = 0; i < count; ++i)
+    {
+      lats[i] = plan.checkpoints.get(i).lat;
+      lons[i] = plan.checkpoints.get(i).lon;
+    }
+    Framework.nativeShowAreaMapCheckpoints(lats, lons);
   }
 
   private void initAreaMapBottomNav()
