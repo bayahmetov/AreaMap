@@ -28,10 +28,13 @@ import app.organicmaps.MwmActivity;
 import app.organicmaps.MwmApplication;
 import app.organicmaps.R;
 import app.organicmaps.safety.DarknessUtil;
+import app.organicmaps.safety.GuideListActivity;
 import app.organicmaps.safety.HikingTiming;
 import app.organicmaps.safety.RouteImportActivity;
 import app.organicmaps.safety.RouteSafetyAnalysis;
-import app.organicmaps.safety.TripSafetyActivity;
+import app.organicmaps.safety.SosActivity;
+import app.organicmaps.safety.TripPlan;
+import app.organicmaps.safety.TripWeatherNotifier;
 import app.organicmaps.sdk.Router;
 import app.organicmaps.sdk.Framework;
 import app.organicmaps.sdk.bookmarks.data.DistanceAndAzimut;
@@ -101,6 +104,16 @@ final class RoutingBottomMenuController
   private final TextView mAreaMapCheckpoints;
   @NonNull
   private final TextView mAreaMapPeaks;
+  @NonNull
+  private final TextView mAreaMapRouteName;
+  @NonNull
+  private final TextView mAreaMapMetricDistance;
+  @NonNull
+  private final TextView mAreaMapMetricAscent;
+  @NonNull
+  private final TextView mAreaMapMetricTime;
+  @NonNull
+  private final TextView mAreaMapWeather;
 
   @Nullable
   private final TextView mArrival;
@@ -174,6 +187,11 @@ final class RoutingBottomMenuController
     mAreaMapAdvice = altitudeChartFrame.findViewById(R.id.areamap_route_advice);
     mAreaMapCheckpoints = altitudeChartFrame.findViewById(R.id.areamap_route_checkpoints);
     mAreaMapPeaks = altitudeChartFrame.findViewById(R.id.areamap_route_peaks);
+    mAreaMapRouteName = altitudeChartFrame.findViewById(R.id.areamap_route_name);
+    mAreaMapMetricDistance = altitudeChartFrame.findViewById(R.id.areamap_route_metric_distance);
+    mAreaMapMetricAscent = altitudeChartFrame.findViewById(R.id.areamap_route_metric_ascent);
+    mAreaMapMetricTime = altitudeChartFrame.findViewById(R.id.areamap_route_metric_time);
+    mAreaMapWeather = altitudeChartFrame.findViewById(R.id.areamap_route_weather);
     altitudeChartFrame.findViewById(R.id.areamap_route_details).setOnClickListener(v -> {
       new com.google.android.material.dialog.MaterialAlertDialogBuilder(mContext)
           .setTitle(R.string.areamap_route_specific_title)
@@ -183,10 +201,9 @@ final class RoutingBottomMenuController
           .show();
     });
     altitudeChartFrame.findViewById(R.id.areamap_route_guide)
-        .setOnClickListener(v -> mContext.startActivity(new Intent(mContext, TripSafetyActivity.class)));
+        .setOnClickListener(v -> mContext.startActivity(new Intent(mContext, GuideListActivity.class)));
     altitudeChartFrame.findViewById(R.id.areamap_route_sos)
-        .setOnClickListener(v -> mContext.startActivity(
-            new Intent(mContext, TripSafetyActivity.class).putExtra(TripSafetyActivity.EXTRA_SHOW_SOS, true)));
+        .setOnClickListener(v -> mContext.startActivity(new Intent(mContext, SosActivity.class)));
     altitudeChartFrame.findViewById(R.id.areamap_route_import)
         .setOnClickListener(v -> mContext.startActivity(new Intent(mContext, RouteImportActivity.class)));
     mError = error;
