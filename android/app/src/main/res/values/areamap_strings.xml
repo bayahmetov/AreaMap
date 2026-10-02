@@ -218,4 +218,14 @@
 
   <string name="areamap_checkpoint_map_title">Checkpoint %1$d</string>
   <string name="areamap_checkpoint_map_description">Route checkpoint\nDistance: %1$.1f km\nPlanned: %2$d min from start\nAltitude: %3$d m\nCoordinates: %4$.5f, %5$.5f</string>
+
+  <string name="areamap_rebuild_route">Route</string>
+  <string name="areamap_rebuild_route_unknown">Hiking route</string>
+  <string name="areamap_rebuild_distance">%1$.1f km\nDistance</string>
+  <string name="areamap_rebuild_ascent">%1$d m\nAscent</string>
+  <string name="areamap_rebuild_time">%1$s\nOn route</string>
+  <string name="areamap_rebuild_checkpoints">%1$d checkpoints are on the map. Tap a marker to see ETA, altitude and exact coordinates.</string>
+  <string name="areamap_rebuild_weather_loading">Updating forecast for the key point…</string>
+  <string name="areamap_rebuild_edit_route">Edit route</string>
+  <string name="areamap_rebuild_start">START</string>
 </resources>
