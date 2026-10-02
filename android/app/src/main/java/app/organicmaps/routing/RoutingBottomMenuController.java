@@ -3,8 +3,6 @@ package app.organicmaps.routing;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
-import android.location.Location;
 import android.content.res.Resources;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
@@ -25,14 +23,7 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 import app.organicmaps.MwmActivity;
-import app.organicmaps.MwmApplication;
 import app.organicmaps.R;
-import app.organicmaps.safety.DarknessUtil;
-import app.organicmaps.safety.HikingTiming;
-import app.organicmaps.safety.RouteImportActivity;
-import app.organicmaps.safety.RouteSafetyAnalysis;
-import app.organicmaps.safety.TripSafetyActivity;
-import app.organicmaps.sdk.Router;
 import app.organicmaps.sdk.Framework;
 import app.organicmaps.sdk.bookmarks.data.DistanceAndAzimut;
 import app.organicmaps.sdk.routing.RouteAltitudeData;
@@ -91,16 +82,6 @@ final class RoutingBottomMenuController
   private final TextView mTimeVehicle;
   @NonNull
   private final TextView mTimeRuler;
-  @NonNull
-  private final View mAreaMapPanel;
-  @NonNull
-  private final TextView mAreaMapWarning;
-  @NonNull
-  private final TextView mAreaMapAdvice;
-  @NonNull
-  private final TextView mAreaMapCheckpoints;
-  @NonNull
-  private final TextView mAreaMapPeaks;
 
   @Nullable
   private final TextView mArrival;
@@ -169,26 +150,6 @@ final class RoutingBottomMenuController
     mTimeElevationLine = timeElevationLine;
     mTransitTime = transitTime;
     mTimeRuler = rulerTime;
-    mAreaMapPanel = altitudeChartFrame.findViewById(R.id.areamap_route_panel);
-    mAreaMapWarning = altitudeChartFrame.findViewById(R.id.areamap_route_warning);
-    mAreaMapAdvice = altitudeChartFrame.findViewById(R.id.areamap_route_advice);
-    mAreaMapCheckpoints = altitudeChartFrame.findViewById(R.id.areamap_route_checkpoints);
-    mAreaMapPeaks = altitudeChartFrame.findViewById(R.id.areamap_route_peaks);
-    altitudeChartFrame.findViewById(R.id.areamap_route_details).setOnClickListener(v -> {
-      new com.google.android.material.dialog.MaterialAlertDialogBuilder(mContext)
-          .setTitle(R.string.areamap_route_specific_title)
-          .setMessage(TextUtils.concat(mAreaMapAdvice.getText(), "\n\n", mAreaMapCheckpoints.getText(),
-                                       "\n\n", mAreaMapPeaks.getText()))
-          .setPositiveButton(R.string.areamap_close, null)
-          .show();
-    });
-    altitudeChartFrame.findViewById(R.id.areamap_route_guide)
-        .setOnClickListener(v -> mContext.startActivity(new Intent(mContext, TripSafetyActivity.class)));
-    altitudeChartFrame.findViewById(R.id.areamap_route_sos)
-        .setOnClickListener(v -> mContext.startActivity(
-            new Intent(mContext, TripSafetyActivity.class).putExtra(TripSafetyActivity.EXTRA_SHOW_SOS, true)));
-    altitudeChartFrame.findViewById(R.id.areamap_route_import)
-        .setOnClickListener(v -> mContext.startActivity(new Intent(mContext, RouteImportActivity.class)));
     mError = error;
     mStart = start;
     mAltitudeChart = altitudeChart;
@@ -305,8 +266,7 @@ final class RoutingBottomMenuController
 
   void hideAltitudeChartAndRoutingDetails()
   {
-    UiUtils.hide(mAltitudeChart, mTimeVehicle, mTimeElevationLine, mTransitTime, mTimeRuler, mTransitRecyclerView,
-                 mAreaMapPanel);
+    UiUtils.hide(mAltitudeChart, mTimeVehicle, mTimeElevationLine, mTransitTime, mTimeRuler, mTransitRecyclerView);
     notifyVisibilityChanged();
   }
 
@@ -479,122 +439,12 @@ final class RoutingBottomMenuController
     else
     {
       UiUtils.show(mTimeElevationLine);
-      if (Router.get() == Router.Pedestrian)
-      {
-        final RouteAltitudeData altitude = Framework.nativeGetRouteAltitudeData();
-        final double ascent = altitude == null ? 0.0 : altitude.getTotalAscent();
-        final double reverseAscent = altitude == null ? ascent : altitude.getTotalDescent();
-        final double distanceMeters = HikingTiming.toMeters(rinfo.distToTarget);
-        final int plannedSeconds = HikingTiming.conservativeSeconds(rinfo.totalTimeInSeconds, distanceMeters, ascent);
-        final int returnSeconds =
-            Math.max(rinfo.totalTimeInSeconds, HikingTiming.estimateSeconds(distanceMeters, reverseAscent));
-        final int roundTripSeconds = plannedSeconds + returnSeconds;
-        final String pace = HikingTiming.formatPace(HikingTiming.secondsPerKm(plannedSeconds, distanceMeters));
-        mTime.setText(TextUtils.concat(
-            Utils.formatRoutingTime(mContext, plannedSeconds, R.dimen.text_size_routing_number),
-            " · ", rinfo.distToTarget.toString(mContext), "\n", mContext.getString(R.string.areamap_pace, pace),
-            "\n", mContext.getString(R.string.areamap_return_estimate,
-                Utils.formatRoutingTime(mContext, returnSeconds, R.dimen.text_size_body_3).toString(),
-                Utils.formatArrivalTime(roundTripSeconds))));
-
-        UiUtils.show(mAreaMapPanel);
-        final Location location = MwmApplication.from(mContext).getLocationHelper().getSavedLocation();
-        final boolean afterDark = location != null
-            && DarknessUtil.routeTouchesDarkness(System.currentTimeMillis(), roundTripSeconds,
-                                                 location.getLatitude(), location.getLongitude());
-        UiUtils.showIf(afterDark, mAreaMapWarning);
-        if (afterDark)
-          mAreaMapWarning.setText(R.string.areamap_night_warning);
-
-        if (altitude != null && altitude.getSize() > 1)
-        {
-          final RouteSafetyAnalysis.Result analysis = RouteSafetyAnalysis.analyze(altitude, plannedSeconds);
-          final StringBuilder advice = new StringBuilder();
-          advice.append(mContext.getString(distanceMeters >= 12000.0 ? R.string.areamap_route_advice_long
-                                                                     : R.string.areamap_route_advice_short));
-          if (analysis.totalAscent >= 800)
-            advice.append(" ").append(mContext.getString(R.string.areamap_route_advice_climb));
-          if (analysis.maxAltitude >= 2500)
-            advice.append(" ").append(mContext.getString(R.string.areamap_route_advice_high));
-          if (analysis.maxGradePercent >= 15.0)
-            advice.append(" ").append(mContext.getString(R.string.areamap_route_advice_steep));
-          if (afterDark)
-            advice.append(" ").append(mContext.getString(R.string.areamap_route_advice_night));
-
-          if (!analysis.hazards.isEmpty())
-          {
-            advice.append("\n\n").append(mContext.getString(R.string.areamap_hazards_title));
-            for (RouteSafetyAnalysis.Hazard hazard : analysis.hazards)
-            {
-              final String type = mContext.getString(hazard.descent ? R.string.areamap_hazard_descent
-                                                                   : R.string.areamap_hazard_ascent);
-              advice.append("\n• ").append(mContext.getString(
-                  R.string.areamap_hazard_item, type, hazard.distanceMeters / 1000.0, hazard.gradePercent));
-            }
-          }
-
-          mAreaMapAdvice.setText(mContext.getString(
-              R.string.areamap_route_advice_prefix, rinfo.distToTarget.toString(mContext),
-              analysis.totalAscent, analysis.maxAltitude, advice.toString()));
-
-          final StringBuilder checkpoints =
-              new StringBuilder(mContext.getString(R.string.areamap_checkpoints_title));
-          int checkpointNumber = 1;
-          for (RouteSafetyAnalysis.Checkpoint checkpoint : analysis.checkpoints)
-          {
-            final CharSequence eta = Utils.formatRoutingTime(mContext, checkpoint.etaSeconds,
-                                                             R.dimen.text_size_routing_number);
-            final String arrival = Utils.formatArrivalTime(checkpoint.etaSeconds);
-            checkpoints.append("\n").append(mContext.getString(
-                R.string.areamap_checkpoint_item, checkpointNumber++, eta.toString(), arrival,
-                checkpoint.distanceMeters / 1000.0, checkpoint.altitudeMeters));
-          }
-          mAreaMapCheckpoints.setText(checkpoints.toString());
-          UiUtils.show(mAreaMapCheckpoints);
-
-          final StringBuilder peaks = new StringBuilder(mContext.getString(R.string.areamap_peaks_title));
-          if (analysis.peaks.isEmpty())
-            peaks.append("\n").append(mContext.getString(R.string.areamap_no_peaks));
-          else
-          {
-            int number = 1;
-            for (RouteSafetyAnalysis.Peak peak : analysis.peaks)
-            {
-              final CharSequence eta = Utils.formatRoutingTime(mContext, peak.etaSeconds,
-                                                               R.dimen.text_size_routing_number);
-              peaks.append("\n").append(mContext.getString(
-                  R.string.areamap_peak_item, number++, eta.toString(), peak.altitudeMeters,
-                  peak.distanceMeters / 1000.0));
-            }
-          }
-          mAreaMapPeaks.setText(peaks.toString());
-        }
-        else
-        {
-          mAreaMapAdvice.setText("");
-          mAreaMapCheckpoints.setText("");
-          UiUtils.hide(mAreaMapCheckpoints);
-          mAreaMapPeaks.setText("");
-        }
-      }
-      else
-      {
-        UiUtils.hide(mAreaMapPanel);
-        mTime.setText(spanned);
-      }
+      mTime.setText(spanned);
     }
 
     if (mArrival != null)
     {
-      int arrivalSeconds = rinfo.totalTimeInSeconds;
-      if (Router.get() == Router.Pedestrian)
-      {
-        final RouteAltitudeData altitude = Framework.nativeGetRouteAltitudeData();
-        final double ascent = altitude == null ? 0.0 : altitude.getTotalAscent();
-        arrivalSeconds = HikingTiming.conservativeSeconds(rinfo.totalTimeInSeconds,
-                                                          HikingTiming.toMeters(rinfo.distToTarget), ascent);
-      }
-      String arrivalTime = Utils.formatArrivalTime(arrivalSeconds);
+      String arrivalTime = Utils.formatArrivalTime(rinfo.totalTimeInSeconds);
       mArrival.setText(arrivalTime);
     }
   }
