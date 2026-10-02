@@ -155,6 +155,7 @@ public class MwmActivity extends BaseMwmFragmentActivity
   private boolean mIntentConsumed = false;
   private boolean mPreciseLocationDialogShown = false;
   private boolean mAreaMapRoutePanelActive = false;
+  private boolean mAreaMapCheckpointPageOpen = false;
 
   private static final String MAIN_MENU_ID = "MAIN_MENU_BOTTOM_SHEET";
   private static final String LAYERS_MENU_ID = "LAYERS_MENU_BOTTOM_SHEET";
@@ -1127,8 +1128,14 @@ public class MwmActivity extends BaseMwmFragmentActivity
   @Override
   public void onPlacePageActivated(@NonNull PlacePageData data)
   {
-    // This will open the place page
-    mPlacePageViewModel.setMapObject((MapObject) data);
+    final MapObject object = (MapObject) data;
+    if (RouteCheckpointBookmarks.isCheckpoint(object))
+    {
+      mAreaMapCheckpointPageOpen = true;
+      hideAreaMapRoutePanel();
+    }
+    // This will open the place page.
+    mPlacePageViewModel.setMapObject(object);
   }
 
   @Override
@@ -1137,7 +1144,15 @@ public class MwmActivity extends BaseMwmFragmentActivity
     if (mPlacePageViewModel.getMapObject().getValue() == null
         || mPlacePageViewModel.getMapObject().getValue().isTrackRecording())
       return;
+
     closePlacePage();
+    if (mAreaMapCheckpointPageOpen)
+    {
+      mAreaMapCheckpointPageOpen = false;
+      final TripPlan plan = TripPlan.current();
+      if (plan != null && shouldUseAreaMapRoutePanel())
+        showAreaMapRoutePanel(plan);
+    }
   }
 
   @Override
