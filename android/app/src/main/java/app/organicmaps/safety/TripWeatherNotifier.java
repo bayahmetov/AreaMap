@@ -65,6 +65,10 @@ public final class TripWeatherNotifier
     if (!safety.hasActiveTrip())
       return context.getString(R.string.areamap_weather_no_trip);
 
+    if (!TripWeatherRepository.hasForecastForPoint(context, safety.weatherLat(), safety.weatherLon(),
+                                                    safety.weatherAltitudeMeters()))
+      return context.getString(R.string.areamap_weather_no_cache);
+
     final TripWeatherRepository.Hour hour =
         TripWeatherRepository.closestHour(context, safety.weatherTargetAtMillis());
     if (hour == null)
@@ -84,6 +88,10 @@ public final class TripWeatherNotifier
   @NonNull
   public static String summaryForPlan(@NonNull Context context, @NonNull TripPlan plan)
   {
+    if (!TripWeatherRepository.hasForecastForPoint(context, plan.weatherLat, plan.weatherLon,
+                                                    plan.weatherAltitudeMeters))
+      return context.getString(R.string.areamap_weather_no_cache);
+
     final long targetMillis = System.currentTimeMillis() + plan.weatherEtaSeconds * 1000L;
     final TripWeatherRepository.Hour hour = TripWeatherRepository.closestHour(context, targetMillis);
     if (hour == null)
