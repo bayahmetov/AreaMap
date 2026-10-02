@@ -68,9 +68,7 @@
       android:layout_height="@dimen/nav_button_height"
       android:layout_marginEnd="@dimen/nav_bottom_gap"
       android:layout_weight="0.3"
-      android:text="@string/areamap_nav_trip"
-      android:visibility="gone"
-      tools:visibility="visible" />
+      android:text="@string/areamap_nav_safety" />
 
     <Button
       android:id="@+id/stop"
