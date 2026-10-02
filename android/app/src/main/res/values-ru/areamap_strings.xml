@@ -215,4 +215,7 @@
   <string name="areamap_weather_snow">снег</string>
   <string name="areamap_weather_storm">гроза</string>
   <string name="areamap_weather_unknown">переменная погода</string>
+
+  <string name="areamap_checkpoint_map_title">Чекпоинт %1$d</string>
+  <string name="areamap_checkpoint_map_description">Контрольная точка маршрута\nДистанция: %1$.1f км\nПо плану: через %2$d мин от старта\nВысота: %3$d м\nКоординаты: %4$.5f, %5$.5f</string>
 </resources>
