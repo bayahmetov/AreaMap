@@ -76,8 +76,11 @@ import app.organicmaps.routing.RoutingPlanFragment;
 import app.organicmaps.routing.RoutingPlanViewModel;
 import app.organicmaps.safety.DarknessUtil;
 import app.organicmaps.safety.GuideListActivity;
+import app.organicmaps.safety.GpxNavigation;
 import app.organicmaps.safety.RouteCheckpointBookmarks;
 import app.organicmaps.safety.TripPlan;
+import app.organicmaps.safety.TripReportSender;
+import app.organicmaps.safety.TripSafety;
 import app.organicmaps.safety.TripSafetyActivity;
 import app.organicmaps.safety.TripStartFlow;
 import app.organicmaps.safety.TripWeatherNotifier;
@@ -181,6 +184,18 @@ public class MwmActivity extends BaseMwmFragmentActivity
 
   private RoutingPlanViewModel mRoutingPlanViewModel;
   private PlacePageViewModel mPlacePageViewModel;
+  @Nullable
+  private GpxNavigation mGpxSession;
+  private final android.os.Handler mGpxHandler =
+      new android.os.Handler(android.os.Looper.getMainLooper());
+  private final Runnable mGpxRefresh = new Runnable() {
+    @Override
+    public void run()
+    {
+      updateGpxBanner();
+      mGpxHandler.postDelayed(this, 5000);
+    }
+  };
   private SearchPageViewModel mSearchPageViewModel;
   private MapButtonsViewModel mMapButtonsViewModel;
   private MapButtonsController.LayoutMode mPreviousMapLayoutMode;
@@ -197,6 +212,8 @@ public class MwmActivity extends BaseMwmFragmentActivity
   @SuppressWarnings("NotNullFieldNotInitialized")
   private ActivityResultLauncher<String[]> mLocationPermissionRequest;
   private boolean mLocationPermissionRequestedForRecording = false;
+  private boolean mLocationPermissionRequestedForGpx = false;
+  private boolean mPendingAreaMapNavigationAfterLocationPermission = false;
 
   @SuppressWarnings("NotNullFieldNotInitialized")
   private ActivityResultLauncher<String> mPostNotificationPermissionRequest;
@@ -994,6 +1011,19 @@ public class MwmActivity extends BaseMwmFragmentActivity
   protected void onResume()
   {
     super.onResume();
+
+    final GpxNavigation session = GpxNavigation.current;
+    if (session != null && session != mGpxSession)
+    {
+      mGpxSession = session;
+      RoutingController.get().cancel();
+      closeFloatingPanels();
+      ensureGpxLocationTracking();
+    }
+    updateGpxBanner();
+    mGpxHandler.removeCallbacks(mGpxRefresh);
+    mGpxHandler.postDelayed(mGpxRefresh, 5000);
+
     ThemeSwitcher.INSTANCE.synchronizeApplicationTheme();
     ThemeSwitcher.INSTANCE.synchronizeMapStyle(this, mMapController.isRenderingActive());
     makeNavigationBarTransparentInLightMode();
@@ -1026,6 +1056,7 @@ public class MwmActivity extends BaseMwmFragmentActivity
     refreshLightStatusBar();
 
     MwmApplication.from(this).getSensorHelper().addListener(this);
+    maybePromptTripReturn();
   }
 
   @Override
@@ -1038,6 +1069,7 @@ public class MwmActivity extends BaseMwmFragmentActivity
   @Override
   protected void onPause()
   {
+    mGpxHandler.removeCallbacks(mGpxRefresh);
     if (mOnmapDownloader != null)
       mOnmapDownloader.onPause();
     MwmApplication.from(this).getSensorHelper().removeListener(this);
@@ -1409,14 +1441,143 @@ public class MwmActivity extends BaseMwmFragmentActivity
   private void startAreaMapNavigationNow()
   {
     final TripSafety safety = TripSafety.get(this);
-    if (safety.hasActiveTrip() && safety.ownsTrackRecording()
-        && LocationUtils.checkFineLocationPermission(this))
-      TrackRecordingService.startForegroundService(this);
+    if (safety.hasActiveTrip())
+    {
+      requestPostNotificationsPermission();
+      if (safety.ownsTrackRecording() && !LocationUtils.checkFineLocationPermission(this))
+      {
+        mPendingAreaMapNavigationAfterLocationPermission = true;
+        mLocationPermissionRequestedForRecording = true;
+        mLocationPermissionRequest.launch(new String[] {ACCESS_COARSE_LOCATION, ACCESS_FINE_LOCATION});
+        return;
+      }
 
+      if (safety.ownsTrackRecording() && !TrackRecorder.nativeIsTrackRecordingEnabled())
+        startTrackRecording();
+    }
+
+    continueAreaMapNavigationNow();
+  }
+
+  private void continueAreaMapNavigationNow()
+  {
+    mPendingAreaMapNavigationAfterLocationPermission = false;
     hideAreaMapRoutePanel();
     closeFloatingPanels();
     setFullscreen(false);
     RoutingController.get().start();
+  }
+
+  private void ensureGpxLocationTracking()
+  {
+    if (GpxNavigation.current == null)
+      return;
+
+    if (!LocationUtils.checkFineLocationPermission(this))
+    {
+      mLocationPermissionRequestedForGpx = true;
+      mLocationPermissionRequest.launch(new String[] {ACCESS_COARSE_LOCATION, ACCESS_FINE_LOCATION});
+      return;
+    }
+
+    if (LocationState.getMode() == LocationState.NOT_FOLLOW_NO_POSITION)
+      LocationState.nativeSwitchToNextMode();
+    else
+      MwmApplication.from(this).getLocationHelper().restartWithNewMode();
+  }
+
+  private void updateGpxBanner()
+  {
+    final View banner = findViewById(R.id.areamap_track_navigation);
+    if (banner == null)
+      return;
+
+    final GpxNavigation session = GpxNavigation.current;
+    final boolean visible = session != null
+        && !Boolean.TRUE.equals(mSearchPageViewModel.getSearchEnabled().getValue())
+        && mPlacePageViewModel.getMapObject().getValue() == null
+        && !RoutingController.get().isPlanning() && !RoutingController.get().isNavigating();
+    UiUtils.showIf(visible, banner);
+    if (!visible)
+      return;
+
+    if (!session.hasFix)
+      session.update(MwmApplication.from(this).getLocationHelper().getSavedLocation());
+
+    final String status;
+    if (!session.hasFix)
+      status = getString(R.string.areamap_track_waiting);
+    else if (session.offset > 50)
+      status = getString(R.string.areamap_track_off_course, session.offset);
+    else if (session.arrived)
+      status = getString(R.string.areamap_track_arrived);
+    else
+      status = getString(R.string.areamap_track_progress, session.remaining / 1000.0,
+                         session.seconds / 3600, session.seconds / 60 % 60);
+
+    ((TextView) banner.findViewById(R.id.areamap_track_status)).setText(status);
+    banner.setOnClickListener(v -> showGpxRouteChoices(session));
+    banner.findViewById(R.id.areamap_track_stop).setOnClickListener(v -> {
+      GpxNavigation.current = null;
+      mGpxSession = null;
+      UiUtils.hide(banner);
+    });
+  }
+
+  private void showGpxRouteChoices(@NonNull GpxNavigation session)
+  {
+    new MaterialAlertDialogBuilder(this, R.style.MwmTheme_AlertDialog)
+        .setTitle(R.string.areamap_gpx_active_title)
+        .setMessage(R.string.areamap_gpx_active_message)
+        .setNegativeButton(R.string.areamap_continue_track, null)
+        .setPositiveButton(R.string.areamap_route_to_gpx_start, (dialog, which) -> {
+          final double[] start = session.track.points[0];
+          final MapObject target = MapObject.createMapObject(
+              MapObject.API_POINT, getString(R.string.areamap_gpx_start_title),
+              getString(R.string.areamap_gpx_start_subtitle), start[0], start[1]);
+          closeFloatingPanels();
+          final MapObject myPosition = MwmApplication.from(this).getLocationHelper().getMyPosition();
+          RoutingController.get().prepare(myPosition, target, Router.Pedestrian);
+        })
+        .show();
+  }
+
+  private void maybePromptTripReturn()
+  {
+    final TripSafety safety = TripSafety.get(this);
+    if (!safety.shouldSuggestReturn() || isFinishing() || isDestroyed())
+      return;
+    if (mAlertDialog != null && mAlertDialog.isShowing())
+      return;
+
+    mAlertDialog = new MaterialAlertDialogBuilder(this, R.style.MwmTheme_AlertDialog)
+        .setTitle(R.string.areamap_return_detected_title)
+        .setMessage(getString(R.string.areamap_return_detected_message, safety.activeTripSummary()))
+        .setCancelable(false)
+        .setNegativeButton(R.string.areamap_not_returned_yet,
+                           (dialog, which) -> safety.dismissReturnSuggestion())
+        .setPositiveButton(R.string.areamap_finish_and_send,
+                           (dialog, which) -> finishRegisteredTrip())
+        .setOnDismissListener(dialog -> mAlertDialog = null)
+        .show();
+  }
+
+  private void finishRegisteredTrip()
+  {
+    final TripSafety safety = TripSafety.get(this);
+    if (!safety.hasActiveTrip())
+      return;
+
+    final boolean stopOwnedRecording = safety.ownsTrackRecording();
+    final String report = safety.returnReport();
+    safety.completeTrip();
+    if (RoutingController.get().isNavigating())
+      RoutingController.get().cancel();
+    if (stopOwnedRecording && TrackRecorder.nativeIsTrackRecordingEnabled())
+      saveAndStopTrackRecording();
+
+    TripReportSender.shareToTelegram(this, report);
+    Toast.makeText(this, R.string.areamap_trip_completed, Toast.LENGTH_LONG).show();
   }
 
   @Override
@@ -1818,6 +1979,16 @@ public class MwmActivity extends BaseMwmFragmentActivity
   {
     dismissLocationErrorDialog();
 
+    final GpxNavigation gpx = GpxNavigation.current;
+    if (gpx != null)
+    {
+      gpx.update(location);
+      updateGpxBanner();
+    }
+
+    TripSafety.get(this).onLocation(location);
+    maybePromptTripReturn();
+
     final RoutingController routing = RoutingController.get();
     if (!routing.isNavigating())
       return;
@@ -1891,7 +2062,9 @@ public class MwmActivity extends BaseMwmFragmentActivity
     }
 
     boolean requestedForRecording = mLocationPermissionRequestedForRecording;
+    boolean requestedForGpx = mLocationPermissionRequestedForGpx;
     mLocationPermissionRequestedForRecording = false;
+    mLocationPermissionRequestedForGpx = false;
     if (LocationUtils.checkLocationPermission(this))
     {
       final boolean hasFineLocationPermission = LocationUtils.checkFineLocationPermission(this);
@@ -1900,7 +2073,17 @@ public class MwmActivity extends BaseMwmFragmentActivity
         LocationState.nativeSwitchToNextMode();
 
       if (requestedForRecording && hasFineLocationPermission)
+      {
         startTrackRecording();
+        if (mPendingAreaMapNavigationAfterLocationPermission)
+          continueAreaMapNavigationNow();
+      }
+
+      if (requestedForGpx && hasFineLocationPermission)
+      {
+        ensureGpxLocationTracking();
+        updateGpxBanner();
+      }
 
       if (hasFineLocationPermission)
       {
@@ -1908,6 +2091,8 @@ public class MwmActivity extends BaseMwmFragmentActivity
       }
       else
       {
+        if (requestedForRecording)
+          mPendingAreaMapNavigationAfterLocationPermission = false;
         Logger.w(LOCATION_TAG, "Only ACCESS_COARSE_LOCATION permission granted");
         if (mLocationErrorDialog != null && mLocationErrorDialog.isShowing())
         {
@@ -1942,6 +2127,8 @@ public class MwmActivity extends BaseMwmFragmentActivity
       return;
     }
 
+    if (requestedForRecording)
+      mPendingAreaMapNavigationAfterLocationPermission = false;
     Logger.w(LOCATION_TAG, "Permissions ACCESS_COARSE_LOCATION and ACCESS_FINE_LOCATION have been refused");
     // Calls onMyPositionModeChanged(NOT_FOLLOW_NO_POSITION).
     LocationState.nativeOnLocationError(LocationState.ERROR_DENIED);
