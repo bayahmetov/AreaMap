@@ -59,6 +59,7 @@
 
 #include "ge0/url_generator.hpp"
 
+#include <algorithm>
 #include <functional>
 #include <memory>
 #include <string>
