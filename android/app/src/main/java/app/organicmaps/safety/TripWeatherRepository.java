@@ -60,7 +60,7 @@ public final class TripWeatherRepository
 
   public static boolean refreshIfNeeded(@NonNull Context context, @NonNull TripSafety safety)
   {
-    if (!safety.hasActiveTrip())
+    if (!safety.hasWeatherPoint())
       return false;
 
     final SharedPreferences prefs = prefs(context);
