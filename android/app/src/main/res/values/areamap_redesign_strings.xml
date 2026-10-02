@@ -67,4 +67,14 @@
   <string name="areamap_registration_participant">Participant details</string>
   <string name="areamap_registration_emergency">Emergency contact</string>
   <string name="areamap_registration_demo_note">Demo mode uses Telegram for the training example. It does not contact emergency services automatically.</string>
+
+  <string name="areamap_route_kicker">ROUTE</string>
+  <string name="areamap_route_untitled">Hiking route</string>
+  <string name="areamap_route_metric_distance">%1$.1f km\nDistance</string>
+  <string name="areamap_route_metric_ascent">%1$d m\nAscent</string>
+  <string name="areamap_route_metric_time">%1$s\nOn route</string>
+  <string name="areamap_route_weather_preview_title">Weather at the key point</string>
+  <string name="areamap_route_weather_loading">Updating forecast…</string>
+  <string name="areamap_checkpoint_item_coords">Checkpoint %1$d · ~%2$s · %3$s · %4$.1f km · %5$d m\n%6$.5f, %7$.5f</string>
+
 </resources>
