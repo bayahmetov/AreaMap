@@ -42,6 +42,9 @@ public final class TripWeatherNotifier
   {
     if (!safety.hasActiveTrip())
       return;
+    if (!TripWeatherRepository.hasForecastForPoint(context, safety.weatherLat(), safety.weatherLon(),
+                                                    safety.weatherAltitudeMeters()))
+      return;
 
     final long now = System.currentTimeMillis();
     final long target = safety.weatherTargetAtMillis();
