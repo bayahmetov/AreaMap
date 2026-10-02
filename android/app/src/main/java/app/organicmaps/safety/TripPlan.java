@@ -22,12 +22,16 @@ public final class TripPlan
     public final double distanceMeters;
     public final int altitudeMeters;
     public final int etaSeconds;
+    public final double lat;
+    public final double lon;
 
-    public Checkpoint(double distanceMeters, int altitudeMeters, int etaSeconds)
+    public Checkpoint(double distanceMeters, int altitudeMeters, int etaSeconds, double lat, double lon)
     {
       this.distanceMeters = distanceMeters;
       this.altitudeMeters = altitudeMeters;
       this.etaSeconds = etaSeconds;
+      this.lat = lat;
+      this.lon = lon;
     }
   }
 
@@ -122,8 +126,16 @@ public final class TripPlan
     if (altitude != null && altitude.getSize() > 1)
     {
       final RouteSafetyAnalysis.Result analysis = RouteSafetyAnalysis.analyze(altitude, plannedSeconds);
+      final double profileDistance = Math.max(1.0, altitude.getDistance(altitude.getSize() - 1));
       for (RouteSafetyAnalysis.Checkpoint checkpoint : analysis.checkpoints)
-        checkpoints.add(new Checkpoint(checkpoint.distanceMeters, checkpoint.altitudeMeters, checkpoint.etaSeconds));
+      {
+        final double fraction = Math.max(0.0, Math.min(1.0, checkpoint.distanceMeters / profileDistance));
+        final double[] point = pointAtRouteFraction(fraction);
+        final double lat = point == null ? start.mLat + (finish.mLat - start.mLat) * fraction : point[0];
+        final double lon = point == null ? start.mLon + (finish.mLon - start.mLon) * fraction : point[1];
+        checkpoints.add(new Checkpoint(checkpoint.distanceMeters, checkpoint.altitudeMeters,
+                                       checkpoint.etaSeconds, lat, lon));
+      }
 
       int highestIndex = 0;
       for (int i = 1; i < altitude.getSize(); i++)
@@ -132,7 +144,6 @@ public final class TripPlan
           highestIndex = i;
       }
 
-      final double profileDistance = Math.max(1.0, altitude.getDistance(altitude.getSize() - 1));
       final double highestDistance = Math.max(0.0, altitude.getDistance(highestIndex));
       final double routeFraction = Math.max(0.0, Math.min(1.0, highestDistance / profileDistance));
       final double[] highestPoint = pointAtRouteFraction(routeFraction);
@@ -152,8 +163,11 @@ public final class TripPlan
       for (int i = 1; i <= count; i++)
       {
         final double fraction = i / (count + 1.0);
+        final double[] point = pointAtRouteFraction(fraction);
+        final double lat = point == null ? start.mLat + (finish.mLat - start.mLat) * fraction : point[0];
+        final double lon = point == null ? start.mLon + (finish.mLon - start.mLon) * fraction : point[1];
         checkpoints.add(new Checkpoint(distanceMeters * fraction, -1,
-                                       Math.max(60, (int) Math.round(plannedSeconds * fraction))));
+                                       Math.max(60, (int) Math.round(plannedSeconds * fraction)), lat, lon));
       }
     }
 
