@@ -74,6 +74,8 @@ import app.organicmaps.routing.RoutingErrorDialogFragment;
 import app.organicmaps.routing.RoutingPlanController;
 import app.organicmaps.routing.RoutingPlanFragment;
 import app.organicmaps.routing.RoutingPlanViewModel;
+import app.organicmaps.safety.RouteCheckpointBookmarks;
+import app.organicmaps.safety.TripPlan;
 import app.organicmaps.sdk.ChoosePositionMode;
 import app.organicmaps.sdk.Framework;
 import app.organicmaps.sdk.Map;
@@ -1342,6 +1344,7 @@ public class MwmActivity extends BaseMwmFragmentActivity
   @Override
   public void onNavigationCancelled()
   {
+    RouteCheckpointBookmarks.clear();
     closeFloatingToolbarsAndPanels();
     ThemeSwitcher.INSTANCE.synchronizeApplicationTheme();
     ThemeSwitcher.INSTANCE.synchronizeMapStyle(this, mMapController.isRenderingActive());
@@ -1388,6 +1391,7 @@ public class MwmActivity extends BaseMwmFragmentActivity
   @Override
   public void onPlanningCancelled()
   {
+    RouteCheckpointBookmarks.clear();
     closeFloatingToolbarsAndPanels();
     mMapButtonsViewModel.setLayoutMode(MapButtonsController.LayoutMode.regular);
     refreshLightStatusBar();
@@ -1442,7 +1446,19 @@ public class MwmActivity extends BaseMwmFragmentActivity
 
   @Override
   public void onBuiltRoute()
-  {}
+  {
+    if (Router.get() != Router.Pedestrian)
+    {
+      RouteCheckpointBookmarks.clear();
+      return;
+    }
+
+    final TripPlan plan = TripPlan.current();
+    if (plan == null)
+      RouteCheckpointBookmarks.clear();
+    else
+      RouteCheckpointBookmarks.show(this, plan);
+  }
 
   @Override
   public void onCommonBuildError(int lastResultCode, @NonNull String[] lastMissingMaps)
