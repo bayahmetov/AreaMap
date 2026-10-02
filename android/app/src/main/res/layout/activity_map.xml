@@ -45,6 +45,7 @@
       layout="@layout/layout_nav"
       android:layout_width="match_parent"
       android:layout_height="match_parent"
+      android:paddingBottom="@dimen/margin_base"
       android:visibility="invisible" />
   </RelativeLayout>
   <androidx.fragment.app.FragmentContainerView
@@ -52,14 +53,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:name="app.organicmaps.search.SearchFragmentController" />
-
-  <include
-    android:id="@+id/areamap_bottom_nav"
-    layout="@layout/areamap_bottom_nav"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:layout_gravity="bottom|center_horizontal" />
-
   <FrameLayout
     android:id="@+id/routing_container"
     android:layout_width="match_parent"
@@ -69,12 +62,5 @@
     android:name="app.organicmaps.widget.placepage.PlacePageController"
     android:layout_width="match_parent"
     android:layout_height="match_parent" />
-
-  <include
-    android:id="@+id/areamap_track_navigation"
-    layout="@layout/areamap_track_navigation"
-    android:layout_width="@dimen/bottom_sheet_widths"
-    android:layout_height="wrap_content"
-    android:layout_gravity="top|start" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
