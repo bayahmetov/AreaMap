@@ -34,7 +34,8 @@ import app.organicmaps.safety.RouteImportActivity;
 import app.organicmaps.safety.RouteSafetyAnalysis;
 import app.organicmaps.safety.SosActivity;
 import app.organicmaps.safety.TripPlan;
-import app.organicmaps.safety.TripWeatherNotifier;
+import app.organicmaps.safety.TripSafety;
+import app.organicmaps.safety.TripWeatherRepository;
 import app.organicmaps.sdk.Router;
 import app.organicmaps.sdk.Framework;
 import app.organicmaps.sdk.bookmarks.data.DistanceAndAzimut;
@@ -136,6 +137,8 @@ final class RoutingBottomMenuController
   private Runnable mVisibilityChangedCallback;
   @NonNull
   private StartState mStartState = StartState.DISABLED;
+  @Nullable
+  private String mWeatherPreviewKey;
 
   @NonNull
   static RoutingBottomMenuController newInstance(@NonNull Activity activity, @NonNull View frame,
