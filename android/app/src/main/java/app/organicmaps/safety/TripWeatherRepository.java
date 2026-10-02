@@ -62,12 +62,13 @@ public final class TripWeatherRepository
   {
     if (!safety.hasActiveTrip())
       return false;
+    return refreshForPoint(context, safety.weatherLat(), safety.weatherLon(), safety.weatherAltitudeMeters());
+  }
 
+  public static boolean refreshForPoint(@NonNull Context context, double lat, double lon, int alt)
+  {
     final SharedPreferences prefs = prefs(context);
     final long now = System.currentTimeMillis();
-    final double lat = safety.weatherLat();
-    final double lon = safety.weatherLon();
-    final int alt = safety.weatherAltitudeMeters();
     final boolean moved = Math.abs(lat - parseDouble(prefs.getString(KEY_LAT, "999"))) > 0.002
         || Math.abs(lon - parseDouble(prefs.getString(KEY_LON, "999"))) > 0.002
         || Math.abs(alt - prefs.getInt(KEY_ALT, -10000)) > 100;

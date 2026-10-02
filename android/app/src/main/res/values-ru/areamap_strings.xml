@@ -215,4 +215,20 @@
   <string name="areamap_weather_snow">снег</string>
   <string name="areamap_weather_storm">гроза</string>
   <string name="areamap_weather_unknown">переменная погода</string>
+
+  <string name="areamap_checkpoint_map_title">Чекпоинт %1$d</string>
+  <string name="areamap_checkpoint_map_description">Контрольная точка маршрута\nДистанция: %1$.1f км\nПо плану: через %2$d мин от старта\nВысота: %3$d м\nКоординаты: %4$.5f, %5$.5f</string>
+
+  <string name="areamap_rebuild_route">Маршрут</string>
+  <string name="areamap_rebuild_route_unknown">Горный маршрут</string>
+  <string name="areamap_rebuild_distance">%1$.1f км\nДистанция</string>
+  <string name="areamap_rebuild_ascent">%1$d м\nНабор</string>
+  <string name="areamap_rebuild_time">%1$s\nВ пути</string>
+  <string name="areamap_rebuild_checkpoints">%1$d чекпоинтов находятся прямо на карте. Нажмите на маркер, чтобы увидеть ETA, высоту и точные координаты.</string>
+  <string name="areamap_rebuild_weather_loading">Обновляем прогноз для ключевой точки…</string>
+  <string name="areamap_rebuild_edit_route">Изменить маршрут</string>
+  <string name="areamap_rebuild_start">СТАРТ</string>
+
+  <string name="areamap_nav_profile">Профиль</string>
+  <string name="areamap_map_search_placeholder">Поиск мест, маршрутов, вершин…</string>
 </resources>

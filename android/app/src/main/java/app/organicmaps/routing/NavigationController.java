@@ -56,14 +56,11 @@ public class NavigationController implements TrafficManager.TrafficCallback, Nav
   private final View mNextTurnContainer;
 
   private final NavMenu mNavMenu;
-  private boolean mTripSheetShownForSession;
   View.OnClickListener mOnSettingsClickListener;
   View.OnClickListener mOnVoiceSettingsClickListener;
-  View.OnClickListener mOnTripReturnClickListener;
 
   public NavigationController(AppCompatActivity activity, View.OnClickListener onSettingsClickListener,
                               View.OnClickListener onVoiceSettingsClickListener,
-                              View.OnClickListener onTripReturnClickListener,
                               NavMenu.OnMenuSizeChangedListener onMenuSizeChangedListener)
   {
     mMapButtonsViewModel = new ViewModelProvider(activity).get(MapButtonsViewModel.class);
@@ -72,7 +69,6 @@ public class NavigationController implements TrafficManager.TrafficCallback, Nav
     mNavMenu = new NavMenu(activity, this, onMenuSizeChangedListener);
     mOnSettingsClickListener = onSettingsClickListener;
     mOnVoiceSettingsClickListener = onVoiceSettingsClickListener;
-    mOnTripReturnClickListener = onTripReturnClickListener;
 
     // Top frame
     mTopFrame = mFrame.findViewById(R.id.nav_top_frame);
@@ -181,7 +177,6 @@ public class NavigationController implements TrafficManager.TrafficCallback, Nav
 
     updateStreetView(info);
     mNavMenu.update(info);
-    autoExpandHikeSheetIfNeeded();
   }
 
   private void updateStreetView(@NonNull RoutingInfo info)
@@ -201,41 +196,15 @@ public class NavigationController implements TrafficManager.TrafficCallback, Nav
 
   public void show(boolean show)
   {
-    final boolean wasVisible = UiUtils.isVisible(mFrame);
-    UiUtils.showIf(show, mFrame);
-
-    if (show && !wasVisible)
+    if (show && !UiUtils.isVisible(mFrame))
     {
       collapseNavMenu();
       // Seed the panel from the already-built route so it isn't empty until the first GPS fix arrives.
       update(RoutingController.get().getCachedRoutingInfo());
-      // BottomSheetBehavior cannot reliably expand while its parent is still invisible/unmeasured.
-      // Wait for the navigation frame to be laid out, then raise the hike panel.
-      autoExpandHikeSheetIfNeeded();
     }
-
+    UiUtils.showIf(show, mFrame);
     if (!show)
-    {
       mMapButtonsViewModel.setTopHeaderHeight(0);
-      mTripSheetShownForSession = false;
-      mNavMenu.resetHikeSession();
-    }
-  }
-
-  private void autoExpandHikeSheetIfNeeded()
-  {
-    if (mTripSheetShownForSession || !UiUtils.isVisible(mFrame)
-        || Router.get() != Router.Pedestrian || !RoutingController.get().isNavigating())
-      return;
-
-    mTripSheetShownForSession = true;
-    mFrame.post(() -> {
-      if (UiUtils.isVisible(mFrame) && Router.get() == Router.Pedestrian
-          && RoutingController.get().isNavigating())
-        mNavMenu.expandNavBottomSheet();
-      else
-        mTripSheetShownForSession = false;
-    });
   }
 
   public boolean isNavMenuCollapsed()
@@ -322,12 +291,6 @@ public class NavigationController implements TrafficManager.TrafficCallback, Nav
   public void onStopClicked()
   {
     RoutingController.get().cancel();
-  }
-
-  @Override
-  public void onTripReturnClicked()
-  {
-    mOnTripReturnClickListener.onClick(null);
   }
 
   private void updateSpeedLimit(@NonNull final RoutingInfo info)
