@@ -240,4 +240,9 @@
   <string name="areamap_track_progress">Осталось %1$.1f км · примерно %2$d ч %3$d мин</string>
 
   <string name="areamap_nav_safety">Безопасность</string>
+
+  <string name="areamap_report_ok_header">AREAMAP · ДЧС ДЕМО · СТАТУС</string>
+  <string name="areamap_report_ok_time">Статус: всё в порядке · %1$s</string>
+  <string name="areamap_report_break_header">AREAMAP · ДЧС ДЕМО · ОБНОВЛЕНИЕ ГРАФИКА</string>
+  <string name="areamap_report_break_time">Добавлен привал: +%1$d мин · новое ожидаемое возвращение %2$s</string>
 </resources>
