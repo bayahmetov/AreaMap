@@ -1,0 +1,32 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+  <string name="destination_peak">Mountain peak</string>
+  <string name="destination_lake">Mountain lake</string>
+  <string name="destination_waterfall">Waterfall</string>
+  <string name="destination_plateau">Plateau</string>
+  <string name="destination_resort">Mountain resort · Shymbulak</string>
+  <string name="destination_regional_photo">Regional mountain landscape, not a photograph of this point</string>
+  <string name="destination_back">Back</string>
+  <string name="destination_share">Share</string>
+  <string name="destination_description">Description</string>
+  <string name="destination_description_missing">No description has been added yet</string>
+  <string name="destination_read_more">Expand description</string>
+  <string name="destination_read_less">Collapse description</string>
+  <string name="destination_location">On the map</string>
+  <string name="destination_related">Routes through this point</string>
+  <string name="destination_no_routes">No related routes have been added yet</string>
+  <string name="destination_build_route">Build route</string>
+  <string name="destination_bookmarks_loading">Bookmarks are loading. Please try again.</string>
+  <string name="destination_save_failed">Could not save this place</string>
+  <string name="destination_weather_loading">Loading destination forecast…</string>
+  <string name="destination_weather_missing">Weather unavailable</string>
+  <string name="destination_weather_value">Forecast at %1$s: %2$.0f °C · %3$s
+Updated: %4$s</string>
+  <string name="destination_route_current">Current route: %1$s → %2$s
+%3$.1f km · %4$d min</string>
+  <string name="destination_location_value">%1$.6f, %2$.6f
+Open on the map</string>
+  <string name="destination_active_route">Finish the current navigation first</string>
+  <string name="destination_photo_missing">No photograph has been added yet</string>
+  <string name="destination_catalog_note">Explore destination details before building a route.</string>
+</resources>

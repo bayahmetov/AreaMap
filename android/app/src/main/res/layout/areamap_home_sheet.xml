@@ -103,7 +103,7 @@
       <TextView
         style="@style/AreaMap.HomeText"
         android:padding="@dimen/home_padding"
-        android:text="@string/home_catalog_demo"
+        android:text="@string/destination_catalog_note"
         android:textSize="@dimen/home_caption_size"
         android:textColor="@color/areamap_text_muted"/>
     </LinearLayout>

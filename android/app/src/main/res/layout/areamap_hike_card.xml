@@ -5,7 +5,7 @@
   android:layout_width="@dimen/home_card_width"
   android:layout_height="@dimen/home_card_height"
   android:layout_marginEnd="@dimen/home_gap"
-  android:background="@drawable/home_surface"
+  android:background="@drawable/destination_card"
   android:clickable="true"
   android:focusable="true">
   <ImageView

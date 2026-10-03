@@ -748,6 +748,33 @@ public class MwmActivity extends BaseMwmFragmentActivity
     refreshAreaMapBottomNav();
   }
 
+  public void refreshDestinationFavorites()
+  {
+    if (mHomeController != null)
+      mHomeController.refreshInfo();
+  }
+
+  public void showDestinationOnMap(double lat, double lon)
+  {
+    closeFloatingPanels();
+    Framework.nativeZoomToPoint(lat, lon, 15, true);
+  }
+
+  public boolean buildDestinationRoute(app.organicmaps.home.HikeRecommendation item)
+  {
+    if (RoutingController.get().isNavigating() || GpxNavigation.current != null)
+    {
+      Toast.makeText(this, R.string.destination_active_route, Toast.LENGTH_SHORT).show();
+      return false;
+    }
+    closeFloatingPanels();
+    final MapObject target =
+        MapObject.createMapObject(MapObject.API_POINT, getString(item.title), getString(item.type), item.lat, item.lon);
+    final MapObject start = MwmApplication.from(this).getLocationHelper().getMyPosition();
+    RoutingController.get().prepare(start, target, Router.Pedestrian);
+    return true;
+  }
+
   public void refreshAreaMapBottomNav()
   {
     if (mMapButtonsViewModel != null)

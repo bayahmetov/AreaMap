@@ -4,40 +4,64 @@ import androidx.annotation.StringRes;
 import app.organicmaps.R;
 import java.util.List;
 
-/** Demo catalog: ratings and walking times are illustrative, not live safety assessments. */
+/** Offline destination catalog. Missing editorial/review/route metadata is not invented. */
 public final class HikeRecommendation
 {
   public final String id;
-  @StringRes public final int title;
+  @StringRes
+  public final int title;
+  @StringRes
+  public final int type;
   public final int altitude;
-  public final String hours;
-  @StringRes public final int difficulty;
-  public final double rating;
+  @StringRes
+  public final int description;
+  public final double lat;
+  public final double lon;
+  public final List<String> imageAssets;
   public final String imageAsset;
-  /** True only for a source explicitly documenting the approach rather than the summit. */
   public final boolean photoShowsApproach;
+  public final boolean regionalPhoto;
 
-  private HikeRecommendation(String id, int title, int altitude, String hours, int difficulty, double rating)
+  private HikeRecommendation(String id, int title, int type, int altitude, double lat, double lon,
+                             boolean regionalPhoto)
   {
     this.id = id;
     this.title = title;
+    this.type = type;
     this.altitude = altitude;
-    this.hours = hours;
-    this.difficulty = difficulty;
-    this.rating = rating;
-    imageAsset = "areamap/hikes/" + id + ".webp";
+    description = 0;
+    this.lat = lat;
+    this.lon = lon;
+    this.regionalPhoto = regionalPhoto;
+    imageAsset = "areamap/hikes/" + (regionalPhoto ? "furmanov_peak" : id) + ".webp";
+    imageAssets = List.of(imageAsset);
     photoShowsApproach = id.equals("furmanov_peak");
   }
 
-  public static List<HikeRecommendation> demoCatalog()
+  public static HikeRecommendation find(String id)
   {
-    return List.of(
-        new HikeRecommendation("tri_bratya", R.string.home_tri_bratya, 2860, "6–8", R.string.home_medium, 4.8),
-        new HikeRecommendation("big_almaty_lake", R.string.home_bao, 2511, "3–5", R.string.home_easy, 4.9),
-        new HikeRecommendation("butakovsky_waterfall", R.string.home_butakovka, 1400, "2–3", R.string.home_easy, 4.7),
-        new HikeRecommendation("kok_zhailau", R.string.home_kok_zhailau, 2250, "4–6", R.string.home_medium, 4.8),
-        new HikeRecommendation("furmanov_peak", R.string.home_furmanov, 3053, "6–8", R.string.home_medium, 4.8),
-        new HikeRecommendation("medeu_shymbulak", R.string.home_medeu, 2260, "2–4", R.string.home_easy, 4.7),
-        new HikeRecommendation("tourist_peak", R.string.home_tourist, 3954, "8–10", R.string.home_medium, 4.9));
+    for (HikeRecommendation item : catalog())
+      if (item.id.equals(id))
+        return item;
+    return null;
+  }
+
+  public static List<HikeRecommendation> catalog()
+  {
+    // Coordinate provenance and representative points: docs/AREAMAP_DESTINATIONS.md.
+    return List.of(new HikeRecommendation("tri_bratya", R.string.home_tri_bratya, R.string.destination_peak, 2860,
+                                          43.127825, 77.013213, true),
+                   new HikeRecommendation("big_almaty_lake", R.string.home_bao, R.string.destination_lake, 2511,
+                                          43.05060, 76.98530, false),
+                   new HikeRecommendation("butakovsky_waterfall", R.string.home_butakovka,
+                                          R.string.destination_waterfall, -1, 43.17231, 77.11401, false),
+                   new HikeRecommendation("kok_zhailau", R.string.home_kok_zhailau, R.string.destination_plateau, 2200,
+                                          43.139722, 76.997778, false),
+                   new HikeRecommendation("furmanov_peak", R.string.home_furmanov, R.string.destination_peak, 3053,
+                                          43.149454, 77.116494, false),
+                   new HikeRecommendation("medeu_shymbulak", R.string.home_medeu, R.string.destination_resort, -1,
+                                          43.12827, 77.08142, false),
+                   new HikeRecommendation("tourist_peak", R.string.home_tourist, R.string.destination_peak, 3954,
+                                          43.028769, 76.952072, true));
   }
 }

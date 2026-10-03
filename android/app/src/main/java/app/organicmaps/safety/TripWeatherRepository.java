@@ -72,7 +72,12 @@ public final class TripWeatherRepository
 
   public static boolean refreshForPoint(@NonNull Context context, double lat, double lon, int alt, boolean force)
   {
-    final SharedPreferences prefs = prefs(context);
+    return refreshForPoint(context, prefs(context), lat, lon, alt, force);
+  }
+
+  private static boolean refreshForPoint(Context context, SharedPreferences prefs, double lat, double lon, int alt,
+                                         boolean force)
+  {
     final long now = System.currentTimeMillis();
     final boolean moved = Math.abs(lat - parseDouble(prefs.getString(KEY_LAT, "999"))) > 0.002
                        || Math.abs(lon - parseDouble(prefs.getString(KEY_LON, "999"))) > 0.002
@@ -124,7 +129,7 @@ public final class TripWeatherRepository
     catch (Exception ignored)
     {
       // Network failures are expected in the mountains. Reuse cache only for the same route point.
-      return hasForecastForPoint(context, lat, lon, alt);
+      return hasForecastForPoint(prefs, lat, lon, alt);
     }
     finally
     {
@@ -135,7 +140,11 @@ public final class TripWeatherRepository
 
   public static boolean hasForecastForPoint(@NonNull Context context, double lat, double lon, int alt)
   {
-    final SharedPreferences prefs = prefs(context);
+    return hasForecastForPoint(prefs(context), lat, lon, alt);
+  }
+
+  private static boolean hasForecastForPoint(SharedPreferences prefs, double lat, double lon, int alt)
+  {
     if (!prefs.contains(KEY_JSON))
       return false;
 
@@ -144,6 +153,31 @@ public final class TripWeatherRepository
     final int cachedAlt = prefs.getInt(KEY_ALT, -10000);
     return Math.abs(lat - cachedLat) <= 0.002 && Math.abs(lon - cachedLon) <= 0.002
  && (alt < 0 || cachedAlt < 0 || Math.abs(alt - cachedAlt) <= 100);
+  }
+
+  /** Destination browsing uses the same downloader/parser, without replacing active-trip weather. */
+  public static boolean refreshDestination(Context context, String id, double lat, double lon, int altitude,
+                                           boolean force)
+  {
+    return refreshForPoint(context, destinationPrefs(context, id), lat, lon, altitude, force);
+  }
+
+  public static java.util.List<Hour> destinationHours(Context context, String id, double lat, double lon, int altitude)
+  {
+    final SharedPreferences prefs = destinationPrefs(context, id);
+    if (!hasForecastForPoint(prefs, lat, lon, altitude))
+      return java.util.List.of();
+    return parseHours(prefs.getString(KEY_JSON, ""), System.currentTimeMillis(), 1);
+  }
+
+  public static long destinationFetchedAt(Context context, String id)
+  {
+    return destinationPrefs(context, id).getLong(KEY_FETCHED_AT, 0L);
+  }
+
+  private static SharedPreferences destinationPrefs(Context context, String id)
+  {
+    return context.getSharedPreferences(PREFS + "_destination_" + id, Context.MODE_PRIVATE);
   }
 
   /** UI reads the existing route-point cache, including the current hour and future hours. */

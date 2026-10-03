@@ -108,6 +108,17 @@ public class SharingUtils
   // This utility class has only static methods
   private SharingUtils() {}
 
+  public static void shareDestination(@NonNull Context context, @NonNull String title, double lat, double lon)
+  {
+    final String coordinates = String.format(java.util.Locale.US, "%.6f, %.6f", lat, lon);
+    final Intent intent =
+        new Intent(Intent.ACTION_SEND)
+            .setType("text/plain")
+            .putExtra(Intent.EXTRA_SUBJECT, title)
+            .putExtra(Intent.EXTRA_TEXT, title + "\n" + coordinates + "\ngeo:" + coordinates.replace(", ", ","));
+    context.startActivity(Intent.createChooser(intent, null));
+  }
+
   public static void shareLocation(@NonNull Context context, @NonNull Location loc)
   {
     shareText(context, Framework.nativeGetShareDataForMyPosition(loc.getLatitude(), loc.getLongitude()));

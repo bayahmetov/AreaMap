@@ -1,0 +1,32 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+  <string name="destination_peak">Горная вершина</string>
+  <string name="destination_lake">Горное озеро</string>
+  <string name="destination_waterfall">Водопад</string>
+  <string name="destination_plateau">Плато</string>
+  <string name="destination_resort">Горный курорт · Шымбулак</string>
+  <string name="destination_regional_photo">Горный пейзаж региона, не снимок этой точки</string>
+  <string name="destination_back">Назад</string>
+  <string name="destination_share">Поделиться</string>
+  <string name="destination_description">Описание</string>
+  <string name="destination_description_missing">Описание пока не добавлено</string>
+  <string name="destination_read_more">Развернуть описание</string>
+  <string name="destination_read_less">Свернуть описание</string>
+  <string name="destination_location">На карте</string>
+  <string name="destination_related">Маршруты через эту точку</string>
+  <string name="destination_no_routes">Связанные маршруты пока не добавлены</string>
+  <string name="destination_build_route">Построить маршрут</string>
+  <string name="destination_bookmarks_loading">Закладки загружаются. Попробуйте ещё раз.</string>
+  <string name="destination_save_failed">Не удалось сохранить место</string>
+  <string name="destination_weather_loading">Загрузка прогноза для направления…</string>
+  <string name="destination_weather_missing">Погода недоступна</string>
+  <string name="destination_weather_value">Прогноз на %1$s: %2$.0f °C · %3$s
+Обновлено: %4$s</string>
+  <string name="destination_route_current">Текущий маршрут: %1$s → %2$s
+%3$.1f км · %4$d мин</string>
+  <string name="destination_location_value">%1$.6f, %2$.6f
+Открыть на карте</string>
+  <string name="destination_active_route">Сначала завершите текущую навигацию</string>
+  <string name="destination_photo_missing">Фотография пока не добавлена</string>
+  <string name="destination_catalog_note">Откройте информацию о направлении перед построением маршрута.</string>
+</resources>

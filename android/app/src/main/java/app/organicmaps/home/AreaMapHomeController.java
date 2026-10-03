@@ -30,6 +30,7 @@ public final class AreaMapHomeController
   private final BottomSheetBehavior<View> mBehavior;
   private final Map<View, Integer> mHiddenLegacyViews = new HashMap<>();
   private final ViewTreeObserver.OnGlobalLayoutListener mLayoutListener = this::updateLayout;
+  private final HikeRecommendationAdapter mRecommendations;
   private Insets mInsets = Insets.NONE;
   private boolean mVisible;
   private boolean mPreviewVisible;
@@ -69,7 +70,8 @@ public final class AreaMapHomeController
     final RecyclerView carousel = activity.findViewById(R.id.home_recommendations);
     carousel.setLayoutManager(new LinearLayoutManager(activity, RecyclerView.HORIZONTAL, false));
     final HikeRecommendationAdapter adapter = new HikeRecommendationAdapter(
-        activity, HikeRecommendation.demoCatalog(), item -> activity.showSearch(activity.getString(item.title)));
+        activity, HikeRecommendation.catalog(), item -> DestinationDetailsFragment.open(activity, item.id));
+    mRecommendations = adapter;
     carousel.setAdapter(adapter);
     activity.findViewById(R.id.home_photo_credits).setOnClickListener(v -> HomePhotoCredits.show(activity));
     activity.findViewById(R.id.home_photos_missing)
@@ -124,6 +126,7 @@ public final class AreaMapHomeController
 
   public void refreshInfo()
   {
+    mRecommendations.notifyDataSetChanged();
     ((TextView) mActivity.findViewById(R.id.home_offline_status)).setText(HomeInfoRepository.offlineStatus(mActivity));
   }
 

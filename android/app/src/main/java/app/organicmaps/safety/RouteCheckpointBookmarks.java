@@ -69,6 +69,11 @@ public final class RouteCheckpointBookmarks
       return false;
 
     final BookmarkCategory category = BookmarkManager.INSTANCE.getCategoryById(bookmark.getCategoryId());
+    return isCheckpointCategory(category);
+  }
+
+  public static boolean isCheckpointCategory(@androidx.annotation.Nullable BookmarkCategory category)
+  {
     return category != null && CATEGORY.equals(category.getName());
   }
 
