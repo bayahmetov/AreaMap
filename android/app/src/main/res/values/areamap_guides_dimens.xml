@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+  <dimen name="guide_hero_min_height">260dp</dimen>
+  <dimen name="guide_category_height">210dp</dimen>
+  <dimen name="guide_article_width">240dp</dimen>
+  <dimen name="guide_article_height">280dp</dimen>
+  <dimen name="guide_grid_gap">6dp</dimen>
+  <dimen name="guide_section_gap">20dp</dimen>
+</resources>

@@ -1,76 +1,45 @@
-<?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/areamap_bg"
-    android:fillViewport="true">
-
-  <LinearLayout
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      android:orientation="vertical"
-      android:paddingStart="20dp"
-      android:paddingEnd="20dp"
-      android:paddingTop="18dp"
-      android:paddingBottom="32dp">
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/areamap_guides_page_title"
-        android:textColor="@color/areamap_text"
-        android:textSize="30sp"
-        android:textStyle="bold" />
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
-        android:text="@string/areamap_guides_page_subtitle"
-        android:textColor="@color/areamap_text_secondary"
-        android:textSize="14sp"
-        android:lineSpacingExtra="3dp" />
-
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/guide_language"
-        style="@style/AreaMap.SecondaryButton"
-        android:layout_width="wrap_content"
-        android:layout_height="44dp"
-        android:layout_marginTop="14dp"
-        android:minHeight="44dp"
-        android:text="@string/areamap_language_change"
-        android:textSize="13sp" />
-
-    <androidx.appcompat.widget.AppCompatEditText
-        android:id="@+id/guide_search"
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:layout_marginTop="20dp"
-        android:background="@drawable/bg_areamap_search_input"
-        android:hint="@string/areamap_search_articles"
-        android:inputType="text"
-        android:maxLines="1"
-        android:paddingStart="18dp"
-        android:paddingEnd="18dp"
-        android:singleLine="true"
-        android:textColor="@color/areamap_text"
-        android:textColorHint="@color/areamap_text_muted"
-        android:textSize="16sp" />
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:text="@string/areamap_medical_disclaimer"
-        android:textColor="@color/areamap_text_muted"
-        android:textSize="12sp"
-        android:lineSpacingExtra="3dp" />
-
-    <LinearLayout
-        android:id="@+id/guide_articles"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:orientation="vertical" />
+<?xml version='1.0' encoding='utf-8'?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:id="@+id/guides_root" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:background="@color/areamap_bg">
+  <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:layout_margin="@dimen/home_edge" android:background="@drawable/home_surface" android:padding="8dp">
+    <ImageView android:layout_width="28dp" android:layout_height="28dp" android:src="@drawable/home_logo" android:importantForAccessibility="no" />
+    <TextView android:id="@+id/guide_brand" style="@style/AreaMap.HomeText" android:layout_width="wrap_content" android:text="@string/home_brand" android:textStyle="bold" android:padding="6dp" />
+    <EditText android:id="@+id/guide_search" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:minHeight="48dp" android:background="@drawable/home_surface" android:padding="10dp" android:textSize="14sp" android:textColor="@color/areamap_text" android:textColorHint="@color/areamap_text_secondary" android:hint="@string/g_search" android:inputType="text" android:maxLines="2" android:imeOptions="actionSearch" android:drawableStart="@drawable/ic_search" android:drawablePadding="6dp" />
+    <ImageButton android:id="@+id/guide_filters" style="@style/AreaMap.HomeControl" android:layout_marginStart="6dp" android:src="@drawable/home_filters" android:contentDescription="@string/g_filters" />
   </LinearLayout>
-</ScrollView>
+  <androidx.core.widget.NestedScrollView android:id="@+id/guide_scroll" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/home_edge" android:paddingEnd="@dimen/home_edge" android:paddingBottom="24dp">
+      <FrameLayout android:id="@+id/guide_hero" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="@dimen/guide_hero_min_height" android:background="@drawable/home_surface">
+        <ImageView android:id="@+id/guide_hero_photo" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerCrop" android:importantForAccessibility="no" />
+        <View android:layout_width="match_parent" android:layout_height="match_parent" android:background="@drawable/guide_dark_gradient" />
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="@dimen/home_padding">
+          <TextView style="@style/AreaMap.HomeText" android:text="@string/g_label" android:letterSpacing="0.16" android:textColor="@color/areamap_text_secondary" />
+          <TextView style="@style/AreaMap.HomeText" android:text="@string/g_hero_title" android:textSize="28sp" android:textStyle="bold" android:layout_marginTop="8dp" />
+          <TextView style="@style/AreaMap.HomeText" android:text="@string/g_hero_subtitle" android:layout_marginTop="8dp" android:textColor="@color/areamap_text_secondary" />
+          <TextView android:id="@+id/guide_explore" style="@style/AreaMap.GuideAction" android:layout_width="wrap_content" android:layout_marginTop="16dp" android:background="@drawable/guide_accent_button" android:text="@string/g_explore" android:textColor="@color/areamap_bg" android:textStyle="bold" />
+          <LinearLayout android:id="@+id/guide_hero_indicators" android:layout_width="match_parent" android:layout_height="48dp" android:orientation="horizontal" android:gravity="end|center_vertical" />
+        </LinearLayout>
+      </FrameLayout>
+      <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical">
+        <TextView android:id="@+id/guide_categories_title" style="@style/AreaMap.GuideHeading" android:layout_width="0dp" android:layout_weight="1" android:text="@string/g_categories" />
+        <TextView android:id="@+id/guide_all_categories" style="@style/AreaMap.GuideAction" android:layout_width="wrap_content" android:maxWidth="110dp" android:text="@string/g_all" />
+      </LinearLayout>
+      <androidx.recyclerview.widget.RecyclerView android:id="@+id/guide_categories" android:layout_width="match_parent" android:layout_height="wrap_content" android:nestedScrollingEnabled="false" android:clipToPadding="false" />
+      <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical">
+        <TextView android:id="@+id/guide_popular_title" style="@style/AreaMap.GuideHeading" android:layout_width="0dp" android:layout_weight="1" android:text="@string/g_popular" />
+        <TextView android:id="@+id/guide_all_articles" style="@style/AreaMap.GuideAction" android:layout_width="wrap_content" android:maxWidth="110dp" android:text="@string/g_all" />
+      </LinearLayout>
+      <TextView android:id="@+id/guide_empty" style="@style/AreaMap.HomeText" android:text="@string/g_empty" android:visibility="gone" />
+      <androidx.recyclerview.widget.RecyclerView android:id="@+id/guide_popular" android:layout_width="match_parent" android:layout_height="wrap_content" android:nestedScrollingEnabled="false" android:clipToPadding="false" />
+      <TextView style="@style/AreaMap.HomeText" android:text="@string/g_demo" android:textSize="12sp" android:textColor="@color/areamap_text_muted" />
+      <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical">
+        <TextView android:id="@+id/guide_route_title" style="@style/AreaMap.GuideHeading" android:layout_width="0dp" android:layout_weight="1" android:text="@string/g_route" />
+        <TextView android:id="@+id/guide_route_all" style="@style/AreaMap.GuideAction" android:layout_width="wrap_content" android:maxWidth="110dp" android:text="@string/g_route_all" />
+      </LinearLayout>
+      <TextView android:id="@+id/guide_route_subtitle" style="@style/AreaMap.HomeText" android:textColor="@color/areamap_text_secondary" />
+      <TextView android:id="@+id/guide_route_choose" style="@style/AreaMap.GuideAction" android:text="@string/g_route_choose" />
+      <androidx.recyclerview.widget.RecyclerView android:id="@+id/guide_route_articles" android:layout_width="match_parent" android:layout_height="wrap_content" android:nestedScrollingEnabled="false" android:clipToPadding="false" />
+      <TextView android:id="@+id/guide_credits" style="@style/AreaMap.GuideAction" android:text="@string/g_credits" />
+    </LinearLayout>
+  </androidx.core.widget.NestedScrollView>
+  <include layout="@layout/areamap_bottom_nav" />
+</LinearLayout>

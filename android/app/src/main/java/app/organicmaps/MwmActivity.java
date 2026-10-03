@@ -139,6 +139,7 @@ public class MwmActivity extends BaseMwmFragmentActivity
 {
   private static final String TAG = MwmActivity.class.getSimpleName();
 
+  public static final String EXTRA_GUIDES_ACTION = "areamap.extra.GUIDES_ACTION";
   public static final String EXTRA_COUNTRY_ID = "country_id";
   public static final String EXTRA_CATEGORY_ID = "category_id";
   public static final String EXTRA_BOOKMARK_ID = "bookmark_id";
@@ -285,6 +286,15 @@ public class MwmActivity extends BaseMwmFragmentActivity
     if (intent == null || mIntentConsumed)
       return;
     mIntentConsumed = true;
+    final String guidesAction = intent.getStringExtra(EXTRA_GUIDES_ACTION);
+    if (guidesAction != null)
+    {
+      intent.removeExtra(EXTRA_GUIDES_ACTION);
+      final int actionId = "route".equals(guidesAction) ? R.id.areamap_nav_route : R.id.areamap_nav_search;
+      final View actionView = findViewById(actionId);
+      if (actionView != null) actionView.performClick();
+      return;
+    }
 
     final long categoryId = intent.getLongExtra(EXTRA_CATEGORY_ID, -1);
     final long bookmarkId = intent.getLongExtra(EXTRA_BOOKMARK_ID, -1);

@@ -1,65 +1,15 @@
-<?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/areamap_bg"
-    android:fillViewport="true">
-
-  <LinearLayout
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      android:orientation="vertical"
-      android:paddingBottom="40dp">
-
-    <ImageView
-        android:id="@+id/article_image"
-        android:layout_width="match_parent"
-        android:layout_height="230dp"
-        android:scaleType="centerCrop"
-        android:contentDescription="@null" />
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:paddingStart="22dp"
-        android:paddingEnd="22dp"
-        android:paddingTop="22dp">
-
-      <TextView
-          android:id="@+id/article_title"
-          android:layout_width="match_parent"
-          android:layout_height="wrap_content"
-          android:textColor="@color/areamap_text"
-          android:textSize="28sp"
-          android:textStyle="bold"
-          android:maxLines="4" />
-
-      <TextView
-          android:id="@+id/article_tags"
-          android:layout_width="match_parent"
-          android:layout_height="wrap_content"
-          android:layout_marginTop="8dp"
-          android:textColor="@color/areamap_green"
-          android:textSize="13sp"
-          android:maxLines="2"
-          android:ellipsize="end" />
-
-      <View
-          android:layout_width="48dp"
-          android:layout_height="3dp"
-          android:layout_marginTop="20dp"
-          android:background="@color/areamap_green" />
-
-      <TextView
-          android:id="@+id/article_body"
-          android:layout_width="match_parent"
-          android:layout_height="wrap_content"
-          android:layout_marginTop="22dp"
-          android:textColor="@color/areamap_text"
-          android:textIsSelectable="true"
-          android:textSize="17sp"
-          android:lineSpacingExtra="7dp" />
+<?xml version='1.0' encoding='utf-8'?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" android:id="@+id/guide_article_root" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@color/areamap_bg" android:fillViewport="true">
+  <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="@dimen/home_padding">
+    <TextView android:id="@+id/article_back" style="@style/AreaMap.GuideAction" android:text="@string/g_back" />
+    <ImageView android:id="@+id/article_image" android:layout_width="match_parent" android:layout_height="220dp" android:scaleType="centerCrop" android:importantForAccessibility="no" />
+    <TextView android:id="@+id/article_title" style="@style/AreaMap.GuideHeading" android:textSize="28sp" />
+    <TextView android:id="@+id/article_tags" style="@style/AreaMap.HomeText" android:textColor="@color/areamap_green" />
+    <LinearLayout android:id="@+id/article_blocks" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" />
+    <LinearLayout android:id="@+id/article_emergency" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp" android:background="@drawable/home_surface">
+      <TextView style="@style/AreaMap.GuideHeading" android:text="@string/g_emergency" />
+      <TextView android:id="@+id/article_dial" style="@style/AreaMap.GuideAction" android:text="@string/g_dial" />
     </LinearLayout>
+    <TextView android:id="@+id/article_credits" style="@style/AreaMap.GuideAction" android:text="@string/g_credits" />
   </LinearLayout>
 </ScrollView>

@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+  <color name="guide_accent_route">#FF45E879</color>
+  <color name="guide_accent_weather">#FF58B8F5</color>
+  <color name="guide_accent_survival">#FFFFAA4E</color>
+  <color name="guide_accent_wildlife">#FFFFAD55</color>
+  <color name="guide_accent_plants">#FFBC82F2</color>
+  <color name="guide_accent_water">#FF65C5F5</color>
+  <color name="guide_accent_lost">#FFFF646A</color>
+</resources>

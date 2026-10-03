@@ -1,0 +1,22 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+  <style name="AreaMap.GuideHeading" parent="AreaMap.HomeText">
+    <item name="android:textSize">20sp</item>
+    <item name="android:textStyle">bold</item>
+    <item name="android:paddingTop">20dp</item>
+    <item name="android:paddingBottom">12dp</item>
+  </style>
+  <style name="AreaMap.GuideAction" parent="AreaMap.HomeText">
+    <item name="android:textColor">@color/areamap_green</item>
+    <item name="android:minHeight">48dp</item>
+    <item name="android:gravity">center_vertical</item>
+    <item name="android:clickable">true</item>
+    <item name="android:focusable">true</item>
+  </style>
+  <style name="AreaMap.GuideBody" parent="AreaMap.HomeText">
+    <item name="android:textSize">16sp</item>
+    <item name="android:lineSpacingExtra">5dp</item>
+    <item name="android:paddingTop">8dp</item>
+    <item name="android:paddingBottom">8dp</item>
+  </style>
+</resources>

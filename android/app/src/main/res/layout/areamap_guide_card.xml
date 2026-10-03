@@ -1,44 +1,11 @@
-<?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-  android:layout_width="match_parent"
-  android:layout_height="wrap_content"
-  android:layout_marginBottom="12dp"
-  android:background="@drawable/bg_areamap_result"
-  android:foreground="?attr/selectableItemBackground"
-  android:clickable="true"
-  android:focusable="true"
-  android:orientation="vertical"
-  android:paddingBottom="18dp">
-
-  <ImageView
-    android:id="@+id/article_image"
-    android:layout_width="match_parent"
-    android:layout_height="148dp"
-    android:scaleType="centerCrop"
-    android:contentDescription="@null" />
-
-  <TextView
-    android:id="@+id/article_title"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:layout_marginStart="18dp"
-    android:layout_marginEnd="18dp"
-    android:layout_marginTop="14dp"
-    android:textSize="18sp"
-    android:textStyle="bold"
-    android:textColor="@color/areamap_text"
-    android:maxLines="2"
-    android:ellipsize="end" />
-
-  <TextView
-    android:id="@+id/article_summary"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:layout_marginStart="18dp"
-    android:layout_marginEnd="18dp"
-    android:layout_marginTop="7dp"
-    android:textSize="13sp"
-    android:textColor="@color/areamap_text_secondary"
-    android:maxLines="2"
-    android:ellipsize="end" />
-</LinearLayout>
+<?xml version='1.0' encoding='utf-8'?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="@dimen/guide_article_width" android:layout_height="@dimen/guide_article_height" android:layout_marginEnd="12dp" android:background="@drawable/home_surface">
+  <ImageView android:id="@+id/article_image" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerCrop" android:importantForAccessibility="no" />
+  <View android:layout_width="match_parent" android:layout_height="match_parent" android:background="@drawable/home_photo_gradient" />
+  <TextView android:id="@+id/guide_rating" style="@style/AreaMap.HomeText" android:layout_width="wrap_content" android:layout_margin="10dp" android:padding="6dp" android:background="@drawable/home_badge" android:text="@string/g_rating" />
+  <ImageButton android:id="@+id/guide_favorite" style="@style/AreaMap.HomeControl" android:layout_gravity="top|end" android:layout_margin="6dp" android:src="@drawable/home_heart" />
+  <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:layout_gravity="bottom" android:padding="14dp">
+    <TextView android:id="@+id/article_title" style="@style/AreaMap.HomeText" android:textStyle="bold" android:textSize="17sp" />
+    <TextView android:id="@+id/article_summary" style="@style/AreaMap.HomeText" android:layout_marginTop="8dp" android:textSize="12sp" android:textColor="@color/areamap_text_secondary" />
+  </LinearLayout>
+</FrameLayout>

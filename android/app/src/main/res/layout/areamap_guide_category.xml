@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='utf-8'?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="@dimen/guide_category_height" android:layout_margin="@dimen/guide_grid_gap" android:background="@drawable/home_surface">
+  <ImageView android:id="@+id/category_image" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerCrop" android:importantForAccessibility="no" />
+  <View android:layout_width="match_parent" android:layout_height="match_parent" android:background="@drawable/home_photo_gradient" />
+  <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_gravity="bottom" android:orientation="vertical" android:padding="12dp">
+    <ImageView android:id="@+id/category_icon" android:layout_width="36dp" android:layout_height="36dp" android:padding="8dp" android:background="@drawable/home_circle" android:importantForAccessibility="no" />
+    <TextView android:id="@+id/category_title" style="@style/AreaMap.HomeText" android:layout_marginTop="6dp" android:textStyle="bold" />
+    <TextView android:id="@+id/category_count" style="@style/AreaMap.HomeText" android:textSize="12sp" android:textColor="@color/areamap_text_secondary" />
+  </LinearLayout>
+</FrameLayout>
