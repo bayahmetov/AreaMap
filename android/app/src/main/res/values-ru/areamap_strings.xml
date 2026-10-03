@@ -232,12 +232,6 @@
   <string name="areamap_nav_profile">Профиль</string>
   <string name="areamap_map_search_placeholder">Поиск мест, маршрутов, вершин…</string>
 
-  <string name="areamap_follow_track">Ведение по импортированному GPX</string>
-  <string name="areamap_track_stop">Стоп</string>
-  <string name="areamap_track_waiting">Ждём точную GPS-позицию…</string>
-  <string name="areamap_track_off_course">Отклонение от трека примерно %1$.0f м</string>
-  <string name="areamap_track_arrived">Финиш GPX достигнут</string>
-  <string name="areamap_track_progress">Осталось %1$.1f км · примерно %2$d ч %3$d мин</string>
 
   <string name="areamap_nav_safety">Безопасность</string>
 
