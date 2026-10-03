@@ -9,6 +9,7 @@
   android:background="@drawable/home_sheet"
   app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
   app:behavior_hideable="false"
+  app:paddingBottomSystemWindowInsets="false"
   app:behavior_peekHeight="@dimen/home_peek">
   <FrameLayout
     android:id="@+id/home_handle"

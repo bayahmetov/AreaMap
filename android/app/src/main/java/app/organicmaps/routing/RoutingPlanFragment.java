@@ -61,6 +61,7 @@ public class RoutingPlanFragment extends Fragment implements View.OnLayoutChange
   private int mPeekHeightMargins;
   private View mButtonsLayout;
   private int mTopInset;
+  private View mAreaMapHeader;
 
   private final ActivityResultLauncher<Intent> startDrivingOptionsForResult =
       registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), activityResult -> {
@@ -73,6 +74,11 @@ public class RoutingPlanFragment extends Fragment implements View.OnLayoutChange
 
   private RoutePreviewController mPreview;
   private boolean mPreviewActive;
+  private final View.OnLayoutChangeListener mHeaderLayoutListener =
+      (v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
+        if (mPreviewActive)
+          updateSheetLayout();
+      };
 
   public void showAreaMapPreview(app.organicmaps.safety.TripPlan plan, Runnable start, Runnable edit)
   {
@@ -152,6 +158,8 @@ public class RoutingPlanFragment extends Fragment implements View.OnLayoutChange
   {
     super.onViewCreated(view, savedInstanceState);
     mViewModel = new ViewModelProvider(requireActivity()).get(RoutingPlanViewModel.class);
+    mAreaMapHeader = requireActivity().findViewById(R.id.home_header);
+    mAreaMapHeader.addOnLayoutChangeListener(mHeaderLayoutListener);
     mFrame = view.findViewById(R.id.routing_sheet_frame);
     mRoutingTypesContainer = mFrame.findViewById(R.id.routing_types_frame);
     mRouterTypes = mFrame.findViewById(R.id.route_type);
@@ -273,6 +281,7 @@ public class RoutingPlanFragment extends Fragment implements View.OnLayoutChange
   @Override
   public void onDestroyView()
   {
+    mAreaMapHeader.removeOnLayoutChangeListener(mHeaderLayoutListener);
     if (mPreview != null)
       mPreview.dispose();
     super.onDestroyView();
@@ -366,25 +375,43 @@ public class RoutingPlanFragment extends Fragment implements View.OnLayoutChange
       return;
     final int[] position = new int[2];
     mFrame.getLocationInWindow(position);
+    final int[] rootPosition = new int[2];
+    mRoutingRoot.getLocationInWindow(rootPosition);
+    final int headerBottom = previewHeaderBottom();
+    final int viewportTop = Math.max(mTopInset, headerBottom - rootPosition[1]);
     final float density = getResources().getDisplayMetrics().density;
     final View weather = getView().findViewById(R.id.route_preview_weather_card);
     final int[] cardPosition = new int[2];
     weather.getLocationInWindow(cardPosition);
     final float originalTop = cardPosition[1] - weather.getTranslationY();
     weather.setTranslationY(Math.max(0, position[1] - weather.getHeight() - 12 * density - originalTop));
-    weather.setVisibility(sheetTop > 220 * density ? View.VISIBLE : View.INVISIBLE);
+    weather.setVisibility(position[1] - weather.getHeight() - 12 * density >= headerBottom
+                              ? View.VISIBLE : View.INVISIBLE);
     if (Boolean.TRUE.equals(mSheetVisible.getValue())
         && !app.organicmaps.MwmApplication.from(requireContext()).getDisplayManager().isCarDisplayUsed())
     {
       final boolean landscape =
           getResources().getConfiguration().orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE;
       if (landscape)
-        Framework.nativeSetVisibleRect(mRoutingBottomContainer.getRight(), mTopInset + (int) (64 * density),
+        Framework.nativeSetVisibleRect(mRoutingBottomContainer.getRight(), viewportTop,
                                        mRoutingRoot.getWidth(), mRoutingRoot.getHeight());
       else
-        Framework.nativeSetVisibleRect(0, mTopInset + (int) (64 * density), mRoutingRoot.getWidth(),
-                                       Math.max(mTopInset + (int) (65 * density), position[1]));
+        Framework.nativeSetVisibleRect(0, viewportTop, mRoutingRoot.getWidth(),
+                                       Math.max(viewportTop + 1, position[1] - rootPosition[1]));
     }
+  }
+
+  private int previewHeaderBottom()
+  {
+    final int[] position = new int[2];
+    if (mAreaMapHeader.getVisibility() == View.VISIBLE && mAreaMapHeader.getHeight() > 0)
+    {
+      mAreaMapHeader.getLocationInWindow(position);
+      return position[1] + mAreaMapHeader.getHeight()
+           + getResources().getDimensionPixelSize(R.dimen.home_edge);
+    }
+    mRoutingRoot.getLocationInWindow(position);
+    return position[1] + mTopInset;
   }
 
   private void updateSheetHeights()
@@ -396,7 +423,10 @@ public class RoutingPlanFragment extends Fragment implements View.OnLayoutChange
       if (parentHeight <= 0)
         return;
       ((androidx.coordinatorlayout.widget.CoordinatorLayout.LayoutParams) mFrame.getLayoutParams()).bottomMargin = 0;
-      final int height = Math.max(1, parentHeight - (int) (64 * getResources().getDisplayMetrics().density));
+      final int[] parentPosition = new int[2];
+      parent.getLocationInWindow(parentPosition);
+      final int clearance = Math.max(0, previewHeaderBottom() - parentPosition[1]);
+      final int height = Math.max(1, parentHeight - clearance);
       if (mFrame.getLayoutParams().height != height)
       {
         mFrame.getLayoutParams().height = height;

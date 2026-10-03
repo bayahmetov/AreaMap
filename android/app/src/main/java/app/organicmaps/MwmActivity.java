@@ -643,8 +643,10 @@ public class MwmActivity extends BaseMwmFragmentActivity
     ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.coordinator), (view, windowInsets) -> {
       final int trackRecorderOffset =
           TrackRecorder.nativeIsTrackRecordingEnabled() ? dimen(this, R.dimen.map_button_size) : 0;
-      final Insets systemBars =
-          windowInsets.getInsets(WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout());
+      final int safeTypes = WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout();
+      final Insets rawBars = windowInsets.getInsets(safeTypes);
+      final Insets systemBars = Insets.of(rawBars.left, rawBars.top, rawBars.right,
+          Math.min(rawBars.bottom, windowInsets.getInsetsIgnoringVisibility(safeTypes).bottom));
       if (mHomeController != null)
         mHomeController.setInsets(systemBars);
       // Drive nav-bar height from the AndroidX visibility signal — pre-R FLAG_FULLSCREEN
@@ -861,6 +863,7 @@ public class MwmActivity extends BaseMwmFragmentActivity
       {
         params.bottomMargin = reserve;
         content.setLayoutParams(params);
+        ViewCompat.requestApplyInsets(content);
       }
     }
     if (mNavigationController != null)
@@ -1506,7 +1509,7 @@ public class MwmActivity extends BaseMwmFragmentActivity
     updateCompassOffset(offsetY, -1);
   }
 
-  void updateCompassOffset(int offsetY, int offsetX)
+  public void updateCompassOffset(int offsetY, int offsetX)
   {
     mMapController.updateCompassOffset(offsetX, offsetY);
 
