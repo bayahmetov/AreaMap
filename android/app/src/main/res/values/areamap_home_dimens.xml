@@ -1,0 +1,19 @@
+<?xml version="1.0" ?>
+<resources>
+  <dimen name="home_edge">12dp</dimen>
+  <dimen name="home_gap">8dp</dimen>
+  <dimen name="home_padding">16dp</dimen>
+  <dimen name="home_radius">24dp</dimen>
+  <dimen name="home_card_radius">18dp</dimen>
+  <dimen name="home_icon">24dp</dimen>
+  <dimen name="home_control">48dp</dimen>
+  <dimen name="home_header_height">56dp</dimen>
+  <dimen name="home_nav_height">76dp</dimen>
+  <dimen name="home_peek">310dp</dimen>
+  <dimen name="home_card_width">180dp</dimen>
+  <dimen name="home_card_height">220dp</dimen>
+  <dimen name="home_title_size">20sp</dimen>
+  <dimen name="home_body_size">13sp</dimen>
+  <dimen name="home_caption_size">12sp</dimen>
+  <dimen name="home_border">1dp</dimen>
+</resources>

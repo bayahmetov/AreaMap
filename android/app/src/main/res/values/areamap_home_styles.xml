@@ -1,0 +1,27 @@
+<?xml version="1.0" ?>
+<resources>
+  <style name="AreaMap.HomeText" parent="">
+    <item name="android:layout_width">match_parent</item>
+    <item name="android:layout_height">wrap_content</item>
+    <item name="android:textColor">@color/areamap_text</item>
+    <item name="android:textSize">@dimen/home_body_size</item>
+    <item name="android:fontFamily">sans</item>
+  </style>
+  <style name="AreaMap.HomeControl" parent="">
+    <item name="android:layout_width">@dimen/home_control</item>
+    <item name="android:layout_height">@dimen/home_control</item>
+    <item name="android:background">@drawable/home_circle</item>
+    <item name="android:padding">12dp</item>
+    <item name="android:tint">@color/areamap_text</item>
+  </style>
+  <style name="AreaMap.HomeNavItem" parent="AreaMap.BottomNavItem">
+    <item name="android:minHeight">@dimen/home_nav_height</item>
+    <item name="android:paddingTop">10dp</item>
+  </style>
+  <style name="AreaMap.HomeNavLabel" parent="AreaMap.BottomNavLabel">
+    <item name="android:textSize">@dimen/home_caption_size</item>
+    <item name="android:layout_width">match_parent</item>
+    <item name="android:gravity">center</item>
+    <item name="android:maxLines">2</item>
+  </style>
+</resources>

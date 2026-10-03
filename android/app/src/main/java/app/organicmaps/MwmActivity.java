@@ -187,6 +187,7 @@ public class MwmActivity extends BaseMwmFragmentActivity
   private SearchPageViewModel mSearchPageViewModel;
   private MapButtonsViewModel mMapButtonsViewModel;
   private MapButtonsController.LayoutMode mPreviousMapLayoutMode;
+  private app.organicmaps.home.AreaMapHomeController mHomeController;
 
   @Nullable
   private WindowInsetsCompat mCurrentWindowInsets;
@@ -245,7 +246,8 @@ public class MwmActivity extends BaseMwmFragmentActivity
       restoreRoutingUI(MapButtonsController.LayoutMode.navigation);
     else if (RoutingController.get().hasSavedRoute())
       RoutingController.get().restoreRoute();
-    if (mSearchPageViewModel.getSearchEnabled().getValue() == null && mSearchPageViewModel.isSearchPersistedActive())
+    if (mSearchPageViewModel.getSearchEnabled().getValue() == null && mSearchPageViewModel.isSearchPersistedActive()
+        && !mSearchPageViewModel.getPersistedQuery().isEmpty())
     {
       mSearchPageViewModel.setSearchPageLastState(mSearchPageViewModel.getPersistedSheetState());
       final SearchRequest restored = new SearchRequest(mSearchPageViewModel.getPersistedQuery(), null,
@@ -256,10 +258,8 @@ public class MwmActivity extends BaseMwmFragmentActivity
              && !RoutingController.get().isPlanning() && !RoutingController.get().isNavigating()
              && (getIntent() == null || getIntent().hasCategory(Intent.CATEGORY_LAUNCHER)))
     {
-      // AreaMap opens on the map with a compact bottom sheet. The sheet expands into the
-      // destination/guide home feed, while a real search still switches to result mode.
-      mSearchPageViewModel.setSearchPageLastState(BottomSheetBehavior.STATE_COLLAPSED);
-      mSearchPageViewModel.setSearchEnabled(true, null);
+      // HOME owns the launcher presentation. Open the existing search sheet only on a search action.
+      mSearchPageViewModel.setSearchEnabled(false, null);
     }
 
     if (TrackRecorder.nativeIsTrackRecordingEnabled() && !startTrackRecording())
@@ -573,6 +573,9 @@ public class MwmActivity extends BaseMwmFragmentActivity
     final Intent intent = getIntent();
     final boolean isLaunchByDeepLink = intent != null && !intent.hasCategory(Intent.CATEGORY_LAUNCHER);
     initViews(isLaunchByDeepLink);
+    mHomeController = new app.organicmaps.home.AreaMapHomeController(
+        this, savedInstanceState, this::onSettingsOptionSelected, this::onDownloadMapsOptionSelected);
+    refreshAreaMapBottomNav();
     updateViewsInsets();
 
     if (getIntent().getBooleanExtra(EXTRA_UPDATE_THEME, false))
@@ -612,7 +615,10 @@ public class MwmActivity extends BaseMwmFragmentActivity
     ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.coordinator), (view, windowInsets) -> {
       final int trackRecorderOffset =
           TrackRecorder.nativeIsTrackRecordingEnabled() ? dimen(this, R.dimen.map_button_size) : 0;
-      final Insets systemBars = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+      final Insets systemBars = windowInsets.getInsets(
+          WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout());
+      if (mHomeController != null)
+        mHomeController.setInsets(systemBars);
       // Drive nav-bar height from the AndroidX visibility signal — pre-R FLAG_FULLSCREEN
       // hides only the status bar, so inferring from app state misreports the nav bar.
       mNavBarHeight = windowInsets.isVisible(WindowInsetsCompat.Type.navigationBars()) ? systemBars.bottom : 0;
@@ -679,7 +685,7 @@ public class MwmActivity extends BaseMwmFragmentActivity
     final View searchAction = nav.findViewById(R.id.areamap_nav_search);
     final View routeAction = nav.findViewById(R.id.areamap_nav_route);
     final View tripAction = nav.findViewById(R.id.areamap_nav_trip);
-    final View sosAction = nav.findViewById(R.id.areamap_nav_sos);
+    final View profileAction = nav.findViewById(R.id.areamap_nav_profile);
 
     searchAction.setOnClickListener(v -> showSearch(""));
     routeAction.setOnClickListener(v -> {
@@ -700,9 +706,8 @@ public class MwmActivity extends BaseMwmFragmentActivity
     });
     tripAction.setOnClickListener(v ->
         startActivity(new Intent(this, app.organicmaps.safety.TripSafetyActivity.class)));
-    sosAction.setOnClickListener(v ->
-        startActivity(new Intent(this, app.organicmaps.safety.TripSafetyActivity.class)
-                          .putExtra(app.organicmaps.safety.TripSafetyActivity.EXTRA_SHOW_SOS, true)));
+    // Profile currently opens existing settings; no unused demo destination.
+    profileAction.setOnClickListener(v -> onSettingsOptionSelected());
     nav.findViewById(R.id.areamap_nav_guides).setOnClickListener(v ->
         startActivity(new Intent(this, app.organicmaps.safety.GuideListActivity.class)));
     nav.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) -> {
@@ -791,17 +796,9 @@ public class MwmActivity extends BaseMwmFragmentActivity
 
     UiUtils.showIf(show, nav);
 
-    // Keep the dock visibly "sunk" on the ordinary map without throwing labels below the screen.
-    // A fixed offset is stable across devices; translating by half of the measured height made
-    // tall/inset-aware docks almost disappear on real phones.
-    final int dockHeight =
-        Math.max(nav.getHeight(), Math.round(72 * getResources().getDisplayMetrics().density));
-    final int sunkOffset = Math.round(12 * getResources().getDisplayMetrics().density);
-    final float targetTranslation = show ? Math.min(sunkOffset, dockHeight / 5f) : 0f;
     nav.animate().cancel();
-    nav.animate().translationY(targetTranslation).setDuration(180).start();
-
-    final int visibleDockHeight = show ? dockHeight - Math.round(targetTranslation) : 0;
+    nav.setTranslationY(0);
+    final int visibleDockHeight = show ? Math.max(nav.getHeight(), dimen(this, R.dimen.home_nav_height)) : 0;
     final int reserve = visibleDockHeight + (show ? mNavBarHeight : 0);
     for (int id : new int[] {R.id.search_container_fragment, R.id.map_buttons})
     {
@@ -813,6 +810,10 @@ public class MwmActivity extends BaseMwmFragmentActivity
         content.setLayoutParams(params);
       }
     }
+    if (mHomeController != null)
+      mHomeController.setVisible(app.organicmaps.home.HomeLayoutPolicy.canShow(
+          show, searching, app.organicmaps.safety.GpxNavigation.current != null,
+          ChoosePositionMode.get() != ChoosePositionMode.None));
   }
 
   private void updateDrivingOptionCount()
@@ -1139,6 +1140,8 @@ public class MwmActivity extends BaseMwmFragmentActivity
 
     outState.putBoolean(POWER_SAVE_DISCLAIMER_SHOWN, mPowerSaveDisclaimerShown);
     outState.putBoolean(EXTRA_CONSUMED, mIntentConsumed);
+    if (mHomeController != null)
+      mHomeController.saveState(outState);
     super.onSaveInstanceState(outState);
   }
 
@@ -1192,6 +1195,11 @@ public class MwmActivity extends BaseMwmFragmentActivity
   protected void onResume()
   {
     super.onResume();
+    if (mHomeController != null)
+    {
+      mHomeController.refreshInfo();
+      refreshAreaMapBottomNav();
+    }
     final app.organicmaps.safety.GpxNavigation session = app.organicmaps.safety.GpxNavigation.current;
     if (session != null && session != mGpxSession)
     {
@@ -1353,6 +1361,8 @@ public class MwmActivity extends BaseMwmFragmentActivity
   @Override
   protected void onSafeDestroy()
   {
+    if (mHomeController != null)
+      mHomeController.destroy();
     super.onSafeDestroy();
     mLocationPermissionRequest.unregister();
     mLocationPermissionRequest = null;

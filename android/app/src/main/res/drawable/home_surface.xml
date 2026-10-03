@@ -1,0 +1,6 @@
+<?xml version="1.0" ?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+  <solid android:color="@color/home_floating"/>
+  <stroke android:width="@dimen/home_border" android:color="@color/home_border"/>
+  <corners android:radius="24dp"/>
+</shape>
