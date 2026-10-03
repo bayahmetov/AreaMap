@@ -232,12 +232,6 @@
   <string name="areamap_nav_profile">Profile</string>
   <string name="areamap_map_search_placeholder">Search places, routes and peaks…</string>
 
-  <string name="areamap_follow_track">Following imported GPX</string>
-  <string name="areamap_track_stop">Stop</string>
-  <string name="areamap_track_waiting">Waiting for a precise GPS fix…</string>
-  <string name="areamap_track_off_course">Off track by about %1$.0f m</string>
-  <string name="areamap_track_arrived">GPX finish reached</string>
-  <string name="areamap_track_progress">%1$.1f km remaining · about %2$d h %3$d min</string>
 
   <string name="areamap_nav_safety">Safety</string>
 
