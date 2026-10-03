@@ -2,6 +2,7 @@ package app.organicmaps.routing;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,6 +17,7 @@ import androidx.annotation.Nullable;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.MediatorLiveData;
 import androidx.lifecycle.Observer;
@@ -62,6 +64,8 @@ public class RoutingPlanFragment extends Fragment implements View.OnLayoutChange
   private View mButtonsLayout;
   private int mTopInset;
   private View mAreaMapHeader;
+  private View mPreviewMetrics;
+  private NestedScrollView mPreviewScroll;
 
   private final ActivityResultLauncher<Intent> startDrivingOptionsForResult =
       registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), activityResult -> {
@@ -96,6 +100,7 @@ public class RoutingPlanFragment extends Fragment implements View.OnLayoutChange
     mRoutingBottomContainer.setPadding(mRoutingBottomContainer.getPaddingLeft(), 0,
                                        mRoutingBottomContainer.getPaddingRight(), 0);
     mFrame.post(this::updateSheetLayout);
+    ViewCompat.requestApplyInsets(mRoutingRoot);
     mViewModel.setShowRoutingBottomSheet(true);
   }
 
@@ -120,6 +125,7 @@ public class RoutingPlanFragment extends Fragment implements View.OnLayoutChange
                                        mRoutingBottomContainer.getPaddingRight(), 0);
     mFrame.getLayoutParams().height = ViewGroup.LayoutParams.WRAP_CONTENT;
     mFrame.requestLayout();
+    ViewCompat.requestApplyInsets(mRoutingRoot);
   }
 
   // Single source of truth for the sheet's visibility: planning wants it AND no place page is covering it.
@@ -161,6 +167,10 @@ public class RoutingPlanFragment extends Fragment implements View.OnLayoutChange
     mAreaMapHeader = requireActivity().findViewById(R.id.home_header);
     mAreaMapHeader.addOnLayoutChangeListener(mHeaderLayoutListener);
     mFrame = view.findViewById(R.id.routing_sheet_frame);
+    mPreviewMetrics = view.findViewById(R.id.route_metrics_row);
+    mPreviewScroll = view.findViewById(R.id.route_preview_scroll);
+    mPreviewMetrics.addOnLayoutChangeListener(mHeaderLayoutListener);
+    mFrame.addOnLayoutChangeListener(mHeaderLayoutListener);
     mRoutingTypesContainer = mFrame.findViewById(R.id.routing_types_frame);
     mRouterTypes = mFrame.findViewById(R.id.route_type);
     mPeekHeightMargins = getResources().getDimensionPixelSize(R.dimen.routing_margin_peek_height);
@@ -243,11 +253,14 @@ public class RoutingPlanFragment extends Fragment implements View.OnLayoutChange
       mButtonsLayout.setPadding(0, 0, 0, bottomInset);
       if (mPreviewActive)
         updateSheetLayout();
+      // MwmActivity already reserves the dock, including the system navigation bar, outside this
+      // preview. Do not let BottomSheetBehavior add the same bottom inset to its padding/peek again.
+      final int sheetBottomInset = mPreviewActive ? 0 : Math.min(systemBars.bottom, stableBarsBottom);
       return ViewCompat.onApplyWindowInsets(v,
                                             new WindowInsetsCompat.Builder(insets)
                                                 .setInsets(WindowInsetsCompat.Type.systemBars(),
                                                            Insets.of(systemBars.left, systemBars.top, systemBars.right,
-                                                                     Math.min(systemBars.bottom, stableBarsBottom)))
+                                                                     sheetBottomInset))
                                                 .build());
     });
   }
@@ -267,6 +280,9 @@ public class RoutingPlanFragment extends Fragment implements View.OnLayoutChange
           mViewModel.setBottomSheetState(newState);
         if (newState == BottomSheetBehavior.STATE_HIDDEN)
           UiUtils.hide(mButtonsLayout);
+        if (mPreviewActive && newState == BottomSheetBehavior.STATE_COLLAPSED)
+          mPreviewScroll.scrollTo(0, 0);
+        updatePreviewMap(bottomSheet.getTop());
       }
 
       @Override
@@ -282,6 +298,8 @@ public class RoutingPlanFragment extends Fragment implements View.OnLayoutChange
   public void onDestroyView()
   {
     mAreaMapHeader.removeOnLayoutChangeListener(mHeaderLayoutListener);
+    mPreviewMetrics.removeOnLayoutChangeListener(mHeaderLayoutListener);
+    mFrame.removeOnLayoutChangeListener(mHeaderLayoutListener);
     if (mPreview != null)
       mPreview.dispose();
     super.onDestroyView();
@@ -330,6 +348,8 @@ public class RoutingPlanFragment extends Fragment implements View.OnLayoutChange
           return;
         mSheetBehavior.setHideable(false);
         final int state = mViewModel.getBottomSheetState();
+        if (mPreviewActive && state != BottomSheetBehavior.STATE_EXPANDED)
+          mPreviewScroll.scrollTo(0, 0);
         mSheetBehavior.setState(state == BottomSheetBehavior.STATE_HIDDEN ? BottomSheetBehavior.STATE_COLLAPSED
                                                                           : state);
       });
@@ -361,6 +381,8 @@ public class RoutingPlanFragment extends Fragment implements View.OnLayoutChange
 
   public void updateSheetLayout()
   {
+    if (getView() == null)
+      return;
     if (mFrame.getTop() == 0 && !mPreviewActive)
       return;
     updateSheetHeights();
@@ -433,7 +455,19 @@ public class RoutingPlanFragment extends Fragment implements View.OnLayoutChange
         mFrame.requestLayout();
       }
       mSheetBehavior.setMaxHeight(height);
-      mSheetBehavior.setPeekHeight(Math.min(height, (int) (parentHeight * 0.58)));
+      if (mPreviewMetrics.getHeight() > 0)
+      {
+        final Rect metricsBounds = new Rect();
+        mPreviewMetrics.getDrawingRect(metricsBounds);
+        ((ViewGroup) mFrame).offsetDescendantRectToMyCoords(mPreviewMetrics, metricsBounds);
+        // Undo the scroll offset: peek is a content boundary, independent of the current scroll.
+        // Reuse the content's bottom spacing; lower sections stay in the expanded scroll view.
+        final View content = mPreviewScroll.getChildAt(0);
+        final int peekHeight = metricsBounds.bottom + mPreviewScroll.getScrollY() + content.getPaddingBottom();
+        final int boundedPeekHeight = Math.min(height, peekHeight);
+        if (mSheetBehavior.getPeekHeight() != boundedPeekHeight)
+          mSheetBehavior.setPeekHeight(boundedPeekHeight);
+      }
       return;
     }
     ((androidx.coordinatorlayout.widget.CoordinatorLayout.LayoutParams) mFrame.getLayoutParams()).bottomMargin = 0;
