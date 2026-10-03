@@ -45,6 +45,42 @@
         android:lineSpacingExtra="3dp" />
 
     <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:background="@drawable/bg_areamap_feed_card_sos"
+        android:orientation="vertical"
+        android:padding="18dp">
+
+      <TextView
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:text="@string/areamap_sos"
+          android:textColor="@color/areamap_text"
+          android:textSize="20sp"
+          android:textStyle="bold" />
+
+      <TextView
+          android:id="@+id/trip_coordinates"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:layout_marginTop="8dp"
+          android:textColor="@color/areamap_text_secondary"
+          android:textIsSelectable="true"
+          android:textSize="13sp"
+          android:lineSpacingExtra="3dp" />
+
+      <com.google.android.material.button.MaterialButton
+ android:textSize="16sp"          android:id="@+id/trip_sos"
+          style="@style/AreaMap.ActionButton"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:layout_marginTop="12dp"
+          android:text="@string/areamap_sos"
+          app:backgroundTint="@color/areamap_red" />
+    </LinearLayout>
+
+    <LinearLayout
         android:id="@+id/active_trip_section"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -259,42 +295,6 @@
           android:layout_height="wrap_content"
           android:layout_marginTop="12dp"
           android:text="@string/areamap_language_change" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="14dp"
-        android:background="@drawable/bg_areamap_feed_card_sos"
-        android:orientation="vertical"
-        android:padding="18dp">
-
-      <TextView
-          android:layout_width="match_parent"
-          android:layout_height="wrap_content"
-          android:text="@string/areamap_sos"
-          android:textColor="@color/areamap_text"
-          android:textSize="20sp"
-          android:textStyle="bold" />
-
-      <TextView
-          android:id="@+id/trip_coordinates"
-          android:layout_width="match_parent"
-          android:layout_height="wrap_content"
-          android:layout_marginTop="8dp"
-          android:textColor="@color/areamap_text_secondary"
-          android:textIsSelectable="true"
-          android:textSize="13sp"
-          android:lineSpacingExtra="3dp" />
-
-      <com.google.android.material.button.MaterialButton
- android:textSize="16sp"          android:id="@+id/trip_sos"
-          style="@style/AreaMap.ActionButton"
-          android:layout_width="match_parent"
-          android:layout_height="wrap_content"
-          android:layout_marginTop="12dp"
-          android:text="@string/areamap_sos"
-          app:backgroundTint="@color/areamap_red" />
     </LinearLayout>
 
   </LinearLayout>
