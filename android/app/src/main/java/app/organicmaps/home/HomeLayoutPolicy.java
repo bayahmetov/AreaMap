@@ -11,9 +11,10 @@ public final class HomeLayoutPolicy
   }
 
   public static boolean canShowDock(boolean regularOrPreview, boolean searching, boolean placePage,
-                                    boolean choosingPoint, boolean fullscreen, boolean navigating)
+                                    boolean choosingPoint, boolean fullscreen, boolean activeHike)
   {
-    return regularOrPreview && !searching && !placePage && !choosingPoint && !fullscreen && !navigating;
+    return (regularOrPreview || activeHike) && !searching && !placePage && !choosingPoint
+ && (!fullscreen || activeHike);
   }
 
   public static int peekHeight(int target, int usableHeight)

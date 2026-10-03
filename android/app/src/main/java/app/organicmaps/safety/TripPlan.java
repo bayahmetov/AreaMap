@@ -56,6 +56,8 @@ public final class TripPlan
   public final double distanceMeters;
   public final int plannedSeconds;
   public final int returnSeconds;
+  @Nullable
+  public final RouteAltitudeData altitude;
   @NonNull
   public final List<Checkpoint> checkpoints;
   @NonNull
@@ -73,10 +75,10 @@ public final class TripPlan
   public final int weatherEtaSeconds;
   public final boolean weatherAtHighestPoint;
 
-  private TripPlan(@NonNull String startTitle, @NonNull String finishTitle, double startLat, double startLon,
-                   double finishLat, double finishLon, double distanceMeters, int plannedSeconds, int returnSeconds,
-                   @NonNull List<Checkpoint> checkpoints, @Nullable RouteAltitudeData altitude, double weatherLat,
-                   double weatherLon, int weatherAltitudeMeters, int weatherEtaSeconds, boolean weatherAtHighestPoint)
+  TripPlan(@NonNull String startTitle, @NonNull String finishTitle, double startLat, double startLon, double finishLat,
+           double finishLon, double distanceMeters, int plannedSeconds, int returnSeconds,
+           @NonNull List<Checkpoint> checkpoints, @Nullable RouteAltitudeData altitude, double weatherLat,
+           double weatherLon, int weatherAltitudeMeters, int weatherEtaSeconds, boolean weatherAtHighestPoint)
   {
     this.startTitle = startTitle;
     this.finishTitle = finishTitle;
@@ -87,6 +89,7 @@ public final class TripPlan
     this.distanceMeters = distanceMeters;
     this.plannedSeconds = plannedSeconds;
     this.returnSeconds = returnSeconds;
+    this.altitude = altitude;
     this.checkpoints = Collections.unmodifiableList(new ArrayList<>(checkpoints));
     final List<Checkpoint> preview = new ArrayList<>();
     final boolean hasAltitude = altitude != null && altitude.getSize() > 0;
@@ -100,6 +103,95 @@ public final class TripPlan
     this.weatherAltitudeMeters = weatherAltitudeMeters;
     this.weatherEtaSeconds = weatherEtaSeconds;
     this.weatherAtHighestPoint = weatherAtHighestPoint;
+  }
+
+  /** Keeps the preview checkpoint/profile snapshot intact across process recreation. */
+  public String toJson()
+  {
+    try
+    {
+      final org.json.JSONObject json = new org.json.JSONObject();
+      json.put("start", startTitle)
+          .put("finish", finishTitle)
+          .put("startLat", startLat)
+          .put("startLon", startLon)
+          .put("finishLat", finishLat)
+          .put("finishLon", finishLon)
+          .put("distance", distanceMeters)
+          .put("planned", plannedSeconds)
+          .put("return", returnSeconds)
+          .put("weatherLat", weatherLat)
+          .put("weatherLon", weatherLon)
+          .put("weatherAlt", weatherAltitudeMeters)
+          .put("weatherEta", weatherEtaSeconds)
+          .put("highest", weatherAtHighestPoint);
+      final org.json.JSONArray stops = new org.json.JSONArray();
+      for (Checkpoint checkpoint : checkpoints)
+        stops.put(new org.json.JSONObject()
+                      .put("title", checkpoint.title)
+                      .put("distance", checkpoint.distanceMeters)
+                      .put("alt", checkpoint.altitudeMeters)
+                      .put("eta", checkpoint.etaSeconds)
+                      .put("lat", checkpoint.lat)
+                      .put("lon", checkpoint.lon));
+      json.put("checkpoints", stops);
+      if (altitude != null)
+      {
+        final org.json.JSONArray profile = new org.json.JSONArray();
+        for (int i = 0; i < altitude.getSize(); i++)
+          profile.put(new org.json.JSONArray().put(altitude.getDistance(i)).put(altitude.getAltitude(i)));
+        json.put("profile", profile)
+            .put("ascent", altitude.getTotalAscent())
+            .put("descent", altitude.getTotalDescent())
+            .put("min", altitude.getMinAltitude())
+            .put("max", altitude.getMaxAltitude());
+      }
+      return json.toString();
+    }
+    catch (org.json.JSONException e)
+    {
+      throw new IllegalStateException("Invalid route snapshot", e);
+    }
+  }
+
+  @Nullable
+  public static TripPlan fromJson(String encoded)
+  {
+    try
+    {
+      final org.json.JSONObject json = new org.json.JSONObject(encoded);
+      final List<Checkpoint> stops = new ArrayList<>();
+      final org.json.JSONArray checkpoints = json.getJSONArray("checkpoints");
+      for (int i = 0; i < checkpoints.length(); i++)
+      {
+        final org.json.JSONObject cp = checkpoints.getJSONObject(i);
+        stops.add(new Checkpoint(cp.getDouble("distance"), cp.getInt("alt"), cp.getInt("eta"), cp.getDouble("lat"),
+                                 cp.getDouble("lon"), cp.getString("title"), 0));
+      }
+      RouteAltitudeData altitude = null;
+      final org.json.JSONArray profile = json.optJSONArray("profile");
+      if (profile != null && profile.length() > 0)
+      {
+        final double[] distance = new double[profile.length()];
+        final int[] heights = new int[profile.length()];
+        for (int i = 0; i < profile.length(); i++)
+        {
+          distance[i] = profile.getJSONArray(i).getDouble(0);
+          heights[i] = profile.getJSONArray(i).getInt(1);
+        }
+        altitude = new RouteAltitudeData(distance, heights, json.getInt("ascent"), json.getInt("descent"),
+                                         json.getInt("min"), json.getInt("max"));
+      }
+      return new TripPlan(json.getString("start"), json.getString("finish"), json.getDouble("startLat"),
+                          json.getDouble("startLon"), json.getDouble("finishLat"), json.getDouble("finishLon"),
+                          json.getDouble("distance"), json.getInt("planned"), json.getInt("return"), stops, altitude,
+                          json.getDouble("weatherLat"), json.getDouble("weatherLon"), json.getInt("weatherAlt"),
+                          json.getInt("weatherEta"), json.getBoolean("highest"));
+    }
+    catch (org.json.JSONException | IllegalArgumentException e)
+    {
+      return null;
+    }
   }
 
   @Nullable

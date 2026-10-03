@@ -19,7 +19,7 @@ public class HomeLayoutPolicyTest
   }
 
   @Test
-  public void sharedDockYieldsToCoveringScreensAndNavigation()
+  public void sharedDockYieldsToCoveringScreens()
   {
     assertTrue(HomeLayoutPolicy.canShowDock(true, false, false, false, false, false));
     assertFalse(HomeLayoutPolicy.canShowDock(false, false, false, false, false, false));
@@ -27,7 +27,12 @@ public class HomeLayoutPolicyTest
     assertFalse(HomeLayoutPolicy.canShowDock(true, false, true, false, false, false));
     assertFalse(HomeLayoutPolicy.canShowDock(true, false, false, true, false, false));
     assertFalse(HomeLayoutPolicy.canShowDock(true, false, false, false, true, false));
-    assertFalse(HomeLayoutPolicy.canShowDock(true, false, false, false, false, true));
+    assertTrue(HomeLayoutPolicy.canShowDock(true, false, false, false, false, true));
+    assertTrue(HomeLayoutPolicy.canShowDock(false, false, false, false, false, true));
+    assertTrue(HomeLayoutPolicy.canShowDock(false, false, false, false, true, true));
+    assertFalse(HomeLayoutPolicy.canShowDock(false, true, false, false, false, true));
+    assertFalse(HomeLayoutPolicy.canShowDock(false, false, true, false, false, true));
+    assertFalse(HomeLayoutPolicy.canShowDock(false, false, false, true, false, true));
   }
 
   @Test

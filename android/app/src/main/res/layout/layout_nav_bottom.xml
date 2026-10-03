@@ -19,7 +19,8 @@
     android:focusable="true">
 
     <include layout="@layout/bottom_sheet_handle" />
-    <include layout="@layout/layout_nav_bottom_numbers" />
+    <include android:id="@+id/nav_legacy_numbers" layout="@layout/layout_nav_bottom_numbers" />
+    <include layout="@layout/active_hike_header"/>
 
     <com.google.android.material.progressindicator.LinearProgressIndicator
       android:id="@+id/navigation_progress"
@@ -94,4 +95,5 @@
       android:textAppearance="@style/MwmTextAppearance.Button.Red"
       tools:ignore="UnusedAttribute" />
   </LinearLayout>
+  <include layout="@layout/active_hike_details"/>
 </LinearLayout>

@@ -4,8 +4,10 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.location.Location;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import app.organicmaps.MwmApplication;
 import app.organicmaps.R;
+import app.organicmaps.routing.HikePanelProgress;
 import app.organicmaps.sdk.Framework;
 import app.organicmaps.sdk.Router;
 import app.organicmaps.sdk.routing.RouteMarkData;
@@ -57,6 +59,8 @@ public final class TripSafety
   private static TripSafety sInstance;
   private final Context mContext;
   private final SharedPreferences mPrefs;
+  private TripPlan mActivePlan;
+  private String mActivePlanId = "";
 
   private TripSafety(@NonNull Context context)
   {
@@ -70,6 +74,77 @@ public final class TripSafety
     if (sInstance == null)
       sInstance = new TripSafety(context);
     return sInstance;
+  }
+
+  public void addStateListener(SharedPreferences.OnSharedPreferenceChangeListener listener)
+  {
+    mPrefs.registerOnSharedPreferenceChangeListener(listener);
+  }
+
+  public void removeStateListener(SharedPreferences.OnSharedPreferenceChangeListener listener)
+  {
+    mPrefs.unregisterOnSharedPreferenceChangeListener(listener);
+  }
+
+  @Nullable
+  public synchronized TripPlan activePlan()
+  {
+    if (!hasActiveTrip())
+      return null;
+    final String id = tripId();
+    if (id.equals(mActivePlanId))
+      return mActivePlan;
+    mActivePlanId = id;
+    mActivePlan = TripPlan.fromJson(mPrefs.getString("trip_plan", ""));
+    if (mActivePlan != null)
+      return mActivePlan;
+    // Older registrations retained checkpoint distances/ETAs, but no point names or coordinates.
+    final java.util.List<TripPlan.Checkpoint> stops = new java.util.ArrayList<>();
+    for (String row : mPrefs.getString("trip_checkpoints", "").split(";"))
+    {
+      final String[] fields = row.split(",");
+      if (fields.length != 3)
+        continue;
+      try
+      {
+        stops.add(new TripPlan.Checkpoint(Double.parseDouble(fields[1]), Integer.parseInt(fields[2]),
+                                          Integer.parseInt(fields[0]), Double.NaN, Double.NaN));
+      }
+      catch (NumberFormatException ignored)
+      {}
+    }
+    mActivePlan = new TripPlan(mPrefs.getString("trip_start_title", ""), mPrefs.getString("trip_finish_title", ""),
+                               startLat(), startLon(), finishLat(), finishLon(), parseDouble("trip_distance"),
+                               mPrefs.getInt("trip_planned_seconds", 0), mPrefs.getInt("trip_return_seconds", 0), stops,
+                               null, weatherLat(), weatherLon(), weatherAltitudeMeters(),
+                               mPrefs.getInt("trip_weather_eta_seconds", 0), weatherAtHighestPoint());
+    return mActivePlan;
+  }
+
+  public long startedAtMillis()
+  {
+    return mPrefs.getLong("trip_started_at", 0);
+  }
+  public long timingOffsetMillis()
+  {
+    return mPrefs.getInt("trip_timing_offset_seconds", 0) * 1000L;
+  }
+
+  public long scheduleDriftSeconds(double completionPercent, long now)
+  {
+    if (!hasActiveTrip())
+      return Long.MIN_VALUE;
+    return HikePanelProgress.scheduleDriftSeconds(now, startedAtMillis(), mPrefs.getInt("trip_planned_seconds", 0),
+                                                  mPrefs.getInt("trip_timing_offset_seconds", 0),
+                                                  HikePanelProgress.fraction(completionPercent));
+  }
+
+  public long projectedReturnAtMillis(double completionPercent, long now)
+  {
+    final long drift = scheduleDriftSeconds(completionPercent, now);
+    return hasActiveTrip()
+      ? mPrefs.getLong("trip_planned_return", 0) + (drift == Long.MIN_VALUE ? 0 : Math.max(0, drift / 60) * 60000L)
+      : 0;
   }
 
   public void onServiceStarted() {}
@@ -142,6 +217,7 @@ public final class TripSafety
                               .putString("trip_distance", Double.toString(plan.distanceMeters))
                               .putString("trip_route_points", encodeRoutePoints())
                               .putString("trip_checkpoints", encodeCheckpoints(plan))
+                              .putString("trip_plan", plan.toJson())
                               .putString("trip_weather_lat", Double.toString(plan.weatherLat))
                               .putString("trip_weather_lon", Double.toString(plan.weatherLon))
                               .putInt("trip_weather_altitude", plan.weatherAltitudeMeters)
@@ -515,10 +591,7 @@ public final class TripSafety
       return;
 
     final double progress = Math.max(0.0, Math.min(1.0, info.completionPercent / 100.0));
-    final long elapsedSeconds =
-        Math.max(0L, (now - startedAt) / 1000L - mPrefs.getInt("trip_timing_offset_seconds", 0));
-    final long plannedElapsedSeconds = Math.round(plannedSeconds * progress);
-    final int delayMinutes = (int) Math.max(0L, (elapsedSeconds - plannedElapsedSeconds) / 60L);
+    final int delayMinutes = (int) Math.max(0, scheduleDriftSeconds(info.completionPercent, now) / 60);
 
     final int bucket = scheduleAlertBucket(delayMinutes);
     final int lastBucket = mPrefs.getInt("trip_schedule_alert_bucket", 0);
@@ -532,7 +605,7 @@ public final class TripSafety
       return;
 
     final NextCheckpoint next = findNextCheckpoint(progress);
-    final long projectedReturn = mPrefs.getLong("trip_planned_return", now) + delayMinutes * 60_000L;
+    final long projectedReturn = projectedReturnAtMillis(info.completionPercent, now);
     mPrefs.edit().putInt("trip_schedule_alert_bucket", bucket).apply();
 
     TripScheduleNotifier.notifyDelay(mContext, delayMinutes, next.number, formatClock(next.plannedAtMillis),

@@ -16,9 +16,12 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.lifecycle.ViewModelProvider;
+import app.organicmaps.MwmActivity;
 import app.organicmaps.MwmApplication;
 import app.organicmaps.R;
 import app.organicmaps.maplayer.MapButtonsViewModel;
+import app.organicmaps.safety.GpxNavigation;
+import app.organicmaps.safety.TripMonitoringService;
 import app.organicmaps.safety.TripSafetyActivity;
 import app.organicmaps.sdk.Router;
 import app.organicmaps.sdk.maplayer.traffic.TrafficManager;
@@ -34,6 +37,7 @@ import app.organicmaps.util.WindowInsetUtils;
 import app.organicmaps.util.WindowInsetUtils.BaselinePaddingInsetsListener;
 import app.organicmaps.widget.menu.NavMenu;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 public class NavigationController implements TrafficManager.TrafficCallback, NavMenu.NavMenuListener
 {
@@ -211,6 +215,32 @@ public class NavigationController implements TrafficManager.TrafficCallback, Nav
       mMapButtonsViewModel.setTopHeaderHeight(0);
   }
 
+  public void setHikePresentation(boolean active, boolean visible, int dockHeight)
+  {
+    final View coordinator = mFrame.findViewById(R.id.nav_bottom_sheet_coordinator);
+    final ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) coordinator.getLayoutParams();
+    if (params.bottomMargin != dockHeight)
+    {
+      params.bottomMargin = dockHeight;
+      coordinator.setLayoutParams(params);
+    }
+    mFrame.findViewById(R.id.nav_bottom_sheet_nav_bar).setVisibility(dockHeight > 0 ? View.GONE : View.VISIBLE);
+    mNavMenu.setHikePresentation(active, visible);
+    if (GpxNavigation.current != null && !RoutingController.get().isNavigating())
+    {
+      UiUtils.showIf(active, mFrame);
+      UiUtils.hide(mTopFrame); // GPX guidance has no turn-by-turn instructions.
+      mNavMenu.updateHike();
+    }
+    else if (RoutingController.get().isNavigating())
+      UiUtils.show(mTopFrame);
+  }
+
+  public void showHikeDetails()
+  {
+    mNavMenu.showHikeDetails();
+  }
+
   public boolean isNavMenuCollapsed()
   {
     return mNavMenu.getBottomSheetState() == BottomSheetBehavior.STATE_COLLAPSED;
@@ -300,6 +330,21 @@ public class NavigationController implements TrafficManager.TrafficCallback, Nav
   @Override
   public void onStopClicked()
   {
+    if (GpxNavigation.current != null && !RoutingController.get().isNavigating())
+    {
+      new MaterialAlertDialogBuilder(mActivity)
+          .setMessage(R.string.hike_stop_confirm)
+          .setNegativeButton(R.string.cancel, null)
+          .setPositiveButton(R.string.navigation_stop_button,
+                             (dialog, which) -> {
+                               GpxNavigation.stop(mActivity);
+                               TripMonitoringService.stopIfUnused(mActivity);
+                               show(false);
+                               ((MwmActivity) mActivity).refreshAreaMapBottomNav();
+                             })
+          .show();
+      return;
+    }
     RoutingController.get().cancel();
   }
 

@@ -4,6 +4,7 @@ import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.util.Pair;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -47,6 +48,11 @@ public class NavMenu implements DefaultLifecycleObserver
   private final LinearProgressIndicator mRouteProgress;
   private final TextView mTripStatus;
   private final Button mTripSafety;
+  private final ActiveHikePanelController mHikePanel;
+  private final View mBottomFrame;
+  private final View mSheet;
+  private boolean mHikeActive;
+  private boolean mHikeVisible = true;
 
   private final AppCompatActivity mActivity;
   private final NavMenuListener mNavMenuListener;
@@ -67,6 +73,8 @@ public class NavMenu implements DefaultLifecycleObserver
     mActivity = activity;
     mNavMenuListener = navMenuListener;
     final View bottomFrame = mActivity.findViewById(R.id.nav_bottom_frame);
+    mBottomFrame = bottomFrame;
+    mSheet = activity.findViewById(R.id.nav_bottom_sheet);
     mHeaderFrame = bottomFrame.findViewById(R.id.line_frame);
     mOnMenuSizeChangedListener = onMenuSizeChangedListener;
     mHeaderFrame.setOnClickListener(v -> toggleNavMenu());
@@ -80,7 +88,8 @@ public class NavMenu implements DefaultLifecycleObserver
       @Override
       public void onStateChanged(@NonNull View bottomSheet, int newState)
       {
-        if (newState == BottomSheetBehavior.STATE_COLLAPSED || newState == BottomSheetBehavior.STATE_HIDDEN)
+        if (newState == BottomSheetBehavior.STATE_COLLAPSED || newState == BottomSheetBehavior.STATE_HIDDEN
+            || mHikeActive && !mHikeVisible)
         {
           mBottomSheetBackground.setVisibility(View.GONE);
           mBottomSheetBackground.setAlpha(0);
@@ -94,7 +103,7 @@ public class NavMenu implements DefaultLifecycleObserver
       @Override
       public void onSlide(@NonNull View bottomSheet, float slideOffset)
       {
-        mBottomSheetBackground.setAlpha(slideOffset);
+        mBottomSheetBackground.setAlpha(mHikeActive && !mHikeVisible ? 0 : slideOffset);
       }
     });
 
@@ -123,6 +132,9 @@ public class NavMenu implements DefaultLifecycleObserver
     stop.setOnClickListener(v -> onStopClicked());
     UiUtils.updateRedButton(stop);
 
+    mHikePanel = new ActiveHikePanelController(activity, bottomFrame, this::onStopClicked);
+    activity.findViewById(R.id.nav_bottom_sheet_coordinator)
+        .addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) -> updateHikeHeight());
     TtsPlayer.addStateChangedListener(mTtsStateListener);
     mActivity.getLifecycle().addObserver(this);
   }
@@ -171,12 +183,70 @@ public class NavMenu implements DefaultLifecycleObserver
 
   public void setPeekHeight()
   {
+    updateHikeHeight();
     int headerHeight = mHeaderFrame.getHeight();
     if (currentPeekHeight != headerHeight)
     {
       currentPeekHeight = headerHeight;
       mNavBottomSheetBehavior.setPeekHeight(currentPeekHeight);
       mOnMenuSizeChangedListener.OnMenuSizeChange();
+    }
+  }
+
+  public void setHikePresentation(boolean active, boolean visible)
+  {
+    final boolean changed = mHikeActive != active;
+    mHikeActive = active;
+    mBottomFrame.setBackgroundColor(active ? ContextCompat.getColor(mActivity, R.color.areamap_surface)
+                                           : android.graphics.Color.TRANSPARENT);
+    mHikeVisible = visible;
+    mBottomFrame.findViewById(R.id.nav_legacy_numbers).setVisibility(active ? View.GONE : View.VISIBLE);
+    mBottomFrame.findViewById(R.id.content_frame).setVisibility(active ? View.GONE : View.VISIBLE);
+    mBottomFrame.findViewById(R.id.active_hike_header).setVisibility(active ? View.VISIBLE : View.GONE);
+    mBottomFrame.findViewById(R.id.active_hike_details).setVisibility(active ? View.VISIBLE : View.GONE);
+    if (active)
+      mTripStatus.setVisibility(View.GONE);
+    mSheet.setVisibility(!active || visible ? View.VISIBLE : View.INVISIBLE);
+    if (active)
+      mBottomSheetBackground.setVisibility(
+          visible && getBottomSheetState() == BottomSheetBehavior.STATE_EXPANDED ? View.VISIBLE : View.GONE);
+    mHikePanel.setEnabled(active);
+    if (changed)
+    {
+      if (!active)
+        mNavBottomSheetBehavior.setMaxHeight(Integer.MAX_VALUE);
+      mHeaderFrame.post(this::setPeekHeight);
+    }
+  }
+
+  public void updateHike()
+  {
+    mHikePanel.update(null);
+  }
+
+  public void showHikeDetails()
+  {
+    expandNavBottomSheet();
+  }
+
+  private void updateHikeHeight()
+  {
+    if (!mHikeActive)
+      return;
+    final View coordinator = mActivity.findViewById(R.id.nav_bottom_sheet_coordinator);
+    final int available = coordinator.getHeight();
+    if (available <= 0 || mHeaderFrame.getHeight() <= 0)
+      return;
+    // Leave the top fifth for the map and native turn panel. Dock/system insets are already reserved by the host.
+    final int max = Math.max(mHeaderFrame.getHeight(), available * 4 / 5);
+    mNavBottomSheetBehavior.setMaxHeight(max);
+    final View details = mBottomFrame.findViewById(R.id.active_hike_details);
+    final ViewGroup.LayoutParams params = details.getLayoutParams();
+    final int height = Math.max(1, max - mHeaderFrame.getHeight());
+    if (params.height != height)
+    {
+      params.height = height;
+      details.setLayoutParams(params);
     }
   }
 
@@ -274,8 +344,9 @@ public class NavMenu implements DefaultLifecycleObserver
     mDistanceUnits.setText(info.distToTarget.getUnitsStr(mActivity.getApplicationContext()));
     mRouteProgress.setProgressCompat((int) info.completionPercent, true);
 
+    mHikePanel.update(info);
     final TripSafety safety = TripSafety.get(mActivity);
-    if (safety.hasActiveTrip())
+    if (safety.hasActiveTrip() && !mHikeActive)
     {
       mTripStatus.setText(safety.navigationCheckpointSummary(info.completionPercent) + "\n"
                           + safety.navigationReturnSummary());

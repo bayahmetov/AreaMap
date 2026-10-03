@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="hike_title">Активный поход</string>
+  <string name="hike_progress">Пройдено %1$.1f из %2$.1f км · %3$.0f%%</string>
+  <string name="hike_remaining">Осталось %1$.1f км · %2$s · финиш %3$s</string>
+  <string name="hike_engine_progress">%1$.0f%% · осталось %2$s · %3$s</string>
+  <string name="hike_waiting">Ждём свежую GPS-позицию…</string>
+  <string name="hike_next">Следующий чекпоинт</string>
+  <string name="hike_no_checkpoints">На этом маршруте нет контрольных точек</string>
+  <string name="hike_all_passed">Все контрольные точки пройдены</string>
+  <string name="hike_checkpoint">%1$d · Чекпоинт</string>
+  <string name="hike_checkpoint_detail">%1$.1f км от старта · осталось %2$s · план %3$s</string>
+  <string name="hike_checkpoint_next">%1$s · %2$.1f км · %3$s · %4$s</string>
+  <string name="hike_passed">Пройден</string>
+  <string name="hike_ahead">Впереди</string>
+  <string name="hike_stats">Данные маршрута</string>
+  <string name="hike_stats_value">Высота %1$s · набор маршрута %2$s\nСкорость %3$s · темп %4$s</string>
+  <string name="hike_altitude">%1$.0f м</string>
+  <string name="hike_speed">%1$.1f км/ч</string>
+  <string name="hike_pace">%1$s мин/км</string>
+  <string name="hike_schedule">График похода</string>
+  <string name="hike_schedule_none">График появится после регистрации похода</string>
+  <string name="hike_schedule_plan">По графику</string>
+  <string name="hike_schedule_late">Отставание около %1$d мин</string>
+  <string name="hike_schedule_early">Опережение около %1$d мин</string>
+  <string name="hike_return">Ожидаемый возврат %1$s</string>
+  <string name="hike_weather">Почасовая погода</string>
+  <string name="hike_weather_unavailable">Погода недоступна</string>
+  <string name="hike_weather_loading">Обновляем прогноз…</string>
+  <string name="hike_weather_age">Прогноз обновлён %1$d мин назад</string>
+  <string name="hike_hour_now">Сейчас</string>
+  <string name="hike_hour_value">%1$.0f°\n%2$d%%\n%3$.0f км/ч</string>
+  <string name="hike_refresh">Обновить прогноз</string>
+  <string name="hike_checkpoints">Контрольные точки</string>
+  <string name="hike_safety">Безопасность</string>
+  <string name="hike_finish">Завершить поход</string>
+  <string name="hike_finish_confirm">Завершить зарегистрированный поход и отправить отчёт о возвращении?</string>
+  <string name="hike_stop_confirm">Остановить ведение по GPX?</string>
+  <string name="hike_unknown">—</string>
+  <string name="hike_percent">%1$.0f%%</string>
+  <string name="hike_duration">%1$d ч %2$d мин</string>
+  <string name="hike_gpx_source">Ведение по импортированному GPX</string>
+  <string name="hike_profile">Профиль высот</string>
+</resources>

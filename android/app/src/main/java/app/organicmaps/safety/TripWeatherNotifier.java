@@ -114,12 +114,19 @@ public final class TripWeatherNotifier
   }
 
   @NonNull
-  private static String hazardText(@NonNull Context context, @NonNull TripSafety safety,
-                                   @NonNull TripWeatherRepository.Hour hour)
+  public static String hazardText(@NonNull Context context, @NonNull TripSafety safety,
+                                  @NonNull TripWeatherRepository.Hour hour)
   {
     final String point = safety.weatherAtHighestPoint()
                            ? context.getString(R.string.areamap_weather_highest_point, safety.weatherAltitudeMeters())
                            : context.getString(R.string.areamap_weather_destination);
+    return hazardText(context, point, hour);
+  }
+
+  @NonNull
+  public static String hazardText(@NonNull Context context, @NonNull String point,
+                                  @NonNull TripWeatherRepository.Hour hour)
+  {
     final String time = DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date(hour.timeMillis));
     final String kind = TripWeatherRepository.hazardKind(hour);
     if ("storm".equals(kind))

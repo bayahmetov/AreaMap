@@ -146,6 +146,50 @@ public final class TripWeatherRepository
  && (alt < 0 || cachedAlt < 0 || Math.abs(alt - cachedAlt) <= 100);
   }
 
+  /** UI reads the existing route-point cache, including the current hour and future hours. */
+  public static java.util.List<Hour> hours(@NonNull Context context, long fromMillis, int limit)
+  {
+    return parseHours(prefs(context).getString(KEY_JSON, ""), fromMillis, limit);
+  }
+
+  static java.util.List<Hour> parseHours(String payload, long fromMillis, int limit)
+  {
+    final java.util.List<Hour> result = new java.util.ArrayList<>();
+    try
+    {
+      final JSONObject hourly = new JSONObject(payload).getJSONObject("hourly");
+      final JSONArray times = hourly.getJSONArray("time");
+      final long currentHour = fromMillis / 3_600_000L * 3_600_000L;
+      for (int i = 0; i < times.length() && result.size() < limit; i++)
+      {
+        final long time = times.getLong(i) * 1000L;
+        if (time < currentHour)
+          continue;
+        final Hour hour = hourAt(hourly, i, time);
+        final JSONArray probability = hourly.getJSONArray("precipitation_probability");
+        final JSONArray codes = hourly.getJSONArray("weather_code");
+        final double wind = hourly.getJSONArray("wind_speed_10m").optDouble(i, Double.NaN);
+        if (!Double.isFinite(hour.temperatureC) || !Double.isFinite(wind) || probability.isNull(i) || codes.isNull(i)
+            || hour.precipitationProbability < 0 || hour.precipitationProbability > 100)
+          continue;
+        result.add(hour);
+      }
+    }
+    catch (Exception ignored)
+    {}
+    return result;
+  }
+
+  public static void addCacheListener(Context context, SharedPreferences.OnSharedPreferenceChangeListener listener)
+  {
+    prefs(context).registerOnSharedPreferenceChangeListener(listener);
+  }
+
+  public static void removeCacheListener(Context context, SharedPreferences.OnSharedPreferenceChangeListener listener)
+  {
+    prefs(context).unregisterOnSharedPreferenceChangeListener(listener);
+  }
+
   @Nullable
   public static Hour closestHour(@NonNull Context context, long targetMillis)
   {
