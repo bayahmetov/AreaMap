@@ -32,4 +32,6 @@
   <string name="home_rating">★ %1$.1f</string>
   <string name="home_layers">Слои карты</string>
   <string name="home_location">Моё местоположение</string>
+  <string name="home_photo_approach">Фото: путь к вершине</string>
+  <string name="home_photo_credits">Авторы фотографий</string>
 </resources>

@@ -67,6 +67,7 @@ public final class AreaMapHomeController
     final HikeRecommendationAdapter adapter = new HikeRecommendationAdapter(activity,
         HikeRecommendation.demoCatalog(), item -> activity.showSearch(activity.getString(item.title)));
     carousel.setAdapter(adapter);
+    activity.findViewById(R.id.home_photo_credits).setOnClickListener(v -> HomePhotoCredits.show(activity));
     activity.findViewById(R.id.home_photos_missing).setVisibility(adapter.hasMissingPhotos() ? View.VISIBLE : View.GONE);
     ((TextView) activity.findViewById(R.id.home_weather)).setText(HomeInfoRepository.demoWeather(activity));
     ((TextView) activity.findViewById(R.id.home_wind)).setText(HomeInfoRepository.demoWind(activity));

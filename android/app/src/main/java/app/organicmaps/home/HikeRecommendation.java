@@ -14,6 +14,8 @@ public final class HikeRecommendation
   @StringRes public final int difficulty;
   public final double rating;
   public final String imageAsset;
+  /** True only for a source explicitly documenting the approach rather than the summit. */
+  public final boolean photoShowsApproach;
 
   private HikeRecommendation(String id, int title, int altitude, String hours, int difficulty, double rating)
   {
@@ -24,6 +26,7 @@ public final class HikeRecommendation
     this.difficulty = difficulty;
     this.rating = rating;
     imageAsset = "areamap/hikes/" + id + ".webp";
+    photoShowsApproach = id.equals("furmanov_peak");
   }
 
   public static List<HikeRecommendation> demoCatalog()

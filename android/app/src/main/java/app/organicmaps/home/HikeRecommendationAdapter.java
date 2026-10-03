@@ -86,6 +86,8 @@ public final class HikeRecommendationAdapter extends RecyclerView.Adapter<HikeRe
         mContext.getString(R.string.home_hours, item.hours), mContext.getString(item.difficulty)));
     holder.rating.setText(mContext.getString(R.string.home_rating, item.rating));
     final Bitmap photo = mPhotos.get(item.id);
+    if (photo != null && item.photoShowsApproach)
+      holder.details.append("\n" + mContext.getString(R.string.home_photo_approach));
     holder.photo.setImageBitmap(photo);
     holder.photo.setVisibility(photo == null ? View.GONE : View.VISIBLE);
     holder.itemView.findViewById(R.id.hike_gradient).setVisibility(photo == null ? View.GONE : View.VISIBLE);

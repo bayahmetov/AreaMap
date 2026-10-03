@@ -32,4 +32,6 @@
   <string name="home_rating">★ %1$.1f</string>
   <string name="home_layers">Map layers</string>
   <string name="home_location">Current location</string>
+  <string name="home_photo_approach">Photo: approach to the peak</string>
+  <string name="home_photo_credits">Photo credits</string>
 </resources>
