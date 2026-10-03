@@ -11,6 +11,7 @@ import androidx.core.content.ContextCompat;
 import app.organicmaps.MwmActivity;
 import app.organicmaps.MwmApplication;
 import app.organicmaps.R;
+import app.organicmaps.home.HikeRecommendation;
 import app.organicmaps.safety.DarknessUtil;
 import app.organicmaps.safety.TripPlan;
 import app.organicmaps.safety.TripWeatherNotifier;
@@ -20,12 +21,14 @@ import app.organicmaps.sdk.downloader.CountryItem;
 import app.organicmaps.sdk.downloader.MapManager;
 import app.organicmaps.sdk.routing.JunctionInfo;
 import app.organicmaps.sdk.routing.RouteAltitudeData;
+import app.organicmaps.sdk.routing.RouteMarkType;
 import app.organicmaps.sdk.routing.RoutingController;
 import app.organicmaps.util.Utils;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.formatter.ValueFormatter;
+import com.google.android.material.chip.ChipGroup;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,6 +39,8 @@ final class RoutePreviewController
   private final View mRoot;
   private final TripPlan mPlan;
   private final Runnable mCollapse;
+  private final RouteAltitudeData mAltitude;
+  private final HikeRecommendation.PreparationContent mPreparationContent;
   private boolean mDisposed;
 
   RoutePreviewController(MwmActivity activity, View root, TripPlan plan, Runnable start, Runnable edit,
@@ -51,6 +56,8 @@ final class RoutePreviewController
     setText(R.id.areamap_route_v2_time,
             Utils.formatRoutingTime(activity, plan.plannedSeconds, R.dimen.text_size_body_3).toString());
     final RouteAltitudeData altitude = Framework.nativeGetRouteAltitudeData();
+    mAltitude = altitude;
+    mPreparationContent = preparationContent();
     setText(
         R.id.areamap_route_v2_ascent,
         altitude == null ? empty() : activity.getString(R.string.route_preview_altitude, altitude.getTotalAscent()));
@@ -321,6 +328,81 @@ final class RoutePreviewController
       icon.setImageResource(hour.weatherCode == 0    ? R.drawable.ic_preview_sun
                             : hour.weatherCode <= 48 ? R.drawable.ic_preview_cloud
                                                      : R.drawable.ic_preview_rain);
+    bindPreparation(hour);
+  }
+
+  private HikeRecommendation.PreparationContent preparationContent()
+  {
+    final var destination = HikeRecommendation.preparationAt(mPlan.finishLat, mPlan.finishLon);
+    if (destination != null)
+      return destination;
+    // Include real intermediate stops for a round trip. Do not infer a visit from its name or a sample checkpoint.
+    final var points = Framework.nativeGetRoutePoints();
+    if (points != null)
+      for (var point : points)
+      {
+        if (point.mPointType != RouteMarkType.Intermediate)
+          continue;
+        final var content = HikeRecommendation.preparationAt(point.mLat, point.mLon);
+        if (content != null)
+          return content;
+      }
+    return null;
+  }
+
+  private void bindPreparation(TripWeatherRepository.Hour hour)
+  {
+    final long arrival = System.currentTimeMillis() + mPlan.weatherEtaSeconds * 1000L;
+    final RoutePreparation.Weather weather =
+        hour != null && RoutePreparation.weatherApplies(hour.timeMillis, arrival)
+            ? new RoutePreparation.Weather(hour.temperatureC, hour.weatherCode, hour.precipitationMm,
+                                           hour.windKmh, hour.gustKmh)
+            : null;
+    final var advice =
+        RoutePreparation.create(mPlan.distanceMeters, mPlan.plannedSeconds,
+                                mAltitude == null ? -1 : mAltitude.getTotalAscent(),
+                                mAltitude == null ? -1 : mAltitude.getMaxAltitude(), mPreparationContent, weather);
+    final ChipGroup packing = mRoot.findViewById(R.id.route_preview_packing);
+    packing.removeAllViews();
+    for (RoutePreparation.Gear gear : advice.packing())
+    {
+      // TextViews in the wrapping group allow long translations and large fonts to grow vertically.
+      final TextView chip = new TextView(mActivity);
+      chip.setText(gear.label);
+      chip.setTextSize(14);
+      chip.setTextColor(color(R.color.areamap_text));
+      chip.setGravity(android.view.Gravity.CENTER_VERTICAL);
+      chip.setPadding(dp(8), dp(6), dp(8), dp(6));
+      final var icon = ContextCompat.getDrawable(mActivity, gear.icon).mutate();
+      icon.setTint(color(R.color.areamap_green));
+      icon.setBounds(0, 0, dp(16), dp(16));
+      chip.setCompoundDrawablesRelative(icon, null, null, null);
+      chip.setCompoundDrawablePadding(dp(5));
+      final GradientDrawable background = new GradientDrawable();
+      background.setColor(color(R.color.areamap_surface));
+      background.setCornerRadius(dp(12));
+      chip.setBackground(background);
+      packing.addView(chip, new ChipGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
+                                                     ViewGroup.LayoutParams.WRAP_CONTENT));
+    }
+    final LinearLayout notes = mRoot.findViewById(R.id.route_preview_advisories);
+    notes.removeAllViews();
+    for (int note : advice.notes())
+    {
+      final TextView text = new TextView(mActivity);
+      text.setText(mActivity.getString(R.string.preparation_bullet, mActivity.getString(note)));
+      text.setTextSize(14);
+      text.setTextColor(color(R.color.areamap_text_secondary));
+      text.setPadding(0, dp(3), 0, dp(3));
+      notes.addView(text);
+    }
+    final TextView source = mRoot.findViewById(R.id.route_preview_preparation_source);
+    source.setVisibility(mPreparationContent == null ? View.GONE : View.VISIBLE);
+    if (mPreparationContent != null)
+    {
+      source.setText(mActivity.getString(R.string.preparation_source, mPreparationContent.sourceName()));
+      source.setOnClickListener(v -> Utils.openUrl(mActivity, mPreparationContent.sourceUrl()));
+    }
   }
 
   void showRoute()

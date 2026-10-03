@@ -49,6 +49,51 @@ public final class HikeRecommendation
     return null;
   }
 
+  /** Location facts only; article distances/difficulty never classify a newly built route. */
+  public record PreparationContent(List<Integer> advisories, boolean waterproof, boolean warm, boolean sun,
+                                   String sourceName, String sourceUrl)
+  {
+  }
+
+  public static PreparationContent preparationAt(double lat, double lon)
+  {
+    // Boukreev is content-only: do not add a new destination card to the home catalog.
+    if (DestinationRouteMatch.near(lat, lon, 43.1669, 77.1344))
+      return new PreparationContent(List.of(R.string.preparation_boukreev), false, true, true,
+                                    "Zabugorshiki", "https://zabugorshiki.com/boukreev/");
+    for (HikeRecommendation item : catalog())
+    {
+      if (!preparationMatches(item, lat, lon))
+        continue;
+      final int note = switch (item.id)
+      {
+        case "big_almaty_lake" -> R.string.preparation_bao;
+        case "butakovsky_waterfall" -> R.string.preparation_butakovka;
+        case "furmanov_peak" -> R.string.preparation_furmanov;
+        default -> 0;
+      };
+      if (note != 0)
+        return new PreparationContent(List.of(note), item.type == R.string.destination_waterfall,
+                                      item.type == R.string.destination_peak, item.type == R.string.destination_peak,
+                                      item.sourceName, item.sourceUrl);
+    }
+    return null;
+  }
+
+  private static boolean preparationMatches(HikeRecommendation item, double lat, double lon)
+  {
+    if (DestinationRouteMatch.near(lat, lon, item.lat, item.lon))
+      return true;
+    // Published approach/viewpoints can stop short of the catalog coordinate (e.g. BAO's shore).
+    // Accept only source waypoints close to that place, never a loop's distant trailhead.
+    for (RelatedRoute route : item.relatedRoutes)
+      for (int i = 0; i < route.pointCount(); i++)
+        if (DestinationRouteMatch.near(item.lat, item.lon, route.latitude(i), route.longitude(i), 500)
+            && DestinationRouteMatch.near(lat, lon, route.latitude(i), route.longitude(i)))
+          return true;
+    return false;
+  }
+
   public static List<HikeRecommendation> catalog()
   {
     // Coordinate provenance and representative points: docs/AREAMAP_DESTINATIONS.md.
