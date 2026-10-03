@@ -20,6 +20,7 @@ import app.organicmaps.routing.HikePanelProgress;
 import app.organicmaps.safety.GpxNavigation;
 import app.organicmaps.safety.GpxTrack;
 import app.organicmaps.safety.HikingTiming;
+import app.organicmaps.safety.SosConfirmationFlow;
 import app.organicmaps.safety.TripPlan;
 import app.organicmaps.safety.TripReportSender;
 import app.organicmaps.safety.TripSafety;
@@ -85,22 +86,25 @@ final class ActiveHikePanelController implements DefaultLifecycleObserver
       TripReportSender.send(activity, "break", mSafety.breakReport(20));
       refresh();
     });
-    root.findViewById(R.id.hike_sos).setOnClickListener(v -> {
-      final Location last = location();
-      if (last != null)
-        mSafety.save(last);
-      TripReportSender.send(activity, "sos", mSafety.sosReport());
-      new MaterialAlertDialogBuilder(activity)
-          .setTitle(R.string.areamap_sos)
-          .setMessage(mSafety.card() + "\n\n" + TripReportSender.summary(activity))
-          .setPositiveButton(R.string.areamap_close, null)
-          .show();
-      refresh();
-    });
+    root.findViewById(R.id.hike_sos).setOnClickListener(v -> SosConfirmationFlow.show(activity, this::sendSos));
     root.findViewById(R.id.hike_weather_refresh).setOnClickListener(v -> refreshWeather(true));
     ((TextView) root.findViewById(R.id.hike_sos)).setTextColor(color(R.color.areamap_on_green));
     root.findViewById(R.id.hike_sos)
         .setBackgroundTintList(android.content.res.ColorStateList.valueOf(color(R.color.areamap_red)));
+  }
+
+  private void sendSos()
+  {
+    final Location last = location();
+    if (last != null)
+      mSafety.save(last);
+    TripReportSender.send(mActivity, "sos", mSafety.sosReport());
+    new MaterialAlertDialogBuilder(mActivity)
+        .setTitle(R.string.areamap_sos)
+        .setMessage(mSafety.card() + "\n\n" + TripReportSender.summary(mActivity))
+        .setPositiveButton(R.string.areamap_close, null)
+        .show();
+    refresh();
   }
 
   void setEnabled(boolean enabled)

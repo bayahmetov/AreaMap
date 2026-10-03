@@ -219,6 +219,12 @@ public class TripSafetyFragment extends BaseMwmFragment
 
   private void showSos()
   {
+    if (isAdded() && getView() != null)
+      SosConfirmationFlow.show(requireActivity(), this::sendSos);
+  }
+
+  private void sendSos()
+  {
     final Location last = MwmApplication.from(requireContext()).getLocationHelper().getSavedLocation();
     if (last != null)
       mSos.save(last);

@@ -27,7 +27,6 @@ public final class TripMonitoringService extends Service implements LocationList
 {
   private static final String CHANNEL = "AREAMAP_ACTIVE_HIKE";
   private static final int NOTIFICATION = 71844;
-  private static final String SOS = "AREAMAP_SEND_SOS";
   @Nullable
   private LocationManager mLocationManager;
 
@@ -75,11 +74,6 @@ public final class TripMonitoringService extends Service implements LocationList
   @Override
   public int onStartCommand(@Nullable Intent intent, int flags, int startId)
   {
-    if (intent != null && SOS.equals(intent.getAction()))
-    {
-      final TripSafety safety = TripSafety.get(this);
-      TripReportSender.enqueue(this, "sos", safety.tripId(), safety.sosReport());
-    }
     if (!needed(this) || !LocationUtils.checkFineLocationPermission(this))
     {
       stopSelf();
@@ -118,9 +112,11 @@ public final class TripMonitoringService extends Service implements LocationList
     final PendingIntent open = PendingIntent.getActivity(
         this, NOTIFICATION, new Intent(this, TripSafetyActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP),
         PendingIntent.FLAG_UPDATE_CURRENT | immutable);
-    final PendingIntent sos =
-        PendingIntent.getService(this, NOTIFICATION + 1, new Intent(this, TripMonitoringService.class).setAction(SOS),
-                                 PendingIntent.FLAG_UPDATE_CURRENT | immutable);
+    final PendingIntent sos = PendingIntent.getActivity(
+        this, NOTIFICATION + 1,
+        new Intent(this, TripSafetyActivity.class).setAction(TripSafetyActivity.EXTRA_SHOW_SOS)
+            .putExtra(TripSafetyActivity.EXTRA_SHOW_SOS, true).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP),
+        PendingIntent.FLAG_UPDATE_CURRENT | immutable);
     final TripSafety safety = TripSafety.get(this);
     final GpxNavigation gpx = GpxNavigation.current;
     final String body = safety.hasActiveTrip()    ? safety.navigationReturnSummary()
