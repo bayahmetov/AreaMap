@@ -182,7 +182,7 @@ public class MapButtonsController extends Fragment
   private void setBottomButtonsHidden(boolean hide)
   {
     if (mBottomButtonsFrame != null)
-      UiUtils.showIf(!hide && isInNavigationMode(), mBottomButtonsFrame);
+      UiUtils.showIf(!hide, mBottomButtonsFrame);
   }
 
   public void showButton(boolean show, MapButtonsController.MapButtons button)

@@ -75,6 +75,18 @@ import app.organicmaps.routing.RoutingErrorDialogFragment;
 import app.organicmaps.routing.RoutingPlanController;
 import app.organicmaps.routing.RoutingPlanFragment;
 import app.organicmaps.routing.RoutingPlanViewModel;
+import app.organicmaps.safety.DarknessUtil;
+import app.organicmaps.safety.GpxNavigation;
+import app.organicmaps.safety.GuideListActivity;
+import app.organicmaps.safety.RouteCheckpointBookmarks;
+import app.organicmaps.safety.TripMonitoringService;
+import app.organicmaps.safety.TripPlan;
+import app.organicmaps.safety.TripReportSender;
+import app.organicmaps.safety.TripSafety;
+import app.organicmaps.safety.TripSafetyActivity;
+import app.organicmaps.safety.TripStartFlow;
+import app.organicmaps.safety.TripWeatherNotifier;
+import app.organicmaps.safety.TripWeatherRepository;
 import app.organicmaps.sdk.ChoosePositionMode;
 import app.organicmaps.sdk.Framework;
 import app.organicmaps.sdk.Map;
@@ -99,6 +111,7 @@ import app.organicmaps.sdk.location.LocationUtils;
 import app.organicmaps.sdk.location.SensorListener;
 import app.organicmaps.sdk.location.TrackRecorder;
 import app.organicmaps.sdk.maplayer.isolines.IsolinesState;
+import app.organicmaps.sdk.routing.RouteAltitudeData;
 import app.organicmaps.sdk.routing.RoutingController;
 import app.organicmaps.sdk.routing.RoutingOptions;
 import app.organicmaps.sdk.search.SearchEngine;
@@ -113,8 +126,6 @@ import app.organicmaps.sdk.widget.placepage.PlacePageData;
 import app.organicmaps.search.SearchFragmentController;
 import app.organicmaps.search.SearchPageViewModel;
 import app.organicmaps.search.SearchRequest;
-import app.organicmaps.safety.TripReportSender;
-import app.organicmaps.safety.TripSafety;
 import app.organicmaps.settings.SettingsActivity;
 import app.organicmaps.util.SharingUtils;
 import app.organicmaps.util.ThemeSwitcher;
@@ -149,6 +160,8 @@ public class MwmActivity extends BaseMwmFragmentActivity
   static final String EXTRA_CONSUMED = "mwm.extra.intent.processed";
   private boolean mIntentConsumed = false;
   private boolean mPreciseLocationDialogShown = false;
+  private boolean mAreaMapRoutePanelActive = false;
+  private boolean mAreaMapCheckpointPageOpen = false;
 
   private static final String MAIN_MENU_ID = "MAIN_MENU_BOTTOM_SHEET";
   private static final String LAYERS_MENU_ID = "LAYERS_MENU_BOTTOM_SHEET";
@@ -174,17 +187,9 @@ public class MwmActivity extends BaseMwmFragmentActivity
 
   private RoutingPlanViewModel mRoutingPlanViewModel;
   private PlacePageViewModel mPlacePageViewModel;
-  private app.organicmaps.safety.GpxNavigation mGpxSession;
-  private boolean mRoutingToGpxStart;
-  private final android.os.Handler mGpxHandler = new android.os.Handler(android.os.Looper.getMainLooper());
-  private final Runnable mGpxRefresh = new Runnable() {
-    @Override
-    public void run()
-    {
-      updateGpxBanner();
-      mGpxHandler.postDelayed(this, 5000);
-    }
-  };
+  @Nullable
+  private GpxNavigation mGpxSession;
+  private boolean mResumeRegisteredTripAfterBuild;
   private SearchPageViewModel mSearchPageViewModel;
   private MapButtonsViewModel mMapButtonsViewModel;
   private MapButtonsController.LayoutMode mPreviousMapLayoutMode;
@@ -202,6 +207,12 @@ public class MwmActivity extends BaseMwmFragmentActivity
   @SuppressWarnings("NotNullFieldNotInitialized")
   private ActivityResultLauncher<String[]> mLocationPermissionRequest;
   private boolean mLocationPermissionRequestedForRecording = false;
+  private boolean mLocationPermissionRequestedForGpx = false;
+  private boolean mLocationPermissionRequestedForAreaMapTrip = false;
+  @Nullable
+  private TripPlan mPendingRegisteredTripPlan;
+  @Nullable
+  private TripSafety.Profile mPendingRegisteredTripProfile;
 
   @SuppressWarnings("NotNullFieldNotInitialized")
   private ActivityResultLauncher<String> mPostNotificationPermissionRequest;
@@ -245,6 +256,8 @@ public class MwmActivity extends BaseMwmFragmentActivity
       restoreRoutingUI(MapButtonsController.LayoutMode.planning);
     else if (RoutingController.get().isNavigating())
       restoreRoutingUI(MapButtonsController.LayoutMode.navigation);
+    else if (TripSafety.get(this).hasActiveTrip())
+      resumeRegisteredTrip();
     else if (RoutingController.get().hasSavedRoute())
       RoutingController.get().restoreRoute();
     if (mSearchPageViewModel.getSearchEnabled().getValue() == null && mSearchPageViewModel.isSearchPersistedActive()
@@ -255,8 +268,8 @@ public class MwmActivity extends BaseMwmFragmentActivity
                                                        mSearchPageViewModel.getPersistedIsCategory());
       mSearchPageViewModel.setSearchEnabled(true, restored);
     }
-    else if (mSearchPageViewModel.getSearchEnabled().getValue() == null
-             && !RoutingController.get().isPlanning() && !RoutingController.get().isNavigating()
+    else if (mSearchPageViewModel.getSearchEnabled().getValue() == null && !RoutingController.get().isPlanning()
+             && !RoutingController.get().isNavigating()
              && (getIntent() == null || getIntent().hasCategory(Intent.CATEGORY_LAUNCHER)))
     {
       // HOME owns the launcher presentation. Open the existing search sheet only on a search action.
@@ -290,14 +303,16 @@ public class MwmActivity extends BaseMwmFragmentActivity
     if (guidesAction != null)
     {
       intent.removeExtra(EXTRA_GUIDES_ACTION);
-      final int actionId = switch (guidesAction) {
+      final int actionId = switch (guidesAction)
+      {
         case "route" -> R.id.areamap_nav_route;
         case "trip" -> R.id.areamap_nav_trip;
         case "profile" -> R.id.areamap_nav_profile;
         default -> R.id.areamap_nav_search;
       };
       final View actionView = findViewById(actionId);
-      if (actionView != null) actionView.performClick();
+      if (actionView != null)
+        actionView.performClick();
       return;
     }
 
@@ -425,9 +440,7 @@ public class MwmActivity extends BaseMwmFragmentActivity
     // Match the pre-refactor flow: clear any prior interactive search + API points before starting.
     SearchEngine.INSTANCE.cancel();
 
-    final String selectedAppLanguage = app.organicmaps.safety.AreaMapLocale.selectedTag(this);
-    final String lang = locale != null ? locale
-        : (!selectedAppLanguage.isEmpty() ? selectedAppLanguage : Language.getKeyboardLocale(this));
+    final String lang = locale != null ? locale : Language.getKeyboardLocale(this);
     final Location loc = MwmApplication.from(this).getLocationHelper().getSavedLocation();
     final boolean hasLocation = loc != null;
     final double lat = hasLocation ? loc.getLatitude() : 0;
@@ -555,13 +568,13 @@ public class MwmActivity extends BaseMwmFragmentActivity
     // Bridge search-active state into RoutingPlanViewModel so the routing sheet hides under the search
     // bottom sheet. RoutingPlanFragment stays decoupled from SearchPageViewModel; the activity is the
     // single place that knows about both subsystems.
-    mSearchPageViewModel.getSearchEnabled().observe(
-        this, enabled -> {
-          mRoutingPlanViewModel.setIsSearchActive(Boolean.TRUE.equals(enabled));
-          refreshAreaMapBottomNav();
-          updateGpxBanner();
-        });
-    mSearchPageViewModel.getSearchPageLastState().observe(this, state -> refreshAreaMapBottomNav());
+    mSearchPageViewModel.getSearchEnabled().observe(this, enabled -> {
+      mRoutingPlanViewModel.setIsSearchActive(Boolean.TRUE.equals(enabled));
+      refreshAreaMapBottomNav();
+    });
+    mPlacePageViewModel.getMapObject().observe(this, object -> refreshAreaMapBottomNav());
+    mMapButtonsViewModel.getFullscreen().observe(this, fullscreen -> refreshAreaMapBottomNav());
+    mRoutingPlanViewModel.getIsPointChooserActive().observe(this, active -> refreshAreaMapBottomNav());
 
     // Note: You must call registerForActivityResult() before the fragment or activity is created.
     mLocationPermissionRequest = registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(),
@@ -630,34 +643,22 @@ public class MwmActivity extends BaseMwmFragmentActivity
     ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.coordinator), (view, windowInsets) -> {
       final int trackRecorderOffset =
           TrackRecorder.nativeIsTrackRecordingEnabled() ? dimen(this, R.dimen.map_button_size) : 0;
-      final Insets systemBars = windowInsets.getInsets(
-          WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout());
+      final Insets systemBars =
+          windowInsets.getInsets(WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout());
       if (mHomeController != null)
         mHomeController.setInsets(systemBars);
       // Drive nav-bar height from the AndroidX visibility signal — pre-R FLAG_FULLSCREEN
       // hides only the status bar, so inferring from app state misreports the nav bar.
       mNavBarHeight = windowInsets.isVisible(WindowInsetsCompat.Type.navigationBars()) ? systemBars.bottom : 0;
-      final View trackBanner = findViewById(R.id.areamap_track_navigation);
-      if (trackBanner != null && trackBanner.getLayoutParams() instanceof ViewGroup.MarginLayoutParams trackParams)
-      {
-        trackParams.topMargin = systemBars.top + dimen(this, R.dimen.margin_base);
-        trackParams.leftMargin = systemBars.left + dimen(this, R.dimen.margin_base);
-        trackParams.rightMargin = systemBars.right + dimen(this, R.dimen.margin_base);
-        trackBanner.setLayoutParams(trackParams);
-      }
-      View areaMapNav = findViewById(R.id.areamap_bottom_nav);
-      if (areaMapNav != null && areaMapNav.getLayoutParams() instanceof ViewGroup.MarginLayoutParams params)
-      {
-        params.bottomMargin = mNavBarHeight;
-        areaMapNav.setLayoutParams(params);
-        refreshAreaMapBottomNav();
-      }
       // For the first loading, set compass top margin to status bar size
       // The top inset will be then be updated by the routing controller
       if (mCurrentWindowInsets == null)
         updateCompassOffset(trackRecorderOffset + systemBars.top, systemBars.right);
       refreshLightStatusBar();
       updateBottomWidgetsOffset(systemBars.left);
+      final View nav = findViewById(R.id.areamap_bottom_nav);
+      nav.setPadding(systemBars.left, nav.getPaddingTop(), systemBars.right, mNavBarHeight);
+      refreshAreaMapBottomNav();
       mCurrentWindowInsets = windowInsets;
       return windowInsets;
     });
@@ -681,14 +682,13 @@ public class MwmActivity extends BaseMwmFragmentActivity
     getLifecycle().addObserver(mMapController);
 
     initNavigationButtons();
-    initAreaMapBottomNav();
 
     mNavigationController = new NavigationController(
-        this, v -> onSettingsOptionSelected(), v -> openVoiceInstructionsSettings(),
-        v -> showManualTripReturnConfirmation(), this::updateBottomWidgetsOffset);
+        this, v -> onSettingsOptionSelected(), v -> openVoiceInstructionsSettings(), this::updateBottomWidgetsOffset);
     // TrafficManager.INSTANCE.attach(mNavigationController);
     initOnmapDownloader();
     initPositionChooser();
+    initAreaMapBottomNav();
   }
 
   private void initAreaMapBottomNav()
@@ -704,6 +704,19 @@ public class MwmActivity extends BaseMwmFragmentActivity
 
     searchAction.setOnClickListener(v -> showSearch(""));
     routeAction.setOnClickListener(v -> {
+      if (RoutingController.get().isNavigating())
+      {
+        mNavigationController.showHikeDetails();
+        return;
+      }
+      if (mAreaMapRoutePanelActive)
+      {
+        final RoutingPlanFragment fragment =
+            (RoutingPlanFragment) getSupportFragmentManager().findFragmentByTag(RoutingPlanFragment.TAG);
+        if (fragment != null)
+          fragment.showAreaMapRouteOnMap();
+        return;
+      }
       final app.organicmaps.safety.GpxNavigation gpx = app.organicmaps.safety.GpxNavigation.current;
       if (gpx != null)
       {
@@ -719,13 +732,15 @@ public class MwmActivity extends BaseMwmFragmentActivity
       closeFloatingPanels();
       RoutingController.get().prepare(null, null, Router.Pedestrian);
     });
-    tripAction.setOnClickListener(v ->
-        startActivity(new Intent(this, app.organicmaps.safety.TripSafetyActivity.class)));
+    tripAction.setOnClickListener(
+        v -> startActivity(new Intent(this, app.organicmaps.safety.TripSafetyActivity.class)));
     // AreaMap identity is separate from the optional OpenStreetMap account in Settings.
-    profileAction.setOnClickListener(v -> startActivity(new Intent(this,
-        app.organicmaps.profile.AreaMapProfileActivity.class).addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)));
-    nav.findViewById(R.id.areamap_nav_guides).setOnClickListener(v ->
-        startActivity(new Intent(this, app.organicmaps.safety.GuideListActivity.class)));
+    profileAction.setOnClickListener(
+        v
+        -> startActivity(new Intent(this, app.organicmaps.profile.AreaMapProfileActivity.class)
+                             .addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)));
+    nav.findViewById(R.id.areamap_nav_guides)
+        .setOnClickListener(v -> startActivity(new Intent(this, app.organicmaps.safety.GuideListActivity.class)));
     nav.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) -> {
       if (b - t != ob - ot)
         refreshAreaMapBottomNav();
@@ -733,29 +748,64 @@ public class MwmActivity extends BaseMwmFragmentActivity
     refreshAreaMapBottomNav();
   }
 
-  private void showGpxRouteChoices(@NonNull app.organicmaps.safety.GpxNavigation session)
+  public void refreshDestinationFavorites()
   {
-    new MaterialAlertDialogBuilder(this)
-        .setTitle(R.string.areamap_gpx_active_title)
-        .setMessage(R.string.areamap_gpx_active_message)
-        .setNegativeButton(R.string.areamap_continue_track, null)
-        .setPositiveButton(R.string.areamap_route_to_gpx_start, (dialog, which) -> {
-          final double[] start = session.track.points[0];
-          final MapObject target = MapObject.createMapObject(
-              MapObject.API_POINT, getString(R.string.areamap_gpx_start_title),
-              getString(R.string.areamap_gpx_start_subtitle), start[0], start[1]);
-          mRoutingToGpxStart = true;
-          closeFloatingPanels();
-          final MapObject myPosition = MwmApplication.from(this).getLocationHelper().getMyPosition();
-          RoutingController.get().prepare(myPosition, target, Router.Pedestrian);
-        })
-        .show();
+    if (mHomeController != null)
+      mHomeController.refreshInfo();
   }
 
-  private void refreshAreaMapBottomNav()
+  public void showDestinationOnMap(double lat, double lon)
+  {
+    closeFloatingPanels();
+    Framework.nativeZoomToPoint(lat, lon, 15, true);
+  }
+
+  public boolean buildDestinationRoute(app.organicmaps.home.HikeRecommendation item)
+  {
+    if (RoutingController.get().isNavigating() || GpxNavigation.current != null || TripSafety.get(this).hasActiveTrip())
+    {
+      Toast.makeText(this, R.string.destination_active_route, Toast.LENGTH_SHORT).show();
+      return false;
+    }
+    closeFloatingPanels();
+    final MapObject target =
+        MapObject.createMapObject(MapObject.API_POINT, getString(item.title), getString(item.type), item.lat, item.lon);
+    final MapObject start = MwmApplication.from(this).getLocationHelper().getMyPosition();
+    RoutingController.get().prepare(start, target, Router.Pedestrian);
+    return true;
+  }
+
+  public boolean buildRelatedDestinationRoute(app.organicmaps.home.RelatedRoute route)
+  {
+    if (RoutingController.get().isNavigating() || GpxNavigation.current != null || TripSafety.get(this).hasActiveTrip())
+    {
+      Toast.makeText(this, R.string.destination_active_route, Toast.LENGTH_SHORT).show();
+      return false;
+    }
+    final java.util.List<MapObject> points = new java.util.ArrayList<>();
+    for (int i = 0; i < route.pointCount(); i++)
+    {
+      final String title = i == 0                      ? getString(route.startTitle)
+                         : i == route.pointCount() - 1 ? getString(route.finishTitle)
+                                                       : getString(R.string.destination_route_waypoint, i);
+      points.add(MapObject.createMapObject(MapObject.API_POINT, title, getString(route.title), route.latitude(i),
+                                           route.longitude(i)));
+    }
+    closeFloatingPanels();
+    RoutingController.get().prepare(points, Router.Pedestrian);
+    return true;
+  }
+
+  public void refreshAreaMapBottomNav()
   {
     if (mMapButtonsViewModel != null)
       setAreaMapBottomNavVisible(isAreaMapDockLayout());
+  }
+
+  private boolean isAreaMapHikeActive()
+  {
+    return RoutingController.get().isNavigating() && Router.get() == Router.Pedestrian
+ || GpxNavigation.current != null && !RoutingController.get().isPlanning() && !RoutingController.get().isNavigating();
   }
 
   private boolean isAreaMapDockLayout()
@@ -763,39 +813,7 @@ public class MwmActivity extends BaseMwmFragmentActivity
     if (mMapButtonsViewModel == null)
       return false;
     final MapButtonsController.LayoutMode mode = mMapButtonsViewModel.getLayoutMode().getValue();
-    return mode == MapButtonsController.LayoutMode.regular;
-  }
-
-  private void updateGpxBanner()
-  {
-    final View banner = findViewById(R.id.areamap_track_navigation);
-    if (banner == null)
-      return;
-    final app.organicmaps.safety.GpxNavigation session = app.organicmaps.safety.GpxNavigation.current;
-    final boolean visible = session != null
-        && !Boolean.TRUE.equals(mSearchPageViewModel.getSearchEnabled().getValue())
-        && mPlacePageViewModel.getMapObject().getValue() == null
-        && !RoutingController.get().isPlanning() && !RoutingController.get().isNavigating();
-    UiUtils.showIf(visible, banner);
-    if (!visible)
-      return;
-    session.update(MwmApplication.from(this).getLocationHelper().getSavedLocation());
-    final String status;
-    if (!session.hasFix)
-      status = getString(R.string.areamap_track_waiting);
-    else if (session.offset > 50)
-      status = getString(R.string.areamap_track_off_course, session.offset);
-    else if (session.arrived)
-      status = getString(R.string.areamap_track_arrived);
-    else
-      status = getString(R.string.areamap_track_progress, session.remaining / 1000,
-                         session.seconds / 3600, session.seconds / 60 % 60);
-    ((TextView) banner.findViewById(R.id.areamap_track_status)).setText(status);
-    banner.findViewById(R.id.areamap_track_stop).setOnClickListener(v -> {
-      app.organicmaps.safety.GpxNavigation.current = null;
-      mGpxSession = null;
-      UiUtils.hide(banner);
-    });
+    return mAreaMapRoutePanelActive || isAreaMapHikeActive() || mode == MapButtonsController.LayoutMode.regular;
   }
 
   private void setAreaMapBottomNavVisible(boolean visible)
@@ -805,18 +823,37 @@ public class MwmActivity extends BaseMwmFragmentActivity
       return;
 
     final boolean searching = Boolean.TRUE.equals(mSearchPageViewModel.getSearchEnabled().getValue());
-    final boolean compactSearch = Integer.valueOf(BottomSheetBehavior.STATE_COLLAPSED)
-        .equals(mSearchPageViewModel.getSearchPageLastState().getValue());
-    final boolean show = visible && !isFullscreen() && (!searching || compactSearch)
-        && mPlacePageViewModel.getMapObject().getValue() == null;
+    final boolean show = app.organicmaps.home.HomeLayoutPolicy.canShowDock(
+        visible, searching, mPlacePageViewModel.getMapObject().getValue() != null,
+        ChoosePositionMode.get() != ChoosePositionMode.None, isFullscreen(), isAreaMapHikeActive());
 
     UiUtils.showIf(show, nav);
+    final int selectedId = isAreaMapHikeActive()         ? R.id.areamap_nav_trip
+                         : mAreaMapRoutePanelActive      ? R.id.areamap_nav_route
+                         : GpxNavigation.current != null ? R.id.areamap_nav_trip
+                                                         : R.id.areamap_nav_search;
+    for (int id : new int[] {R.id.areamap_nav_search, R.id.areamap_nav_route, R.id.areamap_nav_trip,
+                             R.id.areamap_nav_guides, R.id.areamap_nav_profile})
+    {
+      final ViewGroup item = nav.findViewById(id);
+      final int tint = androidx.core.content.ContextCompat.getColor(
+          this, id == selectedId ? R.color.areamap_green : R.color.areamap_text_secondary);
+      for (int i = 0; i < item.getChildCount(); i++)
+      {
+        final View child = item.getChildAt(i);
+        if (child instanceof android.widget.ImageView image)
+          image.setImageTintList(android.content.res.ColorStateList.valueOf(tint));
+        else if (child instanceof TextView text)
+          text.setTextColor(tint);
+        else
+          child.setVisibility(id == selectedId ? View.VISIBLE : View.INVISIBLE);
+      }
+    }
 
     nav.animate().cancel();
     nav.setTranslationY(0);
-    final int visibleDockHeight = show ? Math.max(nav.getHeight(), dimen(this, R.dimen.home_nav_height)) : 0;
-    final int reserve = visibleDockHeight + (show ? mNavBarHeight : 0);
-    for (int id : new int[] {R.id.search_container_fragment, R.id.map_buttons})
+    final int reserve = show ? Math.max(nav.getHeight(), dimen(this, R.dimen.home_nav_height) + mNavBarHeight) : 0;
+    for (int id : new int[] {R.id.search_container_fragment, R.id.map_buttons, R.id.routing_container})
     {
       final View content = findViewById(id);
       if (content != null && content.getLayoutParams() instanceof ViewGroup.MarginLayoutParams params
@@ -826,10 +863,14 @@ public class MwmActivity extends BaseMwmFragmentActivity
         content.setLayoutParams(params);
       }
     }
+    if (mNavigationController != null)
+      mNavigationController.setHikePresentation(isAreaMapHikeActive(), show, reserve);
     if (mHomeController != null)
-      mHomeController.setVisible(app.organicmaps.home.HomeLayoutPolicy.canShow(
-          show, searching, app.organicmaps.safety.GpxNavigation.current != null,
-          ChoosePositionMode.get() != ChoosePositionMode.None));
+      mHomeController.setPresentation(
+          app.organicmaps.home.HomeLayoutPolicy.canShow(
+              show && !RoutingController.get().isPlanning() && !mAreaMapRoutePanelActive && !isAreaMapHikeActive(),
+              searching, GpxNavigation.current != null, ChoosePositionMode.get() != ChoosePositionMode.None),
+          show && mAreaMapRoutePanelActive);
   }
 
   private void updateDrivingOptionCount()
@@ -901,10 +942,6 @@ public class MwmActivity extends BaseMwmFragmentActivity
     // Used instead of closeBottomSheet to preserve state and hide instantly
     UiUtils.showIf(!isUiHidden, findViewById(R.id.place_page_container_fragment));
     mMapButtonsViewModel.setButtonsHidden(isUiHidden);
-    if (isUiHidden)
-      setAreaMapBottomNavVisible(false);
-    else
-      setAreaMapBottomNavVisible(isAreaMapDockLayout());
   }
 
   public void showPositionChooserForAPI(@Nullable String appName)
@@ -945,7 +982,6 @@ public class MwmActivity extends BaseMwmFragmentActivity
     updatePositionChooserText(mode);
     UiUtils.show(mPointChooser);
     mMapButtonsViewModel.setButtonsHidden(true);
-    setAreaMapBottomNavVisible(false);
     ChoosePositionMode.set(mode, isBusiness, applyPosition);
     refreshLightStatusBar();
   }
@@ -971,7 +1007,6 @@ public class MwmActivity extends BaseMwmFragmentActivity
     ChoosePositionMode mode = ChoosePositionMode.get();
     ChoosePositionMode.set(ChoosePositionMode.None, false, false);
     mMapButtonsViewModel.setButtonsHidden(false);
-    setAreaMapBottomNavVisible(isAreaMapDockLayout());
     mRoutingPlanViewModel.setIsPointChooserActive(false);
     Framework.nativeDeactivatePopup();
     refreshLightStatusBar();
@@ -989,17 +1024,6 @@ public class MwmActivity extends BaseMwmFragmentActivity
 
   private void initNavigationButtons(MapButtonsController.LayoutMode layoutMode)
   {
-    if (layoutMode != MapButtonsController.LayoutMode.regular && !mRoutingToGpxStart)
-    {
-      app.organicmaps.safety.GpxNavigation.current = null;
-      mGpxSession = null;
-    }
-    else if (layoutMode == MapButtonsController.LayoutMode.regular)
-    {
-      mRoutingToGpxStart = false;
-    }
-    updateGpxBanner();
-    setAreaMapBottomNavVisible(layoutMode == MapButtonsController.LayoutMode.regular);
     // Recreate the navigation buttons with the correct layout when it changes
     if (mPreviousMapLayoutMode != layoutMode)
     {
@@ -1008,6 +1032,7 @@ public class MwmActivity extends BaseMwmFragmentActivity
       transaction.commit();
       mPreviousMapLayoutMode = layoutMode;
     }
+    refreshAreaMapBottomNav();
   }
 
   @Override
@@ -1126,7 +1151,7 @@ public class MwmActivity extends BaseMwmFragmentActivity
     }
 
     MapObject startPoint = MwmApplication.from(this).getLocationHelper().getMyPosition();
-    RoutingController.get().prepare(startPoint, endPoint, Router.Pedestrian);
+    RoutingController.get().prepare(startPoint, endPoint);
   }
 
   private void initOnmapDownloader()
@@ -1216,16 +1241,22 @@ public class MwmActivity extends BaseMwmFragmentActivity
       mHomeController.refreshInfo();
       refreshAreaMapBottomNav();
     }
-    final app.organicmaps.safety.GpxNavigation session = app.organicmaps.safety.GpxNavigation.current;
+    final GpxNavigation session = GpxNavigation.restore(this);
+    refreshAreaMapBottomNav();
     if (session != null && session != mGpxSession)
     {
       mGpxSession = session;
-      RoutingController.get().cancel();
-      closeFloatingPanels();
+      ensureGpxLocationTracking();
+    }
+    TripReportSender.recover(this, false);
+    TripMonitoringService.start(this);
+    if (getIntent().getBooleanExtra("areamap_resume_trip", false))
+    {
+      getIntent().removeExtra("areamap_resume_trip");
+      resumeRegisteredTrip();
     }
     updateGpxBanner();
-    mGpxHandler.removeCallbacks(mGpxRefresh);
-    mGpxHandler.postDelayed(mGpxRefresh, 5000);
+
     ThemeSwitcher.INSTANCE.synchronizeApplicationTheme();
     ThemeSwitcher.INSTANCE.synchronizeMapStyle(this, mMapController.isRenderingActive());
     makeNavigationBarTransparentInLightMode();
@@ -1261,64 +1292,6 @@ public class MwmActivity extends BaseMwmFragmentActivity
     maybePromptTripReturn();
   }
 
-  private void maybePromptTripReturn()
-  {
-    final TripSafety safety = TripSafety.get(this);
-    if (!safety.shouldSuggestReturn() || isFinishing() || isDestroyed())
-      return;
-    if (mAlertDialog != null && mAlertDialog.isShowing())
-      return;
-
-    mAlertDialog = new MaterialAlertDialogBuilder(this, R.style.MwmTheme_AlertDialog)
-        .setTitle(R.string.areamap_return_detected_title)
-        .setMessage(getString(R.string.areamap_return_detected_message, safety.activeTripSummary()))
-        .setCancelable(false)
-        .setNegativeButton(R.string.areamap_not_returned_yet, (dialog, which) -> safety.dismissReturnSuggestion())
-        .setPositiveButton(R.string.areamap_finish_and_send, (dialog, which) -> finishRegisteredTrip())
-        .setOnDismissListener(dialog -> mAlertDialog = null)
-        .show();
-  }
-
-  private void showManualTripReturnConfirmation()
-  {
-    final TripSafety safety = TripSafety.get(this);
-    if (!safety.hasActiveTrip())
-    {
-      if (!RoutingController.get().isNavigating())
-        return;
-      new MaterialAlertDialogBuilder(this, R.style.MwmTheme_AlertDialog)
-          .setTitle(R.string.areamap_demo_finish_title)
-          .setMessage(R.string.areamap_demo_finish_message)
-          .setNegativeButton(R.string.cancel, null)
-          .setPositiveButton(R.string.areamap_finish_trip, (dialog, which) -> RoutingController.get().cancel())
-          .show();
-      return;
-    }
-
-    new MaterialAlertDialogBuilder(this, R.style.MwmTheme_AlertDialog)
-        .setTitle(R.string.areamap_manual_return_title)
-        .setMessage(R.string.areamap_manual_return_message)
-        .setNegativeButton(R.string.cancel, null)
-        .setPositiveButton(R.string.areamap_finish_and_send, (dialog, which) -> finishRegisteredTrip())
-        .show();
-  }
-
-  private void finishRegisteredTrip()
-  {
-    final TripSafety safety = TripSafety.get(this);
-    if (!safety.hasActiveTrip())
-      return;
-    final boolean stopOwnedRecording = safety.ownsTrackRecording();
-    final String report = safety.returnReport();
-    safety.completeTrip();
-    if (RoutingController.get().isNavigating())
-      RoutingController.get().cancel();
-    if (stopOwnedRecording && TrackRecorder.nativeIsTrackRecordingEnabled())
-      saveAndStopTrackRecording();
-    TripReportSender.shareToTelegram(this, report);
-    Toast.makeText(this, R.string.areamap_trip_completed, Toast.LENGTH_LONG).show();
-  }
-
   @Override
   protected void onResumeFragments()
   {
@@ -1329,7 +1302,6 @@ public class MwmActivity extends BaseMwmFragmentActivity
   @Override
   protected void onPause()
   {
-    mGpxHandler.removeCallbacks(mGpxRefresh);
     if (mOnmapDownloader != null)
       mOnmapDownloader.onPause();
     MwmApplication.from(this).getSensorHelper().removeListener(this);
@@ -1413,16 +1385,28 @@ public class MwmActivity extends BaseMwmFragmentActivity
   public boolean handleBackPress()
   {
     final RoutingController routingController = RoutingController.get();
-    return (closeBottomSheet(MAIN_MENU_ID) || closeBottomSheet(LAYERS_MENU_ID) || collapseNavMenu() || closePlacePage()
-            || closePositionChooser() || closeSearchFragment() || routingController.resetToPlanningStateIfNavigating()
-            || routingController.cancel());
+    if (closeBottomSheet(MAIN_MENU_ID) || closeBottomSheet(LAYERS_MENU_ID) || collapseNavMenu() || closePlacePage()
+        || closePositionChooser() || closeSearchFragment())
+      return true;
+    if (routingController.isNavigating() || TripMonitoringService.needed(this))
+    {
+      moveTaskToBack(true);
+      return true;
+    }
+    return routingController.cancel();
   }
 
   @Override
   public void onPlacePageActivated(@NonNull PlacePageData data)
   {
-    // This will open the place page
-    mPlacePageViewModel.setMapObject((MapObject) data);
+    final MapObject object = (MapObject) data;
+    if (RouteCheckpointBookmarks.isCheckpoint(object))
+    {
+      mAreaMapCheckpointPageOpen = true;
+      hideAreaMapRoutePanel();
+    }
+    // This will open the place page.
+    mPlacePageViewModel.setMapObject(object);
   }
 
   @Override
@@ -1431,7 +1415,15 @@ public class MwmActivity extends BaseMwmFragmentActivity
     if (mPlacePageViewModel.getMapObject().getValue() == null
         || mPlacePageViewModel.getMapObject().getValue().isTrackRecording())
       return;
+
     closePlacePage();
+    if (mAreaMapCheckpointPageOpen)
+    {
+      mAreaMapCheckpointPageOpen = false;
+      final TripPlan plan = TripPlan.current();
+      if (plan != null && shouldUseAreaMapRoutePanel())
+        showAreaMapRoutePanel(plan);
+    }
   }
 
   @Override
@@ -1550,14 +1542,315 @@ public class MwmActivity extends BaseMwmFragmentActivity
     }
   }
 
+  private boolean shouldUseAreaMapRoutePanel()
+  {
+    final RoutingController controller = RoutingController.get();
+    return Router.get() == Router.Pedestrian && controller.isBuilt();
+  }
+
+  public void showAreaMapRoutePanel(@NonNull TripPlan plan)
+  {
+    mAreaMapRoutePanelActive = true;
+    refreshAreaMapBottomNav();
+    mMapButtonsViewModel.setBottomButtonsHidden(true);
+    mMapButtonsViewModel.setButtonsHidden(true);
+    setRoutingBottomSheetActive(true);
+    final RoutingPlanFragment fragment =
+        (RoutingPlanFragment) getSupportFragmentManager().findFragmentByTag(RoutingPlanFragment.TAG);
+    if (fragment != null)
+      fragment.showAreaMapPreview(plan, () -> startAreaMapRoute(plan), this::editAreaMapRoute);
+  }
+
+  private void hideAreaMapRoutePanel()
+  {
+    if (!mAreaMapRoutePanelActive)
+      return;
+    mAreaMapRoutePanelActive = false;
+    mMapButtonsViewModel.setButtonsHidden(false);
+    final RoutingPlanFragment fragment =
+        (RoutingPlanFragment) getSupportFragmentManager().findFragmentByTag(RoutingPlanFragment.TAG);
+    if (fragment != null)
+      fragment.hideAreaMapPreview();
+    refreshAreaMapBottomNav();
+  }
+
+  private void editAreaMapRoute()
+  {
+    hideAreaMapRoutePanel();
+    RouteCheckpointBookmarks.clear();
+    mRoutingPlanViewModel.setShowRoutingBottomSheet(true);
+    setRoutingBottomSheetActive(true);
+    updateMenu();
+  }
+
+  private void startAreaMapRoute(@NonNull TripPlan plan)
+  {
+    final TripSafety safety = TripSafety.get(this);
+    if (safety.hasActiveTrip())
+    {
+      if (safety.matches(plan))
+      {
+        if (!LocationUtils.checkFineLocationPermission(this))
+        {
+          mLocationPermissionRequestedForAreaMapTrip = true;
+          mLocationPermissionRequest.launch(new String[] {ACCESS_COARSE_LOCATION, ACCESS_FINE_LOCATION});
+          return;
+        }
+        requestPostNotificationsPermission();
+        TripMonitoringService.start(this);
+        continueAreaMapNavigationNow();
+      }
+      else
+      {
+        Toast.makeText(this, R.string.areamap_trip_already_active, Toast.LENGTH_LONG).show();
+        startActivity(new Intent(this, TripSafetyActivity.class));
+      }
+      return;
+    }
+    if (!showStartPointNotice())
+      return;
+
+    if (!Config.isRoutingDisclaimerAccepted())
+    {
+      showAreaMapRoutingDisclaimer(plan);
+      return;
+    }
+
+    TripStartFlow.show(this, plan, this::startAreaMapNavigationNow,
+                       profile -> startRegisteredAreaMapRoute(plan, profile));
+  }
+
+  private void showAreaMapRoutingDisclaimer(@NonNull TripPlan plan)
+  {
+    final StringBuilder builder = new StringBuilder();
+    for (int resId :
+         new int[] {R.string.dialog_routing_disclaimer_priority, R.string.dialog_routing_disclaimer_precision,
+                    R.string.dialog_routing_disclaimer_recommendations, R.string.dialog_routing_disclaimer_borders,
+                    R.string.dialog_routing_disclaimer_beware})
+      builder.append(getString(resId)).append("\n\n");
+
+    dismissAlertDialog();
+    mAlertDialog = new MaterialAlertDialogBuilder(this, R.style.MwmTheme_AlertDialog)
+                       .setTitle(R.string.dialog_routing_disclaimer_title)
+                       .setMessage(builder.toString())
+                       .setCancelable(false)
+                       .setNegativeButton(R.string.decline, null)
+                       .setPositiveButton(R.string.accept,
+                                          (dialog, which) -> {
+                                            Config.acceptRoutingDisclaimer();
+                                            startAreaMapRoute(plan);
+                                          })
+                       .setOnDismissListener(dialog -> mAlertDialog = null)
+                       .show();
+  }
+
+  private void startAreaMapNavigationNow()
+  {
+    continueAreaMapNavigationNow();
+  }
+
+  private void startRegisteredAreaMapRoute(@NonNull TripPlan plan, @NonNull TripSafety.Profile profile)
+  {
+    if (!LocationUtils.checkFineLocationPermission(this))
+    {
+      mPendingRegisteredTripPlan = plan;
+      mPendingRegisteredTripProfile = profile;
+      mLocationPermissionRequestedForAreaMapTrip = true;
+      mLocationPermissionRequest.launch(new String[] {ACCESS_COARSE_LOCATION, ACCESS_FINE_LOCATION});
+      return;
+    }
+
+    beginRegisteredAreaMapRoute(plan, profile);
+  }
+
+  private void beginRegisteredAreaMapRoute(@NonNull TripPlan plan, @NonNull TripSafety.Profile profile)
+  {
+    clearPendingRegisteredAreaMapTrip();
+
+    final boolean ownsTrackRecording = !TrackRecorder.nativeIsTrackRecordingEnabled();
+    final TripSafety safety = TripSafety.get(this);
+    if (!safety.startMonitoredTrip(plan, profile, ownsTrackRecording))
+    {
+      Toast.makeText(this, R.string.areamap_trip_already_active, Toast.LENGTH_LONG).show();
+      return;
+    }
+    // Queue the start once. Reopening and resuming never generate another start event.
+    TripReportSender.send(this, "start", safety.startReport());
+    requestPostNotificationsPermission();
+    TripMonitoringService.start(this);
+
+    if (ownsTrackRecording)
+      startTrackRecording();
+
+    continueAreaMapNavigationNow();
+  }
+
+  private void clearPendingRegisteredAreaMapTrip()
+  {
+    mLocationPermissionRequestedForAreaMapTrip = false;
+    mPendingRegisteredTripPlan = null;
+    mPendingRegisteredTripProfile = null;
+  }
+
+  private void continueAreaMapNavigationNow()
+  {
+    hideAreaMapRoutePanel();
+    closeFloatingPanels();
+    setFullscreen(false);
+    RoutingController.get().start();
+  }
+
+  private void ensureGpxLocationTracking()
+  {
+    if (GpxNavigation.current == null)
+      return;
+
+    if (!LocationUtils.checkFineLocationPermission(this))
+    {
+      mLocationPermissionRequestedForGpx = true;
+      mLocationPermissionRequest.launch(new String[] {ACCESS_COARSE_LOCATION, ACCESS_FINE_LOCATION});
+      return;
+    }
+
+    if (LocationState.getMode() == LocationState.NOT_FOLLOW_NO_POSITION)
+      LocationState.nativeSwitchToNextMode();
+    else
+      MwmApplication.from(this).getLocationHelper().restartWithNewMode();
+    requestPostNotificationsPermission();
+    TripMonitoringService.start(this);
+  }
+
+  private void resumeRegisteredTrip()
+  {
+    final TripSafety safety = TripSafety.get(this);
+    if (!safety.hasActiveTrip() || RoutingController.get().isNavigating())
+      return;
+    mResumeRegisteredTripAfterBuild = true;
+    if (!Map.isEngineCreated())
+      return;
+    final TripPlan plan = TripPlan.current();
+    if (plan != null && safety.matches(plan))
+    {
+      startAreaMapRoute(plan);
+      mResumeRegisteredTripAfterBuild = false;
+      return;
+    }
+    if (safety.restoreSavedRoute())
+      return;
+    if (RoutingController.get().hasSavedRoute())
+      RoutingController.get().restoreRoute();
+    else
+    {
+      final MapObject start = MapObject.createMapObject(MapObject.API_POINT, getString(R.string.areamap_route_start),
+                                                        "", safety.startLat(), safety.startLon());
+      final MapObject finish = MapObject.createMapObject(MapObject.API_POINT, getString(R.string.areamap_route_finish),
+                                                         "", safety.finishLat(), safety.finishLon());
+      RoutingController.get().prepare(start, finish, Router.Pedestrian);
+    }
+  }
+
+  private void updateGpxBanner()
+  {
+    final View banner = findViewById(R.id.areamap_track_navigation);
+    if (banner == null)
+      return;
+
+    // Imported GPX uses the same NavMenu sheet as active native hiking.
+    UiUtils.hide(banner);
+    final GpxNavigation session = GpxNavigation.current;
+    if (session != null && !session.hasFix)
+      session.update(MwmApplication.from(this).getLocationHelper().getSavedLocation());
+    refreshAreaMapBottomNav();
+  }
+
+  private void showGpxRouteChoices(@NonNull GpxNavigation session)
+  {
+    new MaterialAlertDialogBuilder(this, R.style.MwmTheme_AlertDialog)
+        .setTitle(R.string.areamap_gpx_active_title)
+        .setMessage(R.string.areamap_gpx_active_message)
+        .setNegativeButton(R.string.areamap_continue_track, null)
+        .setPositiveButton(R.string.areamap_route_to_gpx_start,
+                           (dialog, which) -> {
+                             final double[] start = session.track.points[0];
+                             final MapObject target = MapObject.createMapObject(
+                                 MapObject.API_POINT, getString(R.string.areamap_gpx_start_title),
+                                 getString(R.string.areamap_gpx_start_subtitle), start[0], start[1]);
+                             closeFloatingPanels();
+                             final MapObject myPosition = MwmApplication.from(this).getLocationHelper().getMyPosition();
+                             RoutingController.get().prepare(myPosition, target, Router.Pedestrian);
+                           })
+        .show();
+  }
+
+  private void maybePromptTripReturn()
+  {
+    final TripSafety safety = TripSafety.get(this);
+    if (!safety.shouldSuggestReturn() || isFinishing() || isDestroyed())
+      return;
+    if (mAlertDialog != null && mAlertDialog.isShowing())
+      return;
+
+    mAlertDialog =
+        new MaterialAlertDialogBuilder(this, R.style.MwmTheme_AlertDialog)
+            .setTitle(R.string.areamap_return_detected_title)
+            .setMessage(getString(R.string.areamap_return_detected_message, safety.activeTripSummary()))
+            .setCancelable(false)
+            .setNegativeButton(R.string.areamap_not_returned_yet, (dialog, which) -> safety.dismissReturnSuggestion())
+            .setPositiveButton(R.string.areamap_finish_and_send, (dialog, which) -> finishRegisteredTrip())
+            .setOnDismissListener(dialog -> mAlertDialog = null)
+            .show();
+  }
+
+  public void confirmFinishRegisteredTrip()
+  {
+    if (!TripSafety.get(this).hasActiveTrip())
+      return;
+    new MaterialAlertDialogBuilder(this)
+        .setMessage(R.string.hike_finish_confirm)
+        .setNegativeButton(R.string.cancel, null)
+        .setPositiveButton(R.string.hike_finish,
+                           (dialog, which) -> {
+                             finishRegisteredTrip();
+                             refreshAreaMapBottomNav();
+                           })
+        .show();
+  }
+
+  private void finishRegisteredTrip()
+  {
+    final TripSafety safety = TripSafety.get(this);
+    if (!safety.hasActiveTrip())
+      return;
+
+    final boolean stopOwnedRecording = safety.ownsTrackRecording();
+    final String report = safety.returnReport();
+    if (!TripReportSender.send(this, "finish", report))
+      return;
+    safety.completeTrip();
+    TripMonitoringService.stopIfUnused(this);
+    if (RoutingController.get().isNavigating())
+      RoutingController.get().cancel();
+    if (stopOwnedRecording && TrackRecorder.nativeIsTrackRecordingEnabled())
+      saveAndStopTrackRecording();
+
+    Toast.makeText(this, R.string.areamap_trip_completed, Toast.LENGTH_LONG).show();
+  }
+
   @Override
   public void updateMenu()
   {
+    refreshAreaMapBottomNav();
     final RoutingController controller = RoutingController.get();
 
     if (controller.isNavigating())
     {
       mNavigationController.show(true);
+      mMapButtonsViewModel.setBottomButtonsHidden(true);
+      return;
+    }
+
+    if (mAreaMapRoutePanelActive && shouldUseAreaMapRoutePanel())
+    {
       mMapButtonsViewModel.setBottomButtonsHidden(true);
       return;
     }
@@ -1646,6 +1939,8 @@ public class MwmActivity extends BaseMwmFragmentActivity
   @Override
   public void onNavigationCancelled()
   {
+    hideAreaMapRoutePanel();
+    RouteCheckpointBookmarks.clear();
     closeFloatingToolbarsAndPanels();
     ThemeSwitcher.INSTANCE.synchronizeApplicationTheme();
     ThemeSwitcher.INSTANCE.synchronizeMapStyle(this, mMapController.isRenderingActive());
@@ -1671,6 +1966,8 @@ public class MwmActivity extends BaseMwmFragmentActivity
   @Override
   public void onNavigationStarted()
   {
+    exitFullscreen();
+    hideAreaMapRoutePanel();
     closeFloatingToolbarsAndPanels();
     ThemeSwitcher.INSTANCE.synchronizeApplicationTheme();
     ThemeSwitcher.INSTANCE.synchronizeMapStyle(this, mMapController.isRenderingActive());
@@ -1686,15 +1983,14 @@ public class MwmActivity extends BaseMwmFragmentActivity
 
     requestPostNotificationsPermission();
     NavigationService.startForegroundService(this);
-    final TripSafety safety = TripSafety.get(this);
-    if (safety.hasActiveTrip() && safety.ownsTrackRecording() && !TrackRecorder.nativeIsTrackRecordingEnabled())
-      startTrackRecording();
     Utils.keepScreenOn(true, getWindow());
   }
 
   @Override
   public void onPlanningCancelled()
   {
+    hideAreaMapRoutePanel();
+    RouteCheckpointBookmarks.clear();
     closeFloatingToolbarsAndPanels();
     mMapButtonsViewModel.setLayoutMode(MapButtonsController.LayoutMode.regular);
     refreshLightStatusBar();
@@ -1703,6 +1999,7 @@ public class MwmActivity extends BaseMwmFragmentActivity
   @Override
   public void onPlanningStarted()
   {
+    hideAreaMapRoutePanel();
     closeFloatingToolbarsAndPanels();
     mMapButtonsViewModel.setLayoutMode(MapButtonsController.LayoutMode.planning);
     refreshLightStatusBar();
@@ -1711,6 +2008,7 @@ public class MwmActivity extends BaseMwmFragmentActivity
   @Override
   public void onResetToPlanningState()
   {
+    hideAreaMapRoutePanel();
     closeFloatingToolbarsAndPanels();
     ThemeSwitcher.INSTANCE.synchronizeApplicationTheme();
     ThemeSwitcher.INSTANCE.synchronizeMapStyle(this, mMapController.isRenderingActive());
@@ -1749,7 +2047,30 @@ public class MwmActivity extends BaseMwmFragmentActivity
 
   @Override
   public void onBuiltRoute()
-  {}
+  {
+    if (Router.get() != Router.Pedestrian)
+    {
+      hideAreaMapRoutePanel();
+      RouteCheckpointBookmarks.clear();
+      return;
+    }
+
+    final TripPlan plan = TripPlan.current();
+    if (plan == null)
+    {
+      hideAreaMapRoutePanel();
+      RouteCheckpointBookmarks.clear();
+      return;
+    }
+
+    RouteCheckpointBookmarks.show(this, plan);
+    showAreaMapRoutePanel(plan);
+    if (mResumeRegisteredTripAfterBuild && TripSafety.get(this).matches(plan))
+    {
+      mResumeRegisteredTripAfterBuild = false;
+      startAreaMapRoute(plan);
+    }
+  }
 
   @Override
   public void onCommonBuildError(int lastResultCode, @NonNull String[] lastMissingMaps)
@@ -1792,16 +2113,9 @@ public class MwmActivity extends BaseMwmFragmentActivity
                        .setPositiveButton(R.string.accept,
                                           (dlg, which) -> {
                                             Config.acceptRoutingDisclaimer();
-                                            final Fragment fragment = getSupportFragmentManager()
-                                                .findFragmentByTag(RoutingPlanFragment.TAG);
-                                            if (fragment instanceof RoutingPlanFragment plan)
-                                              plan.onRoutingStart();
-                                            else
-                                            {
-                                              closeFloatingPanels();
-                                              setFullscreen(false);
-                                              RoutingController.get().start();
-                                            }
+                                            closeFloatingPanels();
+                                            setFullscreen(false);
+                                            RoutingController.get().start();
                                           })
                        .setOnDismissListener(dialog -> mAlertDialog = null)
                        .show();
@@ -1927,7 +2241,15 @@ public class MwmActivity extends BaseMwmFragmentActivity
   public void onLocationUpdated(@NonNull Location location)
   {
     dismissLocationErrorDialog();
-    updateGpxBanner();
+
+    final GpxNavigation gpx = GpxNavigation.current;
+    if (gpx != null)
+    {
+      gpx.update(location);
+      gpx.saveProgress(this);
+      updateGpxBanner();
+    }
+
     TripSafety.get(this).onLocation(location);
     maybePromptTripReturn();
 
@@ -2004,7 +2326,10 @@ public class MwmActivity extends BaseMwmFragmentActivity
     }
 
     boolean requestedForRecording = mLocationPermissionRequestedForRecording;
+    boolean requestedForGpx = mLocationPermissionRequestedForGpx;
+    boolean requestedForAreaMapTrip = mLocationPermissionRequestedForAreaMapTrip;
     mLocationPermissionRequestedForRecording = false;
+    mLocationPermissionRequestedForGpx = false;
     if (LocationUtils.checkLocationPermission(this))
     {
       final boolean hasFineLocationPermission = LocationUtils.checkFineLocationPermission(this);
@@ -2015,12 +2340,33 @@ public class MwmActivity extends BaseMwmFragmentActivity
       if (requestedForRecording && hasFineLocationPermission)
         startTrackRecording();
 
+      if (requestedForAreaMapTrip && hasFineLocationPermission)
+      {
+        final TripPlan pendingPlan = mPendingRegisteredTripPlan;
+        final TripSafety.Profile pendingProfile = mPendingRegisteredTripProfile;
+        if (pendingPlan != null && pendingProfile != null)
+          beginRegisteredAreaMapRoute(pendingPlan, pendingProfile);
+        else
+        {
+          clearPendingRegisteredAreaMapTrip();
+          resumeRegisteredTrip();
+        }
+      }
+
+      if (requestedForGpx && hasFineLocationPermission)
+      {
+        ensureGpxLocationTracking();
+        updateGpxBanner();
+      }
+
       if (hasFineLocationPermission)
       {
         Logger.i(LOCATION_TAG, "ACCESS_FINE_LOCATION permission granted");
       }
       else
       {
+        if (requestedForAreaMapTrip)
+          clearPendingRegisteredAreaMapTrip();
         Logger.w(LOCATION_TAG, "Only ACCESS_COARSE_LOCATION permission granted");
         if (mLocationErrorDialog != null && mLocationErrorDialog.isShowing())
         {
@@ -2055,6 +2401,8 @@ public class MwmActivity extends BaseMwmFragmentActivity
       return;
     }
 
+    if (requestedForAreaMapTrip)
+      clearPendingRegisteredAreaMapTrip();
     Logger.w(LOCATION_TAG, "Permissions ACCESS_COARSE_LOCATION and ACCESS_FINE_LOCATION have been refused");
     // Calls onMyPositionModeChanged(NOT_FOLLOW_NO_POSITION).
     LocationState.nativeOnLocationError(LocationState.ERROR_DENIED);
@@ -2408,10 +2756,6 @@ public class MwmActivity extends BaseMwmFragmentActivity
     if (id.equals(MAIN_MENU_ID))
     {
       ArrayList<MenuBottomSheetItem> items = new ArrayList<>();
-      items.add(new MenuBottomSheetItem(R.string.areamap_nav_guides, R.drawable.ic_wiki, () -> {
-        closeFloatingPanels();
-        startActivity(new Intent(this, app.organicmaps.safety.TripSafetyActivity.class));
-      }));
       items.add(new MenuBottomSheetItem(R.string.placepage_add_place_button, R.drawable.ic_plus,
                                         this::onAddPlaceOptionSelected));
       items.add(new MenuBottomSheetItem(R.string.download_maps, R.drawable.ic_download, getDownloadMapsCounter(),
@@ -2463,8 +2807,6 @@ public class MwmActivity extends BaseMwmFragmentActivity
   public void onPlacePageActiveChanged(boolean active)
   {
     mRoutingPlanViewModel.setIsPlacePageActive(active);
-    updateGpxBanner();
-    setAreaMapBottomNavVisible(!active && isAreaMapDockLayout());
   }
 
   @Override

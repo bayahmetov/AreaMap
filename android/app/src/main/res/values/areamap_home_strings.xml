@@ -9,8 +9,6 @@
   <string name="home_offline_empty">Download a region for offline use</string>
   <string name="home_offline_count">%1$d maps downloaded</string>
   <string name="home_offline_region">Downloaded: %1$s</string>
-  <string name="home_weather_demo">13° · Clear · Demo</string>
-  <string name="home_wind_demo">Wind 6 km/h</string>
   <string name="home_profile">Profile</string>
   <string name="home_toggle">Expand or collapse destinations</string>
   <string name="home_favorite">Save %1$s to favorites</string>
@@ -19,8 +17,6 @@
   <string name="home_hours">%1$s h</string>
   <string name="home_easy">Easy</string>
   <string name="home_medium">Moderate</string>
-  <string name="home_catalog_demo">Sample itinerary estimates and ratings; check access and conditions before departure.</string>
-  <string name="home_photos_missing">Destination photos are not installed in this build.</string>
   <string name="home_tri_bratya">Three Brothers</string>
   <string name="home_bao">Big Almaty Lake</string>
   <string name="home_butakovka">Butakovsky waterfall</string>
@@ -32,6 +28,6 @@
   <string name="home_rating">★ %1$.1f</string>
   <string name="home_layers">Map layers</string>
   <string name="home_location">Current location</string>
-  <string name="home_photo_approach">Photo: approach to the peak</string>
+  <string name="home_photo_approach">Approach to Furmanov Peak</string>
   <string name="home_photo_credits">Photo credits</string>
 </resources>

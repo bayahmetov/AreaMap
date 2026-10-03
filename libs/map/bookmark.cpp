@@ -1,6 +1,9 @@
 #include "map/bookmark.hpp"
 #include "map/bookmark_helpers.hpp"
 
+#include "drape_frontend/color_constants.hpp"
+#include "drape_frontend/visual_params.hpp"
+
 #include "indexer/scales.hpp"
 
 #include "base/string_utils.hpp"
@@ -55,6 +58,8 @@ std::string GetBookmarkIconType(kml::BookmarkIcon const & icon)
   UNREACHABLE();
 }
 
+std::string const kRouteCheckpointProperty = "AreaMapRouteCheckpoint";
+
 std::string const kCustomImageProperty = "CustomImage";
 }  // namespace
 
@@ -98,6 +103,30 @@ void Bookmark::SetAddress(search::ReverseGeocoder::RegionAddress const & address
 
 drape_ptr<df::UserPointMark::TitlesInfo> Bookmark::GetTitleDeclEx(settings::Placement p, dp::Color outlineColor) const
 {
+  auto const checkpoint = m_data.m_properties.find(kRouteCheckpointProperty);
+  if (checkpoint != m_data.m_properties.end())
+  {
+    dp::TitleDecl number;
+    number.m_anchor = dp::Center;
+    number.m_primaryText = checkpoint->second;
+    number.m_primaryTextFont.m_color = GetColorForRendering();
+    number.m_primaryTextFont.m_size = 11;
+    number.m_forceNoWrap = true;
+    auto titles = make_unique_dp<TitlesInfo>();
+    titles->push_back(std::move(number));
+    if (checkpoint->second == "S" || checkpoint->second == "F")
+    {
+      dp::TitleDecl caption;
+      caption.m_anchor = dp::Top;
+      caption.m_primaryOffset.y = 15;
+      caption.m_primaryText = GetPreferredName();
+      caption.m_primaryTextFont.m_color = df::GetColorConstant("RouteMarkPrimaryText");
+      caption.m_primaryTextFont.m_outlineColor = outlineColor;
+      caption.m_primaryTextFont.m_size = 10;
+      titles->push_back(std::move(caption));
+    }
+    return titles;
+  }
   if (p == settings::Placement::None)
     return nullptr;
 
@@ -122,6 +151,8 @@ drape_ptr<df::UserPointMark::TitlesInfo> Bookmark::GetTitleDeclEx(settings::Plac
 
 df::DepthLayer Bookmark::GetDepthLayerEx(settings::Placement p) const
 {
+  if (m_data.m_properties.contains(kRouteCheckpointProperty))
+    return df::DepthLayer::RoutingMarkLayer;
   if (p == settings::Placement::None)
     return df::DepthLayer::UserMarkLayer;
 
@@ -133,11 +164,13 @@ df::DepthLayer Bookmark::GetDepthLayerEx(settings::Placement p) const
 
 dp::Anchor Bookmark::GetAnchor() const
 {
-  return dp::Bottom;
+  return m_data.m_properties.contains(kRouteCheckpointProperty) ? dp::Center : dp::Bottom;
 }
 
 drape_ptr<df::UserPointMark::SymbolNameZoomInfo> Bookmark::GetSymbolNames() const
 {
+  if (m_data.m_properties.contains(kRouteCheckpointProperty))
+    return nullptr;
   auto symbolNames = GetCustomSymbolNames();
   if (symbolNames != nullptr)
     return symbolNames;
@@ -149,6 +182,22 @@ drape_ptr<df::UserPointMark::SymbolNameZoomInfo> Bookmark::GetSymbolNames() cons
   auto const iconType = GetBookmarkIconType(m_data.m_icon);
   symbolNames->insert(std::make_pair(14 /* zoomLevel */, "bookmark-" + iconType + "-m"));
   return symbolNames;
+}
+
+drape_ptr<df::UserPointMark::ColoredSymbolZoomInfo> Bookmark::GetColoredSymbols() const
+{
+  if (!m_data.m_properties.contains(kRouteCheckpointProperty))
+    return nullptr;
+  auto const scale = static_cast<float>(df::VisualParams::Instance().GetVisualScale());
+  df::ColoredSymbolViewParams params;
+  params.m_shape = df::ColoredSymbolViewParams::Shape::Circle;
+  params.m_color = df::GetColorConstant("RouteMarkPrimaryTextOutline");
+  params.m_radiusInPixels = 11.0f * scale;
+  params.m_outlineColor = GetColorForRendering();
+  params.m_outlineWidth = 2.0f * scale;
+  auto symbols = make_unique_dp<ColoredSymbolZoomInfo>();
+  symbols->m_zoomInfo[1] = params;
+  return symbols;
 }
 
 drape_ptr<df::UserPointMark::SymbolNameZoomInfo> Bookmark::GetCustomSymbolNames() const

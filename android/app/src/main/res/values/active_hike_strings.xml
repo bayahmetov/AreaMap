@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="hike_title">Active hike</string>
+  <string name="hike_progress">%1$.1f / %2$.1f km · %3$.0f%%</string>
+  <string name="hike_remaining">%1$.1f km left · %2$s · finish %3$s</string>
+  <string name="hike_engine_progress">%1$.0f%% · %2$s left · %3$s</string>
+  <string name="hike_waiting">Waiting for a fresh GPS fix…</string>
+  <string name="hike_next">Next checkpoint</string>
+  <string name="hike_no_checkpoints">This route has no checkpoints</string>
+  <string name="hike_all_passed">All checkpoints passed</string>
+  <string name="hike_checkpoint">%1$d · Checkpoint</string>
+  <string name="hike_checkpoint_detail">%1$.1f km from start · %2$s left · planned %3$s</string>
+  <string name="hike_checkpoint_next">%1$s · %2$.1f km · %3$s · %4$s</string>
+  <string name="hike_passed">Passed</string>
+  <string name="hike_ahead">Ahead</string>
+  <string name="hike_stats">Route statistics</string>
+  <string name="hike_stats_value">Altitude %1$s · route ascent %2$s\nSpeed %3$s · pace %4$s</string>
+  <string name="hike_altitude">%1$.0f m</string>
+  <string name="hike_speed">%1$.1f km/h</string>
+  <string name="hike_pace">%1$s min/km</string>
+  <string name="hike_schedule">Hike schedule</string>
+  <string name="hike_schedule_none">Schedule appears after hike registration</string>
+  <string name="hike_schedule_plan">On schedule</string>
+  <string name="hike_schedule_late">About %1$d min behind</string>
+  <string name="hike_schedule_early">About %1$d min ahead</string>
+  <string name="hike_return">Estimated return %1$s</string>
+  <string name="hike_weather">Hourly forecast</string>
+  <string name="hike_weather_unavailable">Weather unavailable</string>
+  <string name="hike_weather_loading">Updating forecast…</string>
+  <string name="hike_weather_age">Forecast updated %1$d min ago</string>
+  <string name="hike_hour_now">Now</string>
+  <string name="hike_hour_value">%1$.0f°\n%2$d%%\n%3$.0f km/h</string>
+  <string name="hike_refresh">Refresh forecast</string>
+  <string name="hike_checkpoints">Checkpoints</string>
+  <string name="hike_safety">Safety</string>
+  <string name="hike_finish">Finish hike</string>
+  <string name="hike_finish_confirm">Finish the registered hike and send the return report?</string>
+  <string name="hike_stop_confirm">Stop GPX guidance?</string>
+  <string name="hike_unknown">—</string>
+  <string name="hike_percent">%1$.0f%%</string>
+  <string name="hike_duration">%1$d h %2$d min</string>
+  <string name="hike_gpx_source">Following imported GPX</string>
+  <string name="hike_profile">Elevation profile</string>
+</resources>

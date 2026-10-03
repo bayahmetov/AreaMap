@@ -29,8 +29,6 @@ import app.organicmaps.sdk.routing.RoutingInfo;
 import app.organicmaps.sdk.routing.RoutingOptions;
 import app.organicmaps.sdk.routing.TransitRouteInfo;
 import app.organicmaps.settings.DrivingOptionsActivity;
-import app.organicmaps.safety.TripPlan;
-import app.organicmaps.safety.TripStartFlow;
 import app.organicmaps.util.UiUtils;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -72,6 +70,51 @@ public class RoutingPlanFragment extends Fragment implements View.OnLayoutChange
           mViewModel.setDrivingOptionsCount(RoutingOptions.getActiveRoadTypes().size());
         }
       });
+
+  private RoutePreviewController mPreview;
+  private boolean mPreviewActive;
+
+  public void showAreaMapPreview(app.organicmaps.safety.TripPlan plan, Runnable start, Runnable edit)
+  {
+    if (mPreview != null)
+      mPreview.dispose();
+    mPreviewActive = true;
+    mPreview =
+        new RoutePreviewController((app.organicmaps.MwmActivity) requireActivity(), requireView(), plan, start, edit,
+                                   ()
+                                       -> mSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED),
+                                   () -> mRoutingBottomMenuController.saveRoute());
+    requireView().findViewById(R.id.route_preview_legacy).setVisibility(View.GONE);
+    requireView().findViewById(R.id.areamap_route_panel_v2).setVisibility(View.VISIBLE);
+    mFrame.setBackgroundResource(R.drawable.bg_areamap_sheet);
+    mRoutingBottomContainer.setPadding(mRoutingBottomContainer.getPaddingLeft(), 0,
+                                       mRoutingBottomContainer.getPaddingRight(), 0);
+    mFrame.post(this::updateSheetLayout);
+    mViewModel.setShowRoutingBottomSheet(true);
+  }
+
+  public void showAreaMapRouteOnMap()
+  {
+    if (mPreview != null)
+      mPreview.showRoute();
+  }
+
+  public void hideAreaMapPreview()
+  {
+    if (mPreview != null)
+      mPreview.dispose();
+    mPreview = null;
+    mPreviewActive = false;
+    if (getView() == null)
+      return;
+    getView().findViewById(R.id.areamap_route_panel_v2).setVisibility(View.GONE);
+    getView().findViewById(R.id.route_preview_legacy).setVisibility(View.VISIBLE);
+    getView().findViewById(R.id.route_preview_overlay).setVisibility(View.GONE);
+    mRoutingBottomContainer.setPadding(mRoutingBottomContainer.getPaddingLeft(), 0,
+                                       mRoutingBottomContainer.getPaddingRight(), 0);
+    mFrame.getLayoutParams().height = ViewGroup.LayoutParams.WRAP_CONTENT;
+    mFrame.requestLayout();
+  }
 
   // Single source of truth for the sheet's visibility: planning wants it AND no place page is covering it.
   private final MediatorLiveData<Boolean> mSheetVisible = new MediatorLiveData<>();
@@ -145,12 +188,6 @@ public class RoutingPlanFragment extends Fragment implements View.OnLayoutChange
 
     setInsets();
     setupBottomSheetBehavior();
-    final View handle = mFrame.findViewById(R.id.pull_icon_container);
-    handle.setMinimumHeight(Math.round(32 * getResources().getDisplayMetrics().density));
-    handle.setContentDescription(getString(R.string.areamap_toggle_preview));
-    handle.setOnClickListener(v -> mSheetBehavior.setState(
-        mSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED
-            ? BottomSheetBehavior.STATE_COLLAPSED : BottomSheetBehavior.STATE_EXPANDED));
 
     mSheetVisible.addSource(mViewModel.getShowRoutingBottomSheet(), show -> updateSheetVisible());
     mSheetVisible.addSource(mViewModel.getIsPlacePageActive(), active -> updateSheetVisible());
@@ -167,6 +204,15 @@ public class RoutingPlanFragment extends Fragment implements View.OnLayoutChange
 
     updateBadgeCount(RoutingOptions.getActiveRoadTypes().size());
     mRoutingContainer.addOnLayoutChangeListener(this);
+    if (savedInstanceState != null && savedInstanceState.getBoolean(TAG + "_areamap_preview"))
+      view.post(() -> {
+        if (getView() == null || app.organicmaps.sdk.Router.get() != app.organicmaps.sdk.Router.Pedestrian
+            || !RoutingController.get().isBuilt() || RoutingController.get().isNavigating())
+          return;
+        final var plan = app.organicmaps.safety.TripPlan.current();
+        if (plan != null)
+          ((app.organicmaps.MwmActivity) requireActivity()).showAreaMapRoutePanel(plan);
+      });
   }
 
   private void setInsets()
@@ -187,6 +233,8 @@ public class RoutingPlanFragment extends Fragment implements View.OnLayoutChange
       if (mRoutingBottomContainer != null)
         mRoutingBottomContainer.setPadding(leftInset, mRoutingBottomContainer.getPaddingTop(), rightInset, 0);
       mButtonsLayout.setPadding(0, 0, 0, bottomInset);
+      if (mPreviewActive)
+        updateSheetLayout();
       return ViewCompat.onApplyWindowInsets(v,
                                             new WindowInsetsCompat.Builder(insets)
                                                 .setInsets(WindowInsetsCompat.Type.systemBars(),
@@ -217,6 +265,7 @@ public class RoutingPlanFragment extends Fragment implements View.OnLayoutChange
       public void onSlide(@NonNull View bottomSheet, float slideOffset)
       {
         mViewModel.setRoutingBottomDistanceToTop(bottomSheet.getTop());
+        updatePreviewMap(bottomSheet.getTop());
       }
     });
   }
@@ -224,12 +273,16 @@ public class RoutingPlanFragment extends Fragment implements View.OnLayoutChange
   @Override
   public void onDestroyView()
   {
+    if (mPreview != null)
+      mPreview.dispose();
     super.onDestroyView();
     mRoutingContainer.removeOnLayoutChangeListener(this);
   }
 
   private void updateMenuInternal()
   {
+    if (mPreviewActive)
+      return;
     final RoutingController controller = RoutingController.get();
 
     if (controller.isPlanning())
@@ -254,9 +307,13 @@ public class RoutingPlanFragment extends Fragment implements View.OnLayoutChange
 
   private void showSheet(boolean show)
   {
+    final boolean previewVisible = show && mPreviewActive;
+    ((app.organicmaps.MwmActivity) requireActivity()).refreshAreaMapBottomNav();
+    requireView().findViewById(R.id.route_preview_overlay).setVisibility(previewVisible ? View.VISIBLE : View.GONE);
     if (show)
     {
-      UiUtils.show(mButtonsLayout, mFrame);
+      UiUtils.show(mFrame);
+      mButtonsLayout.setVisibility(mPreviewActive ? View.GONE : View.VISIBLE);
       mFrame.post(() -> {
         // The view may be destroyed, or visibility may have flipped back to hidden (e.g. a place page
         // opened), before this runs; bail out instead of reopening the sheet over whatever is on top.
@@ -295,15 +352,61 @@ public class RoutingPlanFragment extends Fragment implements View.OnLayoutChange
 
   public void updateSheetLayout()
   {
-    if (mFrame.getTop() == 0)
+    if (mFrame.getTop() == 0 && !mPreviewActive)
       return;
     updateSheetHeights();
     final int newDistanceTop = mFrame.getTop();
     mViewModel.setRoutingBottomDistanceToTop(newDistanceTop);
+    updatePreviewMap(newDistanceTop);
+  }
+
+  private void updatePreviewMap(int sheetTop)
+  {
+    if (!mPreviewActive || getView() == null)
+      return;
+    final int[] position = new int[2];
+    mFrame.getLocationInWindow(position);
+    final float density = getResources().getDisplayMetrics().density;
+    final View weather = getView().findViewById(R.id.route_preview_weather_card);
+    final int[] cardPosition = new int[2];
+    weather.getLocationInWindow(cardPosition);
+    final float originalTop = cardPosition[1] - weather.getTranslationY();
+    weather.setTranslationY(Math.max(0, position[1] - weather.getHeight() - 12 * density - originalTop));
+    weather.setVisibility(sheetTop > 220 * density ? View.VISIBLE : View.INVISIBLE);
+    if (Boolean.TRUE.equals(mSheetVisible.getValue())
+        && !app.organicmaps.MwmApplication.from(requireContext()).getDisplayManager().isCarDisplayUsed())
+    {
+      final boolean landscape =
+          getResources().getConfiguration().orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE;
+      if (landscape)
+        Framework.nativeSetVisibleRect(mRoutingBottomContainer.getRight(), mTopInset + (int) (64 * density),
+                                       mRoutingRoot.getWidth(), mRoutingRoot.getHeight());
+      else
+        Framework.nativeSetVisibleRect(0, mTopInset + (int) (64 * density), mRoutingRoot.getWidth(),
+                                       Math.max(mTopInset + (int) (65 * density), position[1]));
+    }
   }
 
   private void updateSheetHeights()
   {
+    if (mPreviewActive)
+    {
+      final View parent = (View) mFrame.getParent();
+      final int parentHeight = parent.getHeight();
+      if (parentHeight <= 0)
+        return;
+      ((androidx.coordinatorlayout.widget.CoordinatorLayout.LayoutParams) mFrame.getLayoutParams()).bottomMargin = 0;
+      final int height = Math.max(1, parentHeight - (int) (64 * getResources().getDisplayMetrics().density));
+      if (mFrame.getLayoutParams().height != height)
+      {
+        mFrame.getLayoutParams().height = height;
+        mFrame.requestLayout();
+      }
+      mSheetBehavior.setMaxHeight(height);
+      mSheetBehavior.setPeekHeight(Math.min(height, (int) (parentHeight * 0.58)));
+      return;
+    }
+    ((androidx.coordinatorlayout.widget.CoordinatorLayout.LayoutParams) mFrame.getLayoutParams()).bottomMargin = 0;
     final View parent = (View) mFrame.getParent();
     final int parentHeight = parent == null ? 0 : parent.getHeight();
     if (parentHeight > 0)
@@ -312,12 +415,8 @@ public class RoutingPlanFragment extends Fragment implements View.OnLayoutChange
     // none), while setMaxHeight caps a long list to scroll inside the sheet instead of covering the map.
     final boolean stepsVisible = mTransitStepsView.getVisibility() == View.VISIBLE;
     final int chartHeader = stepsVisible ? mTransitStepsView.getTop() : mChartPanel.getHeight();
-    final int desiredHeight =
+    final int peekHeight =
         mRoutingTypesContainer.getHeight() + chartHeader + mBottomButtonsMaxHeight + mPeekHeightMargins;
-    // Advice and large font sizes must not turn the collapsed state into a full-screen sheet.
-    final int compactHeight = Math.round(260 * getResources().getDisplayMetrics().density);
-    final int peekHeight = parentHeight > 0
-        ? Math.min(desiredHeight, Math.min(compactHeight, parentHeight / 2)) : compactHeight;
     mSheetBehavior.setPeekHeight(peekHeight);
   }
 
@@ -419,6 +518,7 @@ public class RoutingPlanFragment extends Fragment implements View.OnLayoutChange
   {
     super.onSaveInstanceState(outState);
     outState.putInt(TAG + "_bottom_sheet_state", mViewModel.getBottomSheetState());
+    outState.putBoolean(TAG + "_areamap_preview", mPreviewActive);
     if (mRoutingBottomMenuController != null)
       mRoutingBottomMenuController.saveRoutingPanelState(outState);
   }
@@ -450,21 +550,6 @@ public class RoutingPlanFragment extends Fragment implements View.OnLayoutChange
     if (!mRoutingPlanController.showRoutingDisclaimer())
       return;
 
-    if (Router.get() == Router.Pedestrian)
-    {
-      final TripPlan plan = TripPlan.current();
-      if (plan != null)
-      {
-        TripStartFlow.show(requireActivity(), plan, this::startNavigationNow, this::startNavigationNow);
-        return;
-      }
-    }
-
-    startNavigationNow();
-  }
-
-  private void startNavigationNow()
-  {
     mRoutingPlanController.closeFloatingPanels();
     mRoutingPlanController.setFullscreen(false);
     RoutingController.get().start();
@@ -475,9 +560,8 @@ public class RoutingPlanFragment extends Fragment implements View.OnLayoutChange
     new MaterialAlertDialogBuilder(requireContext(), R.style.MwmTheme_AlertDialog)
         .setTitle(R.string.unable_to_calc_alert_title)
         .setMessage(R.string.unable_to_calc_alert_subtitle)
-        .setPositiveButton(
-            R.string.settings,
-            (dialog, which) -> DrivingOptionsActivity.start(requireActivity(), startDrivingOptionsForResult))
+        .setPositiveButton(R.string.settings,
+                           (dialog, which) -> DrivingOptionsActivity.start(requireActivity(), startDrivingOptionsForResult))
         .setNegativeButton(R.string.cancel, null)
         .show();
   }

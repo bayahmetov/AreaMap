@@ -25,14 +25,15 @@
         app:layout_behavior="@string/placepage_behavior"
         tools:visibility="visible"
         android:visibility="gone"
-        android:background="@drawable/bg_areamap_sheet"
         style="@style/MwmWidget.BottomSheet.Rounded">
 
         <include
+          android:id="@+id/route_preview_legacy"
           layout="@layout/route_plan_line"
           android:layout_width="match_parent"
           android:layout_height="wrap_content" />
 
+        <include layout="@layout/areamap_route_panel_v2" android:layout_width="match_parent" android:layout_height="match_parent" />
       </FrameLayout>
 
       <!-- This is the main container for your bottom action bar -->
@@ -45,13 +46,13 @@
         tools:visibility="visible"
         app:layout_anchor="@+id/routing_sheet_frame"
         app:layout_anchorGravity="bottom"
-        android:background="@color/areamap_surface">
+        android:background="?cardBackground">
 
         <View
           android:layout_width="match_parent"
           android:layout_height="1dp"
           android:layout_marginBottom="@dimen/margin_eighth"
-          android:background="@color/areamap_stroke" />
+          android:background="?dividerHorizontal" />
 
         <LinearLayout
           android:layout_width="match_parent"
@@ -108,4 +109,5 @@
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
   </FrameLayout>
 
+  <include layout="@layout/route_preview_map_overlay" android:layout_width="0dp" android:layout_height="wrap_content" app:layout_constraintTop_toTopOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent"/>
 </androidx.constraintlayout.widget.ConstraintLayout>

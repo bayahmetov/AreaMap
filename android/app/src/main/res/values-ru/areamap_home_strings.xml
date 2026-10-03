@@ -9,8 +9,6 @@
   <string name="home_offline_empty">Загрузите регион для работы без сети</string>
   <string name="home_offline_count">Загружено карт: %1$d</string>
   <string name="home_offline_region">Загружено: %1$s</string>
-  <string name="home_weather_demo">13° · Ясно · Демо</string>
-  <string name="home_wind_demo">Ветер 6 км/ч</string>
   <string name="home_profile">Профиль</string>
   <string name="home_toggle">Развернуть или свернуть направления</string>
   <string name="home_favorite">Сохранить %1$s в избранное</string>
@@ -19,8 +17,6 @@
   <string name="home_hours">%1$s ч</string>
   <string name="home_easy">Лёгкий</string>
   <string name="home_medium">Средний</string>
-  <string name="home_catalog_demo">Примерные тайминги и демо-рейтинги. Проверьте доступ и условия перед выходом.</string>
-  <string name="home_photos_missing">В этой сборке фотографии направлений ещё не установлены.</string>
   <string name="home_tri_bratya">Три Брата</string>
   <string name="home_bao">Большое Алматинское озеро</string>
   <string name="home_butakovka">Бутаковский водопад</string>
@@ -32,6 +28,6 @@
   <string name="home_rating">★ %1$.1f</string>
   <string name="home_layers">Слои карты</string>
   <string name="home_location">Моё местоположение</string>
-  <string name="home_photo_approach">Фото: путь к вершине</string>
+  <string name="home_photo_approach">Путь к пику Фурманова</string>
   <string name="home_photo_credits">Авторы фотографий</string>
 </resources>

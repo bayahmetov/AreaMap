@@ -45,6 +45,42 @@
         android:lineSpacingExtra="3dp" />
 
     <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:background="@drawable/bg_areamap_feed_card_sos"
+        android:orientation="vertical"
+        android:padding="18dp">
+
+      <TextView
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:text="@string/areamap_sos"
+          android:textColor="@color/areamap_text"
+          android:textSize="20sp"
+          android:textStyle="bold" />
+
+      <TextView
+          android:id="@+id/trip_coordinates"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:layout_marginTop="8dp"
+          android:textColor="@color/areamap_text_secondary"
+          android:textIsSelectable="true"
+          android:textSize="13sp"
+          android:lineSpacingExtra="3dp" />
+
+      <com.google.android.material.button.MaterialButton
+ android:textSize="16sp"          android:id="@+id/trip_sos"
+          style="@style/AreaMap.ActionButton"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:layout_marginTop="12dp"
+          android:text="@string/areamap_sos"
+          app:backgroundTint="@color/areamap_red" />
+    </LinearLayout>
+
+    <LinearLayout
         android:id="@+id/active_trip_section"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -90,7 +126,7 @@
           android:lineSpacingExtra="3dp" />
 
       <com.google.android.material.button.MaterialButton
-          android:id="@+id/active_trip_weather_refresh"
+ android:textSize="14sp"          android:id="@+id/active_trip_weather_refresh"
           style="@style/AreaMap.SecondaryButton"
           android:layout_width="match_parent"
           android:layout_height="wrap_content"
@@ -104,7 +140,7 @@
           android:orientation="horizontal">
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/active_trip_ok"
+ android:textSize="14sp"            android:id="@+id/active_trip_ok"
             style="@style/AreaMap.SecondaryButton"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -112,7 +148,7 @@
             android:text="@string/areamap_trip_im_ok" />
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/active_trip_break"
+ android:textSize="14sp"            android:id="@+id/active_trip_break"
             style="@style/AreaMap.SecondaryButton"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -122,7 +158,15 @@
       </LinearLayout>
 
       <com.google.android.material.button.MaterialButton
-          android:id="@+id/active_trip_resend"
+ android:textSize="16sp"          android:id="@+id/active_trip_continue"
+          style="@style/AreaMap.ActionButton"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:layout_marginTop="10dp"
+          android:text="@string/areamap_continue_hike" />
+
+      <com.google.android.material.button.MaterialButton
+ android:textSize="14sp"          android:id="@+id/active_trip_resend"
           style="@style/AreaMap.SecondaryButton"
           android:layout_width="match_parent"
           android:layout_height="wrap_content"
@@ -130,13 +174,26 @@
           android:text="@string/areamap_resend_trip_report" />
 
       <com.google.android.material.button.MaterialButton
-          android:id="@+id/active_trip_finish"
+ android:textSize="16sp"          android:id="@+id/active_trip_finish"
           style="@style/AreaMap.ActionButton"
           android:layout_width="match_parent"
           android:layout_height="wrap_content"
           android:layout_marginTop="8dp"
           android:text="@string/areamap_manual_return" />
     </LinearLayout>
+
+    <TextView
+        android:id="@+id/trip_delivery_status"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:textIsSelectable="true" />
+
+    <Button
+ android:textSize="14sp" style="@style/AreaMap.SecondaryButton"        android:id="@+id/trip_delivery_retry"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/areamap_delivery_retry" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -163,7 +220,7 @@
           android:textSize="13sp" />
 
       <com.google.android.material.button.MaterialButton
-          android:id="@+id/guide_import"
+ android:textSize="14sp"          android:id="@+id/guide_import"
           style="@style/AreaMap.SecondaryButton"
           android:layout_width="match_parent"
           android:layout_height="wrap_content"
@@ -198,7 +255,7 @@
           android:lineSpacingExtra="3dp" />
 
       <com.google.android.material.button.MaterialButton
-          android:id="@+id/schedule_demo_notification"
+ android:textSize="14sp"          android:id="@+id/schedule_demo_notification"
           style="@style/AreaMap.SecondaryButton"
           android:layout_width="match_parent"
           android:layout_height="wrap_content"
@@ -232,48 +289,12 @@
           android:textSize="13sp" />
 
       <com.google.android.material.button.MaterialButton
-          android:id="@+id/language_change"
+ android:textSize="14sp"          android:id="@+id/language_change"
           style="@style/AreaMap.SecondaryButton"
           android:layout_width="match_parent"
           android:layout_height="wrap_content"
           android:layout_marginTop="12dp"
           android:text="@string/areamap_language_change" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="14dp"
-        android:background="@drawable/bg_areamap_feed_card_sos"
-        android:orientation="vertical"
-        android:padding="18dp">
-
-      <TextView
-          android:layout_width="match_parent"
-          android:layout_height="wrap_content"
-          android:text="@string/areamap_sos"
-          android:textColor="@color/areamap_text"
-          android:textSize="20sp"
-          android:textStyle="bold" />
-
-      <TextView
-          android:id="@+id/trip_coordinates"
-          android:layout_width="match_parent"
-          android:layout_height="wrap_content"
-          android:layout_marginTop="8dp"
-          android:textColor="@color/areamap_text_secondary"
-          android:textIsSelectable="true"
-          android:textSize="13sp"
-          android:lineSpacingExtra="3dp" />
-
-      <com.google.android.material.button.MaterialButton
-          android:id="@+id/trip_sos"
-          style="@style/AreaMap.ActionButton"
-          android:layout_width="match_parent"
-          android:layout_height="wrap_content"
-          android:layout_marginTop="12dp"
-          android:text="@string/areamap_sos"
-          app:backgroundTint="@color/areamap_red" />
     </LinearLayout>
 
   </LinearLayout>

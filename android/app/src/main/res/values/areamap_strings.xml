@@ -157,7 +157,7 @@
   <string name="areamap_finish_and_send">Finish and send return</string>
   <string name="areamap_trip_completed">Trip marked as returned.</string>
   <string name="areamap_active_trip_title">Registered trip</string>
-  <string name="areamap_resend_trip_report">Send trip data again</string>
+  <string name="areamap_resend_trip_report">Retry saved messages</string>
   <string name="areamap_manual_return">I am back · finish trip</string>
   <string name="areamap_manual_return_title">Confirm return</string>
   <string name="areamap_manual_return_message">Use this only when the group has actually returned and the trip can be closed. A return report will be prepared for the DCHS demo channel.</string>
@@ -215,4 +215,42 @@
   <string name="areamap_weather_snow">snow</string>
   <string name="areamap_weather_storm">thunderstorm</string>
   <string name="areamap_weather_unknown">variable weather</string>
+
+  <string name="areamap_checkpoint_map_title">Checkpoint %1$d</string>
+  <string name="areamap_checkpoint_map_description">Route checkpoint\nDistance: %1$.1f km\nPlanned: %2$d min from start\nAltitude: %3$d m\nCoordinates: %4$.5f, %5$.5f</string>
+
+  <string name="areamap_rebuild_route">Route</string>
+  <string name="areamap_rebuild_route_unknown">Hiking route</string>
+  <string name="areamap_rebuild_distance">%1$.1f km\nDistance</string>
+  <string name="areamap_rebuild_ascent">%1$d m\nAscent</string>
+  <string name="areamap_rebuild_time">%1$s\nOn route</string>
+  <string name="areamap_rebuild_checkpoints">%1$d checkpoints are on the map. Tap a marker to see ETA, altitude and exact coordinates.</string>
+  <string name="areamap_rebuild_weather_loading">Updating forecast for the key point…</string>
+  <string name="areamap_rebuild_edit_route">Edit route</string>
+  <string name="areamap_rebuild_start">START</string>
+
+  <string name="areamap_nav_profile">Profile</string>
+  <string name="areamap_map_search_placeholder">Search places, routes and peaks…</string>
+
+
+  <string name="areamap_nav_safety">Safety</string>
+
+  <string name="areamap_report_ok_header">AREAMAP · DCHS DEMO · CHECK-IN</string>
+  <string name="areamap_report_ok_time">Status: OK · %1$s</string>
+  <string name="areamap_report_break_header">AREAMAP · DCHS DEMO · SCHEDULE UPDATE</string>
+  <string name="areamap_report_break_time">Break added: +%1$d min · new expected return %2$s</string>
+  <string name="areamap_monitor_channel">AreaMap active hike</string>
+  <string name="areamap_monitor_title">Hike in progress</string>
+  <string name="areamap_continue_hike">Continue current hike</string>
+  <string name="areamap_trip_already_active">A hike is already active. Continue or finish it before starting another.</string>
+  <string name="areamap_report_sos_header">AREAMAP · DCHS DEMO · SOS</string>
+  <string name="areamap_report_queued">Message saved. The bot will send it when internet is available.</string>
+  <string name="areamap_report_bot_missing">Message saved, but this build has no bot credential. Automatic delivery is unavailable.</string>
+  <string name="areamap_report_storage_failed">Could not save the message. It is NOT queued. Try again or call 112.</string>
+  <string name="areamap_delivery_summary">Waiting to send: %1$d · Bot errors: %2$d</string>
+  <string name="areamap_delivery_retry">Retry saved messages</string>
+  <string name="areamap_sos_pending">SOS saved and waiting to send. It has NOT been delivered while offline.</string>
+  <string name="areamap_sos_delivered">SOS delivered to the Telegram demo chat. This does not confirm receipt by rescuers.</string>
+  <string name="areamap_sos_blocked">SOS not delivered: bot configuration or access error. Message retained.</string>
+  <string name="areamap_gpx_storage_failed">Could not save GPX for hike recovery. Please import it again.</string>
 </resources>

@@ -146,6 +146,8 @@ public class MwmApplication extends Application implements Application.ActivityL
         onNavigationOrRecordingStopped();
     });
     TrackRecordingService.createNotificationChannel(this);
+    app.organicmaps.safety.TripMonitoringService.createNotificationChannel(this);
+    app.organicmaps.safety.TripReportSender.recover(this, false);
 
     registerActivityLifecycleCallbacks(this);
     mDisplayManager = new DisplayManager();
@@ -257,6 +259,8 @@ public class MwmApplication extends Application implements Application.ActivityL
       Logger.i(LOCATION_TAG, "PENDING_POSITION mode, keeping location in the background");
     else if (TrackRecorder.nativeIsTrackRecordingEnabled())
       Logger.i(LOCATION_TAG, "Track Recordr is active, keeping location in the background");
+    else if (app.organicmaps.safety.TripMonitoringService.needed(this))
+      Logger.i(LOCATION_TAG, "AreaMap hike is active, keeping location in the background");
     else
     {
       Logger.i(LOCATION_TAG, "Stopping location in the background");

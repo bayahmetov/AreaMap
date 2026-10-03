@@ -7,20 +7,10 @@ import app.organicmaps.sdk.downloader.MapManager;
 import java.util.ArrayList;
 import java.util.List;
 
-/** HOME data is independent of widgets. Weather is explicitly demo-only until a HOME forecast exists. */
+/** HOME offline status uses the existing map downloader. */
 public final class HomeInfoRepository
 {
   private HomeInfoRepository() {}
-
-  public static String demoWeather(Context context)
-  {
-    return context.getString(R.string.home_weather_demo);
-  }
-
-  public static String demoWind(Context context)
-  {
-    return context.getString(R.string.home_wind_demo);
-  }
 
   public static String offlineStatus(Context context)
   {

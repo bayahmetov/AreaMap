@@ -19,20 +19,36 @@ public final class TripPlan
 {
   public static final class Checkpoint
   {
+    public final String title;
+    public final int role; // -1 start, 0 intermediate, 1 finish.
     public final double distanceMeters;
     public final int altitudeMeters;
     public final int etaSeconds;
+    public final double lat;
+    public final double lon;
 
-    public Checkpoint(double distanceMeters, int altitudeMeters, int etaSeconds)
+    public Checkpoint(double distanceMeters, int altitudeMeters, int etaSeconds, double lat, double lon)
     {
+      this(distanceMeters, altitudeMeters, etaSeconds, lat, lon, "", 0);
+    }
+
+    public Checkpoint(double distanceMeters, int altitudeMeters, int etaSeconds, double lat, double lon, String title,
+                      int role)
+    {
+      this.title = title;
+      this.role = role;
       this.distanceMeters = distanceMeters;
       this.altitudeMeters = altitudeMeters;
       this.etaSeconds = etaSeconds;
+      this.lat = lat;
+      this.lon = lon;
     }
   }
 
-  @NonNull public final String startTitle;
-  @NonNull public final String finishTitle;
+  @NonNull
+  public final String startTitle;
+  @NonNull
+  public final String finishTitle;
   public final double startLat;
   public final double startLon;
   public final double finishLat;
@@ -40,7 +56,12 @@ public final class TripPlan
   public final double distanceMeters;
   public final int plannedSeconds;
   public final int returnSeconds;
-  @NonNull public final List<Checkpoint> checkpoints;
+  @Nullable
+  public final RouteAltitudeData altitude;
+  @NonNull
+  public final List<Checkpoint> checkpoints;
+  @NonNull
+  public final List<Checkpoint> routeCheckpoints;
 
   /**
    * Point used for the trip weather forecast.
@@ -54,12 +75,10 @@ public final class TripPlan
   public final int weatherEtaSeconds;
   public final boolean weatherAtHighestPoint;
 
-  private TripPlan(@NonNull String startTitle, @NonNull String finishTitle,
-                   double startLat, double startLon, double finishLat, double finishLon,
-                   double distanceMeters, int plannedSeconds, int returnSeconds,
-                   @NonNull List<Checkpoint> checkpoints,
-                   double weatherLat, double weatherLon, int weatherAltitudeMeters,
-                   int weatherEtaSeconds, boolean weatherAtHighestPoint)
+  TripPlan(@NonNull String startTitle, @NonNull String finishTitle, double startLat, double startLon, double finishLat,
+           double finishLon, double distanceMeters, int plannedSeconds, int returnSeconds,
+           @NonNull List<Checkpoint> checkpoints, @Nullable RouteAltitudeData altitude, double weatherLat,
+           double weatherLon, int weatherAltitudeMeters, int weatherEtaSeconds, boolean weatherAtHighestPoint)
   {
     this.startTitle = startTitle;
     this.finishTitle = finishTitle;
@@ -70,12 +89,109 @@ public final class TripPlan
     this.distanceMeters = distanceMeters;
     this.plannedSeconds = plannedSeconds;
     this.returnSeconds = returnSeconds;
+    this.altitude = altitude;
     this.checkpoints = Collections.unmodifiableList(new ArrayList<>(checkpoints));
+    final List<Checkpoint> preview = new ArrayList<>();
+    final boolean hasAltitude = altitude != null && altitude.getSize() > 0;
+    preview.add(new Checkpoint(0, hasAltitude ? altitude.getAltitude(0) : -1, 0, startLat, startLon, startTitle, -1));
+    preview.addAll(this.checkpoints);
+    preview.add(new Checkpoint(distanceMeters, hasAltitude ? altitude.getAltitude(altitude.getSize() - 1) : -1,
+                               plannedSeconds, finishLat, finishLon, finishTitle, 1));
+    this.routeCheckpoints = Collections.unmodifiableList(preview);
     this.weatherLat = weatherLat;
     this.weatherLon = weatherLon;
     this.weatherAltitudeMeters = weatherAltitudeMeters;
     this.weatherEtaSeconds = weatherEtaSeconds;
     this.weatherAtHighestPoint = weatherAtHighestPoint;
+  }
+
+  /** Keeps the preview checkpoint/profile snapshot intact across process recreation. */
+  public String toJson()
+  {
+    try
+    {
+      final org.json.JSONObject json = new org.json.JSONObject();
+      json.put("start", startTitle)
+          .put("finish", finishTitle)
+          .put("startLat", startLat)
+          .put("startLon", startLon)
+          .put("finishLat", finishLat)
+          .put("finishLon", finishLon)
+          .put("distance", distanceMeters)
+          .put("planned", plannedSeconds)
+          .put("return", returnSeconds)
+          .put("weatherLat", weatherLat)
+          .put("weatherLon", weatherLon)
+          .put("weatherAlt", weatherAltitudeMeters)
+          .put("weatherEta", weatherEtaSeconds)
+          .put("highest", weatherAtHighestPoint);
+      final org.json.JSONArray stops = new org.json.JSONArray();
+      for (Checkpoint checkpoint : checkpoints)
+        stops.put(new org.json.JSONObject()
+                      .put("title", checkpoint.title)
+                      .put("distance", checkpoint.distanceMeters)
+                      .put("alt", checkpoint.altitudeMeters)
+                      .put("eta", checkpoint.etaSeconds)
+                      .put("lat", checkpoint.lat)
+                      .put("lon", checkpoint.lon));
+      json.put("checkpoints", stops);
+      if (altitude != null)
+      {
+        final org.json.JSONArray profile = new org.json.JSONArray();
+        for (int i = 0; i < altitude.getSize(); i++)
+          profile.put(new org.json.JSONArray().put(altitude.getDistance(i)).put(altitude.getAltitude(i)));
+        json.put("profile", profile)
+            .put("ascent", altitude.getTotalAscent())
+            .put("descent", altitude.getTotalDescent())
+            .put("min", altitude.getMinAltitude())
+            .put("max", altitude.getMaxAltitude());
+      }
+      return json.toString();
+    }
+    catch (org.json.JSONException e)
+    {
+      throw new IllegalStateException("Invalid route snapshot", e);
+    }
+  }
+
+  @Nullable
+  public static TripPlan fromJson(String encoded)
+  {
+    try
+    {
+      final org.json.JSONObject json = new org.json.JSONObject(encoded);
+      final List<Checkpoint> stops = new ArrayList<>();
+      final org.json.JSONArray checkpoints = json.getJSONArray("checkpoints");
+      for (int i = 0; i < checkpoints.length(); i++)
+      {
+        final org.json.JSONObject cp = checkpoints.getJSONObject(i);
+        stops.add(new Checkpoint(cp.getDouble("distance"), cp.getInt("alt"), cp.getInt("eta"), cp.getDouble("lat"),
+                                 cp.getDouble("lon"), cp.getString("title"), 0));
+      }
+      RouteAltitudeData altitude = null;
+      final org.json.JSONArray profile = json.optJSONArray("profile");
+      if (profile != null && profile.length() > 0)
+      {
+        final double[] distance = new double[profile.length()];
+        final int[] heights = new int[profile.length()];
+        for (int i = 0; i < profile.length(); i++)
+        {
+          distance[i] = profile.getJSONArray(i).getDouble(0);
+          heights[i] = profile.getJSONArray(i).getInt(1);
+        }
+        altitude = new RouteAltitudeData(distance, heights, json.getInt("ascent"), json.getInt("descent"),
+                                         json.getInt("min"), json.getInt("max"));
+      }
+      return new TripPlan(json.getString("start"), json.getString("finish"), json.getDouble("startLat"),
+                          json.getDouble("startLon"), json.getDouble("finishLat"), json.getDouble("finishLon"),
+                          json.getDouble("distance"), json.getInt("planned"), json.getInt("return"), stops, altitude,
+                          json.getDouble("weatherLat"), json.getDouble("weatherLon"), json.getInt("weatherAlt"),
+                          json.getInt("weatherEta"), json.getBoolean("highest"));
+    }
+    catch (org.json.JSONException | IllegalArgumentException e)
+    {
+      return null;
+    }
   }
 
   @Nullable
@@ -105,8 +221,7 @@ public final class TripPlan
     final RouteAltitudeData altitude = Framework.nativeGetRouteAltitudeData();
     final double ascent = altitude == null ? 0.0 : altitude.getTotalAscent();
     final double reverseAscent = altitude == null ? ascent : altitude.getTotalDescent();
-    final int plannedSeconds =
-        HikingTiming.conservativeSeconds(info.totalTimeInSeconds, distanceMeters, ascent);
+    final int plannedSeconds = HikingTiming.conservativeSeconds(info.totalTimeInSeconds, distanceMeters, ascent);
     // Until a dedicated reverse route is built, estimate returning along the same trail.
     // The outbound descent becomes ascent on the way back.
     final int returnSeconds =
@@ -122,8 +237,18 @@ public final class TripPlan
     if (altitude != null && altitude.getSize() > 1)
     {
       final RouteSafetyAnalysis.Result analysis = RouteSafetyAnalysis.analyze(altitude, plannedSeconds);
+      final double profileDistance = Math.max(1.0, altitude.getDistance(altitude.getSize() - 1));
       for (RouteSafetyAnalysis.Checkpoint checkpoint : analysis.checkpoints)
-        checkpoints.add(new Checkpoint(checkpoint.distanceMeters, checkpoint.altitudeMeters, checkpoint.etaSeconds));
+      {
+        final double fraction = Math.max(0.0, Math.min(1.0, checkpoint.distanceMeters / profileDistance));
+        final double[] point = pointAtRouteFraction(fraction);
+        if (point == null)
+          continue;
+        final double lat = point[0];
+        final double lon = point[1];
+        checkpoints.add(
+            new Checkpoint(checkpoint.distanceMeters, checkpoint.altitudeMeters, checkpoint.etaSeconds, lat, lon));
+      }
 
       int highestIndex = 0;
       for (int i = 1; i < altitude.getSize(); i++)
@@ -132,7 +257,6 @@ public final class TripPlan
           highestIndex = i;
       }
 
-      final double profileDistance = Math.max(1.0, altitude.getDistance(altitude.getSize() - 1));
       final double highestDistance = Math.max(0.0, altitude.getDistance(highestIndex));
       final double routeFraction = Math.max(0.0, Math.min(1.0, highestDistance / profileDistance));
       final double[] highestPoint = pointAtRouteFraction(routeFraction);
@@ -141,8 +265,7 @@ public final class TripPlan
         weatherLat = highestPoint[0];
         weatherLon = highestPoint[1];
         weatherAltitudeMeters = altitude.getAltitude(highestIndex);
-        weatherEtaSeconds = Math.max(0, Math.min(plannedSeconds,
-            (int) Math.round(plannedSeconds * routeFraction)));
+        weatherEtaSeconds = Math.max(0, Math.min(plannedSeconds, (int) Math.round(plannedSeconds * routeFraction)));
         weatherAtHighestPoint = true;
       }
     }
@@ -152,15 +275,90 @@ public final class TripPlan
       for (int i = 1; i <= count; i++)
       {
         final double fraction = i / (count + 1.0);
+        final double[] point = pointAtRouteFraction(fraction);
+        if (point == null)
+          continue;
+        final double lat = point[0];
+        final double lon = point[1];
         checkpoints.add(new Checkpoint(distanceMeters * fraction, -1,
-                                       Math.max(60, (int) Math.round(plannedSeconds * fraction))));
+                                       Math.max(60, (int) Math.round(plannedSeconds * fraction)), lat, lon));
       }
     }
 
-    return new TripPlan(title(start), title(finish), start.mLat, start.mLon, finish.mLat, finish.mLon,
-                        distanceMeters, plannedSeconds, returnSeconds, checkpoints,
-                        weatherLat, weatherLon, weatherAltitudeMeters, weatherEtaSeconds,
-                        weatherAtHighestPoint);
+    // User-selected intermediate route points take priority over generated rest stops.
+    final List<RouteMarkData> intermediate = new ArrayList<>();
+    for (RouteMarkData point : points)
+      if (point.mPointType == RouteMarkType.Intermediate)
+        intermediate.add(point);
+    intermediate.sort(java.util.Comparator.comparingInt(point -> point.mIntermediateIndex));
+    if (!intermediate.isEmpty())
+    {
+      checkpoints.clear();
+      final JunctionInfo[] geometry = Framework.nativeGetRouteJunctionPoints(150.0);
+      double minimumFraction = 0;
+      for (RouteMarkData point : intermediate)
+      {
+        final double fraction = Math.max(minimumFraction, fractionAtPoint(geometry, point.mLat, point.mLon));
+        minimumFraction = fraction;
+        final int height = altitudeAtFraction(altitude, fraction);
+        checkpoints.add(new Checkpoint(distanceMeters * fraction, height, (int) Math.round(plannedSeconds * fraction),
+                                       point.mLat, point.mLon, title(point), 0));
+      }
+    }
+
+    return new TripPlan(title(start), title(finish), start.mLat, start.mLon, finish.mLat, finish.mLon, distanceMeters,
+                        plannedSeconds, returnSeconds, checkpoints, altitude, weatherLat, weatherLon,
+                        weatherAltitudeMeters, weatherEtaSeconds, weatherAtHighestPoint);
+  }
+
+  private static double fractionAtPoint(@Nullable JunctionInfo[] geometry, double lat, double lon)
+  {
+    if (geometry == null || geometry.length < 2)
+      return 0;
+    double total = 0;
+    double nearestDistance = Double.MAX_VALUE;
+    double nearestAlong = 0;
+    final float[] distance = new float[1];
+    for (int i = 1; i < geometry.length; i++)
+    {
+      final JunctionInfo a = geometry[i - 1];
+      final JunctionInfo b = geometry[i];
+      Location.distanceBetween(a.mLat, a.mLon, b.mLat, b.mLon, distance);
+      final double length = distance[0];
+      final double cos = Math.cos(Math.toRadians(lat));
+      final double dx = (b.mLon - a.mLon) * cos;
+      final double dy = b.mLat - a.mLat;
+      final double denominator = dx * dx + dy * dy;
+      final double local =
+          denominator == 0
+              ? 0
+              : Math.max(0, Math.min(1, (((lon - a.mLon) * cos) * dx + (lat - a.mLat) * dy) / denominator));
+      Location.distanceBetween(lat, lon, a.mLat + (b.mLat - a.mLat) * local, a.mLon + (b.mLon - a.mLon) * local,
+                               distance);
+      if (distance[0] < nearestDistance)
+      {
+        nearestDistance = distance[0];
+        nearestAlong = total + length * local;
+      }
+      total += length;
+    }
+    return total == 0 ? 0 : nearestAlong / total;
+  }
+
+  private static int altitudeAtFraction(@Nullable RouteAltitudeData altitude, double fraction)
+  {
+    if (altitude == null || altitude.getSize() == 0)
+      return -1;
+    final double target = altitude.getDistance(altitude.getSize() - 1) * fraction;
+    for (int i = 1; i < altitude.getSize(); i++)
+      if (altitude.getDistance(i) >= target)
+      {
+        final double span = altitude.getDistance(i) - altitude.getDistance(i - 1);
+        final double local = span <= 0 ? 0 : (target - altitude.getDistance(i - 1)) / span;
+        return (int) Math.round(altitude.getAltitude(i - 1)
+                                + (altitude.getAltitude(i) - altitude.getAltitude(i - 1)) * local);
+      }
+    return altitude.getAltitude(altitude.getSize() - 1);
   }
 
   @Nullable
@@ -182,8 +380,7 @@ public final class TripPlan
     final float[] distance = new float[1];
     for (int i = 0; i < points.length - 1; i++)
     {
-      Location.distanceBetween(points[i].mLat, points[i].mLon,
-                               points[i + 1].mLat, points[i + 1].mLon, distance);
+      Location.distanceBetween(points[i].mLat, points[i].mLon, points[i + 1].mLat, points[i + 1].mLon, distance);
       segmentMeters[i] = Math.max(0.0, distance[0]);
       totalMeters += segmentMeters[i];
     }
