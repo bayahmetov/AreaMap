@@ -290,7 +290,12 @@ public class MwmActivity extends BaseMwmFragmentActivity
     if (guidesAction != null)
     {
       intent.removeExtra(EXTRA_GUIDES_ACTION);
-      final int actionId = "route".equals(guidesAction) ? R.id.areamap_nav_route : R.id.areamap_nav_search;
+      final int actionId = switch (guidesAction) {
+        case "route" -> R.id.areamap_nav_route;
+        case "trip" -> R.id.areamap_nav_trip;
+        case "profile" -> R.id.areamap_nav_profile;
+        default -> R.id.areamap_nav_search;
+      };
       final View actionView = findViewById(actionId);
       if (actionView != null) actionView.performClick();
       return;

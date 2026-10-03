@@ -6,6 +6,8 @@ import app.organicmaps.base.BaseMwmFragmentActivity;
 
 public class GuideArticleActivity extends BaseMwmFragmentActivity
 {
+  public static final String EXTRA_GUIDE_ID = "areamap.extra.GUIDE_ID";
+  // Compatibility with intents saved before stable-ID migration. New callers must use EXTRA_GUIDE_ID.
   public static final String EXTRA_ARTICLE_INDEX = "areamap.extra.ARTICLE_INDEX";
   @Override protected Class<? extends Fragment> getFragmentClass() { return GuideArticleFragment.class; }
   @Override protected int getContentLayoutResId() { return R.layout.activity_areamap_guides; }

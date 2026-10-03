@@ -38,7 +38,14 @@ final class GuidePhotos
       }
       catch (IOException error) { android.util.Log.e("GuidePhotos", "Missing local photograph: " + asset, error); }
     }
-    view.setImageBitmap(bitmap);
+    if (bitmap == null && !asset.equals("areamap/guides/guide_hero_almaty.webp"))
+    {
+      // Intentional regional illustration; does not pretend to depict a missing specific location.
+      load(view, "areamap/guides/guide_hero_almaty.webp");
+      return;
+    }
+    if (bitmap == null) view.setImageResource(R.drawable.home_logo);
+    else view.setImageBitmap(bitmap);
   }
 
   static void round(View view)

@@ -24,6 +24,8 @@ final class GuideArticleAdapter extends RecyclerView.Adapter<GuideArticleAdapter
   private final SharedPreferences mFavorites;
   private final GuidePhotos mPhotos;
   private final boolean mCompact;
+  private boolean mListing;
+  void setListing(boolean listing) { mListing = listing; }
 
   GuideArticleAdapter(Context context, boolean compact, Consumer<GuideArticles.Article> open, Runnable favoriteChanged)
   {
@@ -47,7 +49,7 @@ final class GuideArticleAdapter extends RecyclerView.Adapter<GuideArticleAdapter
     holder.summary.setText(context.getString(R.string.g_minutes, article.readingTime, context.getString(R.string.g_level)));
     mPhotos.load(holder.image, article.imageAsset);
     final ViewGroup.LayoutParams params = holder.itemView.getLayoutParams();
-    params.width = Math.min(context.getResources().getDimensionPixelSize(R.dimen.guide_article_width),
+    params.width = mListing ? ViewGroup.LayoutParams.MATCH_PARENT : Math.min(context.getResources().getDimensionPixelSize(R.dimen.guide_article_width),
         context.getResources().getDisplayMetrics().widthPixels * 4 / 5);
     params.height = Math.round(context.getResources().getDimension(R.dimen.guide_article_height)
         * (mCompact ? 0.85f : 1f) * Math.max(1f, context.getResources().getConfiguration().fontScale));

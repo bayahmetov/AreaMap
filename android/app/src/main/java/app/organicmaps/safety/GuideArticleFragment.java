@@ -18,7 +18,6 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import app.organicmaps.R;
 import app.organicmaps.base.BaseMwmFragment;
-import java.util.List;
 
 /** The existing article destination renders offline content as readable, structured blocks. */
 public class GuideArticleFragment extends BaseMwmFragment
@@ -32,10 +31,31 @@ public class GuideArticleFragment extends BaseMwmFragment
   @Override public void onViewCreated(@NonNull View view, @Nullable Bundle state)
   {
     super.onViewCreated(view, state);
-    final List<GuideArticles.Article> articles = GuideArticles.all(requireContext());
-    int index = requireActivity().getIntent().getIntExtra(GuideArticleActivity.EXTRA_ARTICLE_INDEX, 0);
-    if (index < 0 || index >= articles.size()) index = 0;
-    final GuideArticles.Article article = articles.get(index);
+    view.findViewById(R.id.article_back).setOnClickListener(v -> requireActivity().finish());
+    ViewCompat.setOnApplyWindowInsetsListener(view, (v, insets) -> {
+      final Insets bars = insets.getInsets(WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout());
+      v.setPadding(bars.left, bars.top, bars.right, bars.bottom); return insets;
+    });
+    ViewCompat.requestApplyInsets(view);
+    final Intent intent = requireActivity().getIntent();
+    String id = intent.getStringExtra(GuideArticleActivity.EXTRA_GUIDE_ID);
+    if (id == null && intent.hasExtra(GuideArticleActivity.EXTRA_ARTICLE_INDEX))
+    {
+      final int index = intent.getIntExtra(GuideArticleActivity.EXTRA_ARTICLE_INDEX, -1);
+      // Original public shortcuts addressed these nine entries. Never substitute another article.
+      if (index >= 0 && index < 9) id = "legacy_" + index;
+    }
+    final GuideArticles.Article article = GuideRepository.create(requireContext()).find(id);
+    if (article == null)
+    {
+      android.util.Log.w("Guides", "Unknown guide ID");
+      ((TextView) view.findViewById(R.id.article_title)).setText(R.string.g_unknown_article);
+      ((TextView) view.findViewById(R.id.article_tags)).setText(R.string.g_unknown_help);
+      for (int child : new int[] {R.id.article_image, R.id.article_emergency, R.id.article_credits})
+        view.findViewById(child).setVisibility(View.GONE);
+      return;
+    }
+    android.util.Log.d("Guides", "Reader opened: guideId=" + article.id);
     final ImageView image = view.findViewById(R.id.article_image);
     new GuidePhotos(requireContext()).load(image, article.imageAsset);
     GuidePhotos.round(image);
@@ -67,16 +87,12 @@ public class GuideArticleFragment extends BaseMwmFragment
       if (!checklist) { block.setTextIsSelectable(true); android.text.util.Linkify.addLinks(block, android.text.util.Linkify.WEB_URLS); }
       blocks.addView(block);
     }
-    final boolean emergency = index < 9 || article.id.equals("signal") || article.id.equals("plants");
+    final boolean emergency = article.emergency;
     view.findViewById(R.id.article_emergency).setVisibility(emergency ? View.VISIBLE : View.GONE);
     view.findViewById(R.id.article_dial).setOnClickListener(v -> {
       final Intent dial = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:112"));
       if (dial.resolveActivity(requireContext().getPackageManager()) != null) startActivity(dial);
     });
-    ViewCompat.setOnApplyWindowInsetsListener(view, (v, insets) -> {
-      final Insets bars = insets.getInsets(WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout());
-      v.setPadding(bars.left, bars.top, bars.right, bars.bottom); return insets;
-    });
-    ViewCompat.requestApplyInsets(view);
+
   }
 }

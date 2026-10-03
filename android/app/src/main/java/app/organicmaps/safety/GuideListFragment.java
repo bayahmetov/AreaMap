@@ -23,8 +23,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import app.organicmaps.MwmActivity;
 import app.organicmaps.R;
 import app.organicmaps.base.BaseMwmFragment;
-import app.organicmaps.sdk.routing.RoutingController;
-import app.organicmaps.settings.SettingsActivity;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,6 +30,8 @@ import java.util.List;
 public class GuideListFragment extends BaseMwmFragment
 {
   private List<GuideArticles.Article> mArticles;
+  private GuideRepository mRepository;
+  private String mListing = "";
   private GuideArticleAdapter mPopular;
   private GuideArticleAdapter mRoute;
   private View mRoot;
@@ -39,7 +39,7 @@ public class GuideListFragment extends BaseMwmFragment
   private String mCategory = "";
   private boolean mFavoritesOnly;
   private int mSlide;
-  private final String[] mHeroImages = {"hero_almaty", "big_almaty_lake", "kok_zhailau", "three_brothers"};
+
   private GuidePhotos mPhotos;
 
   @Nullable @Override
@@ -52,7 +52,9 @@ public class GuideListFragment extends BaseMwmFragment
   {
     super.onViewCreated(view, state);
     mRoot = view;
-    mArticles = GuideArticles.all(requireContext());
+    mRepository = GuideRepository.create(requireContext());
+    mArticles = mRepository.all();
+    mListing = state == null ? "" : state.getString("listing", "");
     mPhotos = new GuidePhotos(requireContext());
     mCategory = state == null ? "" : state.getString("category", "");
     mFavoritesOnly = state != null && state.getBoolean("favorites");
@@ -70,16 +72,21 @@ public class GuideListFragment extends BaseMwmFragment
     });
     categories.setLayoutManager(grid);
     categories.setAdapter(new GuideCategoryAdapter(requireContext(), mArticles, category -> {
-      mCategory = category; mFavoritesOnly = false; render(); scrollToArticles();
+      android.util.Log.d("Guides", "Category opened: " + category);
+      mCategory = category; mFavoritesOnly = false; mSearch.setText(""); openListing("category");
     }));
     view.findViewById(R.id.guide_filters).setOnClickListener(v -> showFilters());
-    view.findViewById(R.id.guide_all_categories).setOnClickListener(v -> reset());
-    view.findViewById(R.id.guide_all_articles).setOnClickListener(v -> reset());
-    view.findViewById(R.id.guide_explore).setOnClickListener(v -> reset());
-    view.findViewById(R.id.guide_route_all).setOnClickListener(v -> {
-      final View target = view.findViewById(hasRoute() ? R.id.guide_route_articles : R.id.guide_route_choose);
-      scrollTo(target);
+    view.findViewById(R.id.guide_all_categories).setOnClickListener(v -> openAll());
+    view.findViewById(R.id.guide_all_articles).setOnClickListener(v -> openAll());
+    view.findViewById(R.id.guide_explore).setOnClickListener(v -> {
+      final List<GuideArticles.Article> featured = mRepository.featured();
+      if (!featured.isEmpty()) openArticle(featured.get(mSlide));
     });
+    view.findViewById(R.id.guide_route_all).setOnClickListener(v -> {
+      if (hasRoute()) { mCategory = ""; mFavoritesOnly = false; mSearch.setText(""); openListing("route"); }
+      else returnToMap("route");
+    });
+    view.findViewById(R.id.guide_clear_search).setOnClickListener(v -> openAll());
     view.findViewById(R.id.guide_route_choose).setOnClickListener(v -> returnToMap("route"));
     view.findViewById(R.id.guide_credits).setOnClickListener(v -> GuidePhotos.credits(requireContext()));
     GuidePhotos.round(view.findViewById(R.id.guide_hero));
@@ -87,7 +94,10 @@ public class GuideListFragment extends BaseMwmFragment
     setupNavigation();
     mSearch.addTextChangedListener(new TextWatcher() {
       @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-      @Override public void afterTextChanged(Editable text) { render(); }
+      @Override public void afterTextChanged(Editable text) {
+        if (!text.toString().trim().isEmpty() && mListing.isEmpty()) mListing = "all";
+        render();
+      }
       @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
     });
     ViewCompat.setOnApplyWindowInsetsListener(view, (v, insets) -> {
@@ -109,40 +119,60 @@ public class GuideListFragment extends BaseMwmFragment
     recycler.setAdapter(adapter);
   }
 
-  private boolean hasRoute()
-  {
-    return GpxNavigation.current != null || RoutingController.get().isBuilt()
-        || RoutingController.get().isNavigating() || TripSafety.get(requireContext()).hasActiveTrip();
-  }
+  private boolean hasRoute() { return GuideRouteState.read(requireContext()).present; }
 
   private void render()
   {
     if (mRoot == null || mPopular == null) return;
-    final String query = mSearch.getText().toString();
+    final RouteGuideContext context = GuideRouteState.read(requireContext());
+    android.util.Log.d("Guides", "Route context source=" + context.source + " tags=" + context.tags);
+    final List<GuideArticles.Article> recommended = mRepository.forRoute(context);
     final List<GuideArticles.Article> visible = new ArrayList<>();
-    // Put the preparation guides first, keeping the original article indices intact.
-    for (int offset = 0; offset < mArticles.size(); offset++)
-    {
-      final GuideArticles.Article article = mArticles.get((offset + 9) % mArticles.size());
-      if (article.matches(query) && (mCategory.isEmpty() || article.category.equals(mCategory))
-          && (!mFavoritesOnly || mPopular.isFavorite(article))) visible.add(article);
-    }
+    for (GuideArticles.Article article : mRepository.search(mSearch.getText().toString(), mCategory))
+      if ((!mFavoritesOnly || mPopular.isFavorite(article))
+          && (!mListing.equals("route") || recommended.contains(article))) visible.add(article);
+    if (mListing.equals("route")) visible.sort(java.util.Comparator.comparingInt(recommended::indexOf));
+    // Editorial cards first, while the same canonical emergency articles remain in every full listing.
+    if (mListing.isEmpty()) visible.sort(java.util.Comparator.comparing(a -> a.sourceType.equals("migrated")));
+    mPopular.setListing(!mListing.isEmpty());
     mPopular.submit(visible);
     mRoot.findViewById(R.id.guide_empty).setVisibility(visible.isEmpty() ? View.VISIBLE : View.GONE);
-    ((TextView) mRoot.findViewById(R.id.guide_popular_title)).setText(mCategory.isEmpty()
-        ? getString(mFavoritesOnly ? R.string.g_favorites : R.string.g_popular)
-        : getString(GuideCategory.find(mCategory).title));
-    final boolean route = hasRoute();
-    ((TextView) mRoot.findViewById(R.id.guide_route_subtitle)).setText(
-        route ? R.string.g_route_general : R.string.g_route_none);
-    mRoot.findViewById(R.id.guide_route_choose).setVisibility(route ? View.GONE : View.VISIBLE);
-    mRoot.findViewById(R.id.guide_route_articles).setVisibility(route ? View.VISIBLE : View.GONE);
-    final List<GuideArticles.Article> recommended = new ArrayList<>();
-    if (route)
-      for (GuideArticles.Article article : mArticles)
-        if (article.id.equals("route") || article.id.equals("weather") || article.id.equals("water")
-            || article.id.equals("signal")) recommended.add(article);
+    mRoot.findViewById(R.id.guide_clear_search).setVisibility(visible.isEmpty() ? View.VISIBLE : View.GONE);
+    ((TextView) mRoot.findViewById(R.id.guide_popular_title)).setText(!mCategory.isEmpty()
+        ? getString(GuideCategory.find(mCategory).title)
+        : getString(mFavoritesOnly ? R.string.g_favorites : mListing.equals("route") ? R.string.g_route
+            : mListing.isEmpty() ? R.string.g_popular : R.string.g_all));
+    ((TextView) mRoot.findViewById(R.id.guide_route_subtitle)).setText(!context.present ? R.string.g_route_none
+        : context.tags.contains("almaty") ? R.string.g_route_almaty : R.string.g_route_general);
+    mRoot.findViewById(R.id.guide_route_choose).setVisibility(context.present ? View.GONE : View.VISIBLE);
+    mRoot.findViewById(R.id.guide_route_articles).setVisibility(context.present ? View.VISIBLE : View.GONE);
     mRoute.submit(recommended);
+    for (int id : new int[] {R.id.guide_hero, R.id.guide_categories, R.id.guide_categories_row,
+        R.id.guide_route_row, R.id.guide_route_subtitle, R.id.guide_route_choose, R.id.guide_route_articles})
+      if (!mListing.isEmpty()) mRoot.findViewById(id).setVisibility(View.GONE);
+      else if (id != R.id.guide_route_choose && id != R.id.guide_route_articles)
+        mRoot.findViewById(id).setVisibility(View.VISIBLE);
+    mRoot.findViewById(R.id.guide_all_articles).setVisibility(mListing.isEmpty() ? View.VISIBLE : View.GONE);
+    final RecyclerView recycler = mRoot.findViewById(R.id.guide_popular);
+    final int orientation = mListing.isEmpty() ? RecyclerView.HORIZONTAL : RecyclerView.VERTICAL;
+    if (((LinearLayoutManager) recycler.getLayoutManager()).getOrientation() != orientation)
+      recycler.setLayoutManager(new LinearLayoutManager(requireContext(), orientation, false));
+  }
+
+  private void openListing(String mode)
+  {
+    mListing = mode; render(); scrollToArticles();
+  }
+
+  private void openAll()
+  {
+    mCategory = ""; mFavoritesOnly = false; mSearch.setText(""); openListing("all");
+  }
+
+  @Override public boolean onBackPressed()
+  {
+    if (mListing.isEmpty()) return false;
+    reset(); return true;
   }
 
   private void showFilters()
@@ -153,14 +183,15 @@ public class GuideListFragment extends BaseMwmFragment
     for (int i = 0; i < categories.size(); i++) labels[i + 2] = getString(categories.get(i).title);
     new AlertDialog.Builder(requireContext()).setTitle(R.string.g_filters).setItems(labels, (d, index) -> {
       mFavoritesOnly = index == 1; mCategory = index < 2 ? "" : categories.get(index - 2).id;
-      render(); scrollToArticles();
+      openListing("category");
     }).setNeutralButton(R.string.g_reset, (d, w) -> reset())
         .setNegativeButton(R.string.cancel, null).show();
   }
 
   private void reset()
   {
-    mCategory = ""; mFavoritesOnly = false; mSearch.setText(""); render(); scrollToArticles();
+    mCategory = ""; mFavoritesOnly = false; mSearch.setText(""); mListing = ""; render();
+    scrollTo(mRoot.findViewById(R.id.guide_hero));
   }
   private void scrollToArticles() { scrollTo(mRoot.findViewById(R.id.guide_popular_title)); }
   private void scrollTo(View target)
@@ -178,18 +209,25 @@ public class GuideListFragment extends BaseMwmFragment
 
   private void openArticle(GuideArticles.Article article)
   {
+    android.util.Log.d("Guides", "Guide opened: guideId=" + article.id);
     startActivity(new Intent(requireContext(), GuideArticleActivity.class)
-        .putExtra(GuideArticleActivity.EXTRA_ARTICLE_INDEX, mArticles.indexOf(article)));
+        .putExtra(GuideArticleActivity.EXTRA_GUIDE_ID, article.id));
   }
 
   private void setupHero()
   {
-    mSlide = Math.max(0, Math.min(mSlide, mHeroImages.length - 1));
-    mPhotos.load(mRoot.findViewById(R.id.guide_hero_photo),
-        "areamap/guides/guide_" + mHeroImages[mSlide] + ".webp");
+    final List<GuideArticles.Article> featured = mRepository.featured();
+    if (featured.isEmpty()) { mRoot.findViewById(R.id.guide_hero).setVisibility(View.GONE); return; }
+    mSlide = Math.max(0, Math.min(mSlide, featured.size() - 1));
+    final GuideArticles.Article article = featured.get(mSlide);
+    mPhotos.load(mRoot.findViewById(R.id.guide_hero_photo), article.imageAsset);
+    ((TextView) mRoot.findViewById(R.id.guide_hero_title)).setText(article.title);
+    ((TextView) mRoot.findViewById(R.id.guide_hero_subtitle)).setText(
+        getString(GuideCategory.find(article.category).title) + " · "
+        + getString(R.string.g_minutes, article.readingTime, getString(R.string.g_level)));
     final LinearLayout indicators = mRoot.findViewById(R.id.guide_hero_indicators);
     indicators.removeAllViews();
-    for (int i = 0; i < mHeroImages.length; i++)
+    for (int i = 0; i < featured.size(); i++)
     {
       final int index = i;
       final TextView indicator = new TextView(requireContext());
@@ -198,12 +236,11 @@ public class GuideListFragment extends BaseMwmFragment
       indicator.setText("●"); indicator.setGravity(android.view.Gravity.CENTER);
       indicator.setTextColor(androidx.core.content.ContextCompat.getColor(requireContext(),
           i == mSlide ? R.color.areamap_green : R.color.areamap_text_muted));
-      indicator.setContentDescription(getString(R.string.g_slide, i + 1, mHeroImages.length));
+      indicator.setContentDescription(getString(R.string.g_slide, i + 1, featured.size()));
       indicator.setOnClickListener(v -> { mSlide = index; setupHero(); });
       indicators.addView(indicator);
     }
-    mRoot.findViewById(R.id.guide_hero_photo).setContentDescription(
-        mSlide == 3 ? getString(R.string.g_regional) : null);
+
   }
 
   private void setupNavigation()
@@ -222,11 +259,9 @@ public class GuideListFragment extends BaseMwmFragment
     }
     mRoot.findViewById(R.id.areamap_nav_search).setOnClickListener(v -> returnToMap("search"));
     mRoot.findViewById(R.id.areamap_nav_route).setOnClickListener(v -> returnToMap("route"));
-    mRoot.findViewById(R.id.areamap_nav_trip).setOnClickListener(v ->
-        startActivity(new Intent(requireContext(), TripSafetyActivity.class)));
+    mRoot.findViewById(R.id.areamap_nav_trip).setOnClickListener(v -> returnToMap("trip"));
     mRoot.findViewById(R.id.areamap_nav_guides).setOnClickListener(v -> reset());
-    mRoot.findViewById(R.id.areamap_nav_profile).setOnClickListener(v ->
-        startActivity(new Intent(requireContext(), SettingsActivity.class)));
+    mRoot.findViewById(R.id.areamap_nav_profile).setOnClickListener(v -> returnToMap("profile"));
   }
   private void returnToMap(String action)
   {
@@ -239,7 +274,7 @@ public class GuideListFragment extends BaseMwmFragment
   @Override public void onSaveInstanceState(@NonNull Bundle state)
   {
     super.onSaveInstanceState(state); state.putString("category", mCategory);
-    state.putBoolean("favorites", mFavoritesOnly); state.putInt("slide", mSlide);
+    state.putString("listing", mListing); state.putBoolean("favorites", mFavoritesOnly); state.putInt("slide", mSlide);
   }
   @Override public void onDestroyView()
   {

@@ -473,16 +473,16 @@ public class SearchFragment extends Fragment implements SearchListener, Categori
         .setOnClickListener(v -> setQuery(getString(R.string.areamap_destination_kimasar_title), false));
     root.findViewById(R.id.areamap_guides_card).setOnClickListener(v ->
         startActivity(new Intent(requireContext(), GuideArticleActivity.class)
-                          .putExtra(GuideArticleActivity.EXTRA_ARTICLE_INDEX, 7)));
+                          .putExtra(GuideArticleActivity.EXTRA_GUIDE_ID, "legacy_7")));
     root.findViewById(R.id.areamap_guides_weather_card).setOnClickListener(v ->
         startActivity(new Intent(requireContext(), GuideArticleActivity.class)
-                          .putExtra(GuideArticleActivity.EXTRA_ARTICLE_INDEX, 3)));
+                          .putExtra(GuideArticleActivity.EXTRA_GUIDE_ID, "legacy_3")));
     root.findViewById(R.id.areamap_guides_first_aid_card).setOnClickListener(v ->
         startActivity(new Intent(requireContext(), GuideArticleActivity.class)
-                          .putExtra(GuideArticleActivity.EXTRA_ARTICLE_INDEX, 0)));
+                          .putExtra(GuideArticleActivity.EXTRA_GUIDE_ID, "legacy_0")));
     root.findViewById(R.id.areamap_guides_storm_card).setOnClickListener(v ->
         startActivity(new Intent(requireContext(), GuideArticleActivity.class)
-                          .putExtra(GuideArticleActivity.EXTRA_ARTICLE_INDEX, 8)));
+                          .putExtra(GuideArticleActivity.EXTRA_GUIDE_ID, "legacy_8")));
     root.findViewById(R.id.areamap_home_sos_card).setOnClickListener(v ->
         startActivity(new Intent(requireContext(), TripSafetyActivity.class)
                          .putExtra(TripSafetyActivity.EXTRA_SHOW_SOS, true)));
