@@ -1,0 +1,20 @@
+<?xml version="1.0" ?>
+<LinearLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:app="http://schemas.android.com/apk/res-auto"
+  android:id="@+id/home_controls"
+  android:layout_width="wrap_content"
+  android:layout_height="wrap_content"
+  android:orientation="vertical">
+  <ImageButton
+    android:id="@+id/home_layers"
+    style="@style/AreaMap.HomeControl"
+    android:src="@drawable/ic_layers"
+    android:contentDescription="@string/home_layers"/>
+  <ImageButton
+    android:id="@+id/home_location"
+    style="@style/AreaMap.HomeControl"
+    android:layout_marginTop="@dimen/home_gap"
+    android:src="@drawable/ic_location_crosshair"
+    android:contentDescription="@string/home_location"/>
+</LinearLayout>

@@ -1,0 +1,7 @@
+<?xml version="1.0" ?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+  <gradient
+    android:angle="270"
+    android:startColor="@color/home_gradient_start"
+    android:endColor="@color/home_gradient_end"/>
+</shape>
