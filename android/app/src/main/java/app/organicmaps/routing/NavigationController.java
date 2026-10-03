@@ -37,6 +37,7 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior;
 
 public class NavigationController implements TrafficManager.TrafficCallback, NavMenu.NavMenuListener
 {
+  private final AppCompatActivity mActivity;
   private final View mFrame;
 
   private final ImageView mNextTurnImage;
@@ -65,6 +66,7 @@ public class NavigationController implements TrafficManager.TrafficCallback, Nav
                               View.OnClickListener onVoiceSettingsClickListener,
                               NavMenu.OnMenuSizeChangedListener onMenuSizeChangedListener)
   {
+    mActivity = activity;
     mMapButtonsViewModel = new ViewModelProvider(activity).get(MapButtonsViewModel.class);
 
     mFrame = activity.findViewById(R.id.navigation_frame);

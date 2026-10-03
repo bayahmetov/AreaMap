@@ -48,6 +48,22 @@ handlers were removed; persisted GPX recovery and the new banner remain.
   downloading Gradle 9.6.0 failed with `Network is unreachable`. APK, Android
   lint, native tests and device acceptance tests remain unverified.
 
+## Compilation fixes after device build feedback
+
+The first Android build reported seven Java errors that the initial syntax-only
+check did not catch. The integration now removes the duplicate GPX route-choice
+method and its obsolete field reference, imports ViewGroup, initializes the
+navigation controller's activity, and removes the nonexistent pending-routing
+API. Driving-options navigation uses the existing activity-result launcher and
+rebuild callback, matching the checked-in SDK/settings API.
+
+A Java AST audit of the 35 changed Java sources now checks duplicate method
+signatures (including qualified/imported parameter spellings) and undeclared
+member-style identifiers, in addition to parsing. Direct RoutingController
+calls were checked against the SDK source. These source checks do not replace
+Android compilation: retrying the Gradle compilation task still failed before
+compilation because the Gradle download is inaccessible in this environment.
+
 ## Device acceptance before release
 
 1. Open HOME, Guides and Profile; verify photographs, favorites, article links,

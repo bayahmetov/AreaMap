@@ -28,6 +28,7 @@ import android.text.method.LinkMovementMethod;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -751,26 +752,6 @@ public class MwmActivity extends BaseMwmFragmentActivity
     refreshAreaMapBottomNav();
   }
 
-  private void showGpxRouteChoices(@NonNull app.organicmaps.safety.GpxNavigation session)
-  {
-    new MaterialAlertDialogBuilder(this)
-        .setTitle(R.string.areamap_gpx_active_title)
-        .setMessage(R.string.areamap_gpx_active_message)
-        .setNegativeButton(R.string.areamap_continue_track, null)
-        .setPositiveButton(R.string.areamap_route_to_gpx_start,
-                           (dialog, which) -> {
-                             final double[] start = session.track.points[0];
-                             final MapObject target = MapObject.createMapObject(
-                                 MapObject.API_POINT, getString(R.string.areamap_gpx_start_title),
-                                 getString(R.string.areamap_gpx_start_subtitle), start[0], start[1]);
-                             mRoutingToGpxStart = true;
-                             closeFloatingPanels();
-                             final MapObject myPosition = MwmApplication.from(this).getLocationHelper().getMyPosition();
-                             RoutingController.get().prepare(myPosition, target, Router.Pedestrian);
-                           })
-        .show();
-  }
-
   public void refreshAreaMapBottomNav()
   {
     if (mMapButtonsViewModel != null)
@@ -1289,7 +1270,6 @@ public class MwmActivity extends BaseMwmFragmentActivity
     BookmarkManager.INSTANCE.addLoadingListener(this);
     MwmApplication.from(getApplicationContext()).getIsolinesManager().attach(this::onIsolinesStateChanged);
     updateDrivingOptionCount();
-    RoutingController.get().applyPendingRoutingOptions();
     LocationState.nativeSetListener(this);
     MwmApplication.from(this).getLocationHelper().addListener(this);
     Utils.keepScreenOn(Config.isKeepScreenOnEnabled() || RoutingController.get().isNavigating(), getWindow());
