@@ -135,7 +135,7 @@ public final class TripWeatherNotifier
   }
 
   @NonNull
-  private static String weatherLabel(@NonNull Context context, int code)
+  public static String weatherLabel(@NonNull Context context, int code)
   {
     if (code == 0)
       return context.getString(R.string.areamap_weather_clear);

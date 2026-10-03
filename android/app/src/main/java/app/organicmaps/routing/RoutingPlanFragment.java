@@ -58,6 +58,43 @@ public class RoutingPlanFragment extends Fragment implements View.OnLayoutChange
   private int mPeekHeightMargins;
   private View mButtonsLayout;
   private int mTopInset;
+  private RoutePreviewController mPreview;
+  private boolean mPreviewActive;
+
+  public void showAreaMapPreview(app.organicmaps.safety.TripPlan plan, Runnable start, Runnable edit)
+  {
+    if (mPreview != null)
+      mPreview.dispose();
+    mPreviewActive = true;
+    mPreview = new RoutePreviewController((app.organicmaps.MwmActivity) requireActivity(), requireView(), plan,
+        start, edit, () -> mSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED),
+        () -> mRoutingBottomMenuController.saveRoute());
+    requireView().findViewById(R.id.route_preview_legacy).setVisibility(View.GONE);
+    requireView().findViewById(R.id.areamap_route_panel_v2).setVisibility(View.VISIBLE);
+    mFrame.setBackgroundResource(R.drawable.bg_areamap_sheet);
+    mRoutingBottomContainer.setPadding(mRoutingBottomContainer.getPaddingLeft(), 0,
+                                      mRoutingBottomContainer.getPaddingRight(), 0);
+    mFrame.post(this::updateSheetLayout);
+    mViewModel.setShowRoutingBottomSheet(true);
+  }
+
+  public void hideAreaMapPreview()
+  {
+    if (mPreview != null)
+      mPreview.dispose();
+    mPreview = null;
+    mPreviewActive = false;
+    if (getView() == null)
+      return;
+    getView().findViewById(R.id.areamap_route_panel_v2).setVisibility(View.GONE);
+    getView().findViewById(R.id.route_preview_legacy).setVisibility(View.VISIBLE);
+    getView().findViewById(R.id.areamap_bottom_nav_bar).setVisibility(View.GONE);
+    getView().findViewById(R.id.route_preview_overlay).setVisibility(View.GONE);
+    mRoutingBottomContainer.setPadding(mRoutingBottomContainer.getPaddingLeft(), 0,
+                                      mRoutingBottomContainer.getPaddingRight(), 0);
+    mFrame.getLayoutParams().height = ViewGroup.LayoutParams.WRAP_CONTENT;
+    mFrame.requestLayout();
+  }
 
   // Single source of truth for the sheet's visibility: planning wants it AND no place page is covering it.
   private final MediatorLiveData<Boolean> mSheetVisible = new MediatorLiveData<>();
@@ -146,6 +183,15 @@ public class RoutingPlanFragment extends Fragment implements View.OnLayoutChange
 
     updateBadgeCount(RoutingOptions.getActiveRoadTypes().size());
     mRoutingContainer.addOnLayoutChangeListener(this);
+    if (savedInstanceState != null && savedInstanceState.getBoolean(TAG + "_areamap_preview"))
+      view.post(() -> {
+        if (getView() == null || app.organicmaps.sdk.Router.get() != app.organicmaps.sdk.Router.Pedestrian
+            || !RoutingController.get().isBuilt() || RoutingController.get().isNavigating())
+          return;
+        final var plan = app.organicmaps.safety.TripPlan.current();
+        if (plan != null)
+          ((app.organicmaps.MwmActivity) requireActivity()).showAreaMapRoutePanel(plan);
+      });
   }
 
   private void setInsets()
@@ -166,6 +212,10 @@ public class RoutingPlanFragment extends Fragment implements View.OnLayoutChange
       if (mRoutingBottomContainer != null)
         mRoutingBottomContainer.setPadding(leftInset, mRoutingBottomContainer.getPaddingTop(), rightInset, 0);
       mButtonsLayout.setPadding(0, 0, 0, bottomInset);
+      final View nav = mRoutingRoot.findViewById(R.id.areamap_bottom_nav_bar);
+      nav.setPadding(nav.getPaddingLeft(), nav.getPaddingTop(), nav.getPaddingRight(), bottomInset + 4);
+      if (mPreviewActive)
+        updateSheetLayout();
       return ViewCompat.onApplyWindowInsets(v,
                                             new WindowInsetsCompat.Builder(insets)
                                                 .setInsets(WindowInsetsCompat.Type.systemBars(),
@@ -196,6 +246,7 @@ public class RoutingPlanFragment extends Fragment implements View.OnLayoutChange
       public void onSlide(@NonNull View bottomSheet, float slideOffset)
       {
         mViewModel.setRoutingBottomDistanceToTop(bottomSheet.getTop());
+        updatePreviewMap(bottomSheet.getTop());
       }
     });
   }
@@ -203,12 +254,16 @@ public class RoutingPlanFragment extends Fragment implements View.OnLayoutChange
   @Override
   public void onDestroyView()
   {
+    if (mPreview != null)
+      mPreview.dispose();
     super.onDestroyView();
     mRoutingContainer.removeOnLayoutChangeListener(this);
   }
 
   private void updateMenuInternal()
   {
+    if (mPreviewActive)
+      return;
     final RoutingController controller = RoutingController.get();
 
     if (controller.isPlanning())
@@ -233,9 +288,13 @@ public class RoutingPlanFragment extends Fragment implements View.OnLayoutChange
 
   private void showSheet(boolean show)
   {
+    final boolean previewVisible = show && mPreviewActive;
+    requireView().findViewById(R.id.areamap_bottom_nav_bar).setVisibility(previewVisible ? View.VISIBLE : View.GONE);
+    requireView().findViewById(R.id.route_preview_overlay).setVisibility(previewVisible ? View.VISIBLE : View.GONE);
     if (show)
     {
-      UiUtils.show(mButtonsLayout, mFrame);
+      UiUtils.show(mFrame);
+      mButtonsLayout.setVisibility(mPreviewActive ? View.GONE : View.VISIBLE);
       mFrame.post(() -> {
         // The view may be destroyed, or visibility may have flipped back to hidden (e.g. a place page
         // opened), before this runs; bail out instead of reopening the sheet over whatever is on top.
@@ -274,15 +333,63 @@ public class RoutingPlanFragment extends Fragment implements View.OnLayoutChange
 
   public void updateSheetLayout()
   {
-    if (mFrame.getTop() == 0)
+    if (mFrame.getTop() == 0 && !mPreviewActive)
       return;
     updateSheetHeights();
     final int newDistanceTop = mFrame.getTop();
     mViewModel.setRoutingBottomDistanceToTop(newDistanceTop);
+    updatePreviewMap(newDistanceTop);
+  }
+
+  private void updatePreviewMap(int sheetTop)
+  {
+    if (!mPreviewActive || getView() == null)
+      return;
+    final int[] position = new int[2];
+    mFrame.getLocationInWindow(position);
+    final float density = getResources().getDisplayMetrics().density;
+    final View weather = getView().findViewById(R.id.route_preview_weather_card);
+    final int[] cardPosition = new int[2];
+    weather.getLocationInWindow(cardPosition);
+    final float originalTop = cardPosition[1] - weather.getTranslationY();
+    weather.setTranslationY(Math.max(0, position[1] - weather.getHeight() - 12 * density - originalTop));
+    weather.setVisibility(sheetTop > 220 * density ? View.VISIBLE : View.INVISIBLE);
+    if (Boolean.TRUE.equals(mSheetVisible.getValue())
+        && !app.organicmaps.MwmApplication.from(requireContext()).getDisplayManager().isCarDisplayUsed())
+    {
+      final boolean landscape = getResources().getConfiguration().orientation
+          == android.content.res.Configuration.ORIENTATION_LANDSCAPE;
+      if (landscape)
+        Framework.nativeSetVisibleRect(mRoutingBottomContainer.getRight(), mTopInset + (int) (64 * density),
+                                       mRoutingRoot.getWidth(), mRoutingRoot.getHeight());
+      else
+        Framework.nativeSetVisibleRect(0, mTopInset + (int) (64 * density), mRoutingRoot.getWidth(),
+                                       Math.max(mTopInset + (int) (65 * density), position[1]));
+    }
   }
 
   private void updateSheetHeights()
   {
+    if (mPreviewActive)
+    {
+      final View parent = (View) mFrame.getParent();
+      final int parentHeight = parent.getHeight();
+      if (parentHeight <= 0)
+        return;
+      final View nav = requireView().findViewById(R.id.areamap_bottom_nav_bar);
+      final int navHeight = Math.max(nav.getHeight(), (int) (76 * getResources().getDisplayMetrics().density));
+      ((androidx.coordinatorlayout.widget.CoordinatorLayout.LayoutParams) mFrame.getLayoutParams()).bottomMargin = navHeight;
+      final int height = Math.max(1, parentHeight - navHeight - (int) (64 * getResources().getDisplayMetrics().density));
+      if (mFrame.getLayoutParams().height != height)
+      {
+        mFrame.getLayoutParams().height = height;
+        mFrame.requestLayout();
+      }
+      mSheetBehavior.setMaxHeight(height);
+      mSheetBehavior.setPeekHeight(Math.min(height, (int) (parentHeight * 0.58)));
+      return;
+    }
+    ((androidx.coordinatorlayout.widget.CoordinatorLayout.LayoutParams) mFrame.getLayoutParams()).bottomMargin = 0;
     final View parent = (View) mFrame.getParent();
     final int parentHeight = parent == null ? 0 : parent.getHeight();
     if (parentHeight > 0)
@@ -394,6 +501,7 @@ public class RoutingPlanFragment extends Fragment implements View.OnLayoutChange
   {
     super.onSaveInstanceState(outState);
     outState.putInt(TAG + "_bottom_sheet_state", mViewModel.getBottomSheetState());
+    outState.putBoolean(TAG + "_areamap_preview", mPreviewActive);
     if (mRoutingBottomMenuController != null)
       mRoutingBottomMenuController.saveRoutingPanelState(outState);
   }

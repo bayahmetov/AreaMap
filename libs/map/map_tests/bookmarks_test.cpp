@@ -1,5 +1,6 @@
 #include "testing/testing.hpp"
 
+#include "map/bookmark.hpp"
 #include "map/bookmark_helpers.hpp"
 #include "map/framework.hpp"
 #include "map/track_mark.hpp"
@@ -528,6 +529,29 @@ UNIT_CLASS_TEST(VisualParamsFixture, Bookmarks_ChangeColorForImportedBookmark)
   pBm1 = bmManager.GetBookmark(pBm1->GetId());
   TEST_EQUAL(pBm1->GetData().m_color.m_predefinedColor, kml::PredefinedColor::Orange, ());
   TEST_EQUAL(pBm1->GetData().m_color.m_rgba, 0u, ());
+}
+
+UNIT_CLASS_TEST(VisualParamsFixture, Bookmarks_RouteCheckpointPresentation)
+{
+  Bookmark bookmark(m2::PointD(27, 53));
+  bookmark.SetColor(dp::Color(57, 216, 111, 255));
+  TEST(bookmark.GetSymbolNames() != nullptr, ());
+  TEST(bookmark.GetColoredSymbols() == nullptr, ());
+  TEST_EQUAL(bookmark.GetAnchor(), dp::Bottom, ());
+
+  auto data = bookmark.GetData();
+  data.m_properties["AreaMapRouteCheckpoint"] = "3";
+  bookmark.SetData(data);
+  TEST(bookmark.GetSymbolNames() == nullptr, ());
+  TEST_EQUAL(bookmark.GetAnchor(), dp::Center, ());
+  auto symbols = bookmark.GetColoredSymbols();
+  TEST(symbols != nullptr, ());
+  TEST_EQUAL(symbols->m_zoomInfo.size(), 1, ());
+  TEST_EQUAL(symbols->m_zoomInfo.at(1).m_outlineColor, bookmark.GetColorForRendering(), ());
+  auto titles = bookmark.GetTitleDeclEx(settings::Placement::None, dp::Color(0, 0, 0, 0));
+  TEST(titles != nullptr, ());
+  TEST_EQUAL(titles->size(), 1, ());
+  TEST_EQUAL(titles->front().m_primaryText, "3", ());
 }
 
 UNIT_CLASS_TEST(VisualParamsFixture, Bookmarks_CustomColorAndLastEdited)

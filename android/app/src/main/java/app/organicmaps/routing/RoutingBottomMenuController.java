@@ -510,7 +510,7 @@ final class RoutingBottomMenuController
                     builder.length() - arrivalTime.length(), builder.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
   }
 
-  private void saveRoute()
+  void saveRoute()
   {
     if (!RoutingController.get().isBuilt())
       return;

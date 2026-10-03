@@ -26,26 +26,32 @@ public final class RouteCheckpointBookmarks
   {
     clear();
 
-    if (plan.checkpoints.isEmpty())
+    if (plan.routeCheckpoints.isEmpty())
       return;
 
     final BookmarkManager manager = BookmarkManager.INSTANCE;
     final long categoryId = manager.createCategory(CATEGORY);
 
     int number = 1;
-    for (TripPlan.Checkpoint checkpoint : plan.checkpoints)
+    for (TripPlan.Checkpoint checkpoint : plan.routeCheckpoints)
     {
       final Bookmark bookmark = manager.addNewBookmark(checkpoint.lat, checkpoint.lon);
       if (bookmark == null)
         continue;
 
       bookmark.setCategoryId(categoryId);
-      bookmark.setIconColor(Color.rgb(66, 242, 123));
+      bookmark.setIconColor(checkpoint.role == 1 ? Color.rgb(241, 94, 104) : Color.rgb(57, 216, 111));
+
+      bookmark.setRouteCheckpointLabel(checkpoint.role < 0 ? context.getString(R.string.route_preview_start_marker)
+          : checkpoint.role > 0 ? context.getString(R.string.route_preview_finish_marker) : Integer.toString(number));
 
       final BookmarkInfo info = manager.getBookmarkInfo(bookmark.getBookmarkId());
       if (info != null)
       {
-        final String title = context.getString(R.string.areamap_checkpoint_map_title, number);
+        final String label = checkpoint.role < 0 ? context.getString(R.string.areamap_route_start)
+            : checkpoint.role > 0 ? context.getString(R.string.areamap_route_finish)
+            : context.getString(R.string.areamap_checkpoint_map_title, number);
+        final String title = checkpoint.title.isEmpty() ? label : label + " — " + checkpoint.title;
         final String description = context.getString(
             R.string.areamap_checkpoint_map_description,
             checkpoint.distanceMeters / 1000.0,
@@ -55,7 +61,8 @@ public final class RouteCheckpointBookmarks
             checkpoint.lon);
         info.update(title, null, description);
       }
-      number++;
+      if (checkpoint.role == 0)
+        number++;
     }
   }
 

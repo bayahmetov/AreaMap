@@ -53,6 +53,14 @@ Bookmark const * getBookmark(jlong bokmarkId)
 
 extern "C"
 {
+JNIEXPORT void Java_app_organicmaps_sdk_bookmarks_data_Bookmark_nativeSetRouteCheckpointLabel(JNIEnv * env, jclass,
+                                                                                              jlong bmk, jstring label)
+{
+  kml::BookmarkData data(getBookmark(bmk)->GetData());
+  data.m_properties["AreaMapRouteCheckpoint"] = jni::ToNativeString(env, label);
+  g_framework->ReplaceBookmark(static_cast<kml::MarkId>(bmk), data);
+}
+
 JNIEXPORT void Java_app_organicmaps_sdk_bookmarks_data_Bookmark_nativeSetColor(JNIEnv *, jclass, jlong bmk, jint color)
 {
   auto const * mark = getBookmark(bmk);
