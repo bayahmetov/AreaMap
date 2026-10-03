@@ -40,6 +40,11 @@ public final class TripWeatherNotifier
 
   public static void evaluate(@NonNull Context context, @NonNull TripSafety safety)
   {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+        && ActivityCompat.checkSelfPermission(context, POST_NOTIFICATIONS) != PERMISSION_GRANTED)
+      return;
+    if (!NotificationManagerCompat.from(context).areNotificationsEnabled())
+      return;
     if (!safety.hasActiveTrip())
       return;
     if (!TripWeatherRepository.hasForecastForPoint(context, safety.weatherLat(), safety.weatherLon(),

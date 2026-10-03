@@ -157,7 +157,7 @@
   <string name="areamap_finish_and_send">Завершить и отправить возвращение</string>
   <string name="areamap_trip_completed">Поход отмечен как завершённый.</string>
   <string name="areamap_active_trip_title">Зарегистрированный поход</string>
-  <string name="areamap_resend_trip_report">Отправить данные похода ещё раз</string>
+  <string name="areamap_resend_trip_report">Повторить отправку сохранённых сообщений</string>
   <string name="areamap_manual_return">Я вернулся · завершить поход</string>
   <string name="areamap_manual_return_title">Подтвердите возвращение</string>
   <string name="areamap_manual_return_message">Нажимайте только когда группа действительно вернулась и поход можно закрыть. AreaMap подготовит сообщение о возвращении для демо-канала ДЧС.</string>
@@ -245,4 +245,18 @@
   <string name="areamap_report_ok_time">Статус: всё в порядке · %1$s</string>
   <string name="areamap_report_break_header">AREAMAP · ДЧС ДЕМО · ОБНОВЛЕНИЕ ГРАФИКА</string>
   <string name="areamap_report_break_time">Добавлен привал: +%1$d мин · новое ожидаемое возвращение %2$s</string>
+  <string name="areamap_monitor_channel">Активный поход AreaMap</string>
+  <string name="areamap_monitor_title">Поход продолжается</string>
+  <string name="areamap_continue_hike">Продолжить текущий поход</string>
+  <string name="areamap_trip_already_active">Уже есть активный поход. Продолжите или завершите его перед новым стартом.</string>
+  <string name="areamap_report_sos_header">AREAMAP · ДЧС ДЕМО · SOS</string>
+  <string name="areamap_report_queued">Сообщение сохранено. Бот отправит его при наличии интернета.</string>
+  <string name="areamap_report_bot_missing">Сообщение сохранено, но бот не настроен в этой сборке. Автоматическая отправка недоступна.</string>
+  <string name="areamap_report_storage_failed">Не удалось сохранить сообщение. Оно НЕ поставлено в очередь. Повторите попытку или позвоните 112.</string>
+  <string name="areamap_delivery_summary">Ожидают отправки: %1$d · Ошибка бота: %2$d</string>
+  <string name="areamap_delivery_retry">Повторить отправку сохранённых сообщений</string>
+  <string name="areamap_sos_pending">SOS сохранён и ожидает отправки. Без интернета он ещё НЕ доставлен.</string>
+  <string name="areamap_sos_delivered">SOS доставлен в демо-чат Telegram. Это не подтверждение приёма спасателями.</string>
+  <string name="areamap_sos_blocked">SOS не доставлен: ошибка настройки или доступа бота. Сообщение сохранено.</string>
+  <string name="areamap_gpx_storage_failed">Не удалось сохранить GPX для продолжения похода. Повторите импорт.</string>
 </resources>

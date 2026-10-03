@@ -75,9 +75,10 @@ import app.organicmaps.routing.RoutingPlanController;
 import app.organicmaps.routing.RoutingPlanFragment;
 import app.organicmaps.routing.RoutingPlanViewModel;
 import app.organicmaps.safety.DarknessUtil;
-import app.organicmaps.safety.GuideListActivity;
 import app.organicmaps.safety.GpxNavigation;
+import app.organicmaps.safety.GuideListActivity;
 import app.organicmaps.safety.RouteCheckpointBookmarks;
+import app.organicmaps.safety.TripMonitoringService;
 import app.organicmaps.safety.TripPlan;
 import app.organicmaps.safety.TripReportSender;
 import app.organicmaps.safety.TripSafety;
@@ -186,8 +187,8 @@ public class MwmActivity extends BaseMwmFragmentActivity
   private PlacePageViewModel mPlacePageViewModel;
   @Nullable
   private GpxNavigation mGpxSession;
-  private final android.os.Handler mGpxHandler =
-      new android.os.Handler(android.os.Looper.getMainLooper());
+  private boolean mResumeRegisteredTripAfterBuild;
+  private final android.os.Handler mGpxHandler = new android.os.Handler(android.os.Looper.getMainLooper());
   private final Runnable mGpxRefresh = new Runnable() {
     @Override
     public void run()
@@ -259,6 +260,8 @@ public class MwmActivity extends BaseMwmFragmentActivity
       restoreRoutingUI(MapButtonsController.LayoutMode.planning);
     else if (RoutingController.get().isNavigating())
       restoreRoutingUI(MapButtonsController.LayoutMode.navigation);
+    else if (TripSafety.get(this).hasActiveTrip())
+      resumeRegisteredTrip();
     else if (RoutingController.get().hasSavedRoute())
       RoutingController.get().restoreRoute();
     if (mSearchPageViewModel.getSearchEnabled().getValue() == null && mSearchPageViewModel.isSearchPersistedActive())
@@ -1018,9 +1021,14 @@ public class MwmActivity extends BaseMwmFragmentActivity
     if (session != null && session != mGpxSession)
     {
       mGpxSession = session;
-      RoutingController.get().cancel();
-      closeFloatingPanels();
       ensureGpxLocationTracking();
+    }
+    TripReportSender.recover(this, false);
+    TripMonitoringService.start(this);
+    if (getIntent().getBooleanExtra("areamap_resume_trip", false))
+    {
+      getIntent().removeExtra("areamap_resume_trip");
+      resumeRegisteredTrip();
     }
     updateGpxBanner();
     mGpxHandler.removeCallbacks(mGpxRefresh);
@@ -1154,9 +1162,15 @@ public class MwmActivity extends BaseMwmFragmentActivity
   public boolean handleBackPress()
   {
     final RoutingController routingController = RoutingController.get();
-    return (closeBottomSheet(MAIN_MENU_ID) || closeBottomSheet(LAYERS_MENU_ID) || collapseNavMenu() || closePlacePage()
-            || closePositionChooser() || closeSearchFragment() || routingController.resetToPlanningStateIfNavigating()
-            || routingController.cancel());
+    if (closeBottomSheet(MAIN_MENU_ID) || closeBottomSheet(LAYERS_MENU_ID) || collapseNavMenu() || closePlacePage()
+        || closePositionChooser() || closeSearchFragment())
+      return true;
+    if (routingController.isNavigating() || TripMonitoringService.needed(this))
+    {
+      moveTaskToBack(true);
+      return true;
+    }
+    return routingController.cancel();
   }
 
   @Override
@@ -1405,6 +1419,28 @@ public class MwmActivity extends BaseMwmFragmentActivity
 
   private void startAreaMapRoute(@NonNull TripPlan plan)
   {
+    final TripSafety safety = TripSafety.get(this);
+    if (safety.hasActiveTrip())
+    {
+      if (safety.matches(plan))
+      {
+        if (!LocationUtils.checkFineLocationPermission(this))
+        {
+          mLocationPermissionRequestedForAreaMapTrip = true;
+          mLocationPermissionRequest.launch(new String[] {ACCESS_COARSE_LOCATION, ACCESS_FINE_LOCATION});
+          return;
+        }
+        requestPostNotificationsPermission();
+        TripMonitoringService.start(this);
+        continueAreaMapNavigationNow();
+      }
+      else
+      {
+        Toast.makeText(this, R.string.areamap_trip_already_active, Toast.LENGTH_LONG).show();
+        startActivity(new Intent(this, TripSafetyActivity.class));
+      }
+      return;
+    }
     if (!showStartPointNotice())
       return;
 
@@ -1466,14 +1502,20 @@ public class MwmActivity extends BaseMwmFragmentActivity
 
     final boolean ownsTrackRecording = !TrackRecorder.nativeIsTrackRecordingEnabled();
     final TripSafety safety = TripSafety.get(this);
-    safety.startMonitoredTrip(plan, profile, ownsTrackRecording);
+    if (!safety.startMonitoredTrip(plan, profile, ownsTrackRecording))
+    {
+      Toast.makeText(this, R.string.areamap_trip_already_active, Toast.LENGTH_LONG).show();
+      return;
+    }
+    // Queue the start once. Reopening and resuming never generate another start event.
+    TripReportSender.send(this, "start", safety.startReport());
     requestPostNotificationsPermission();
+    TripMonitoringService.start(this);
 
     if (ownsTrackRecording)
       startTrackRecording();
 
     continueAreaMapNavigationNow();
-    TripReportSender.shareToTelegram(this, safety.startReport());
   }
 
   private void clearPendingRegisteredAreaMapTrip()
@@ -1507,6 +1549,37 @@ public class MwmActivity extends BaseMwmFragmentActivity
       LocationState.nativeSwitchToNextMode();
     else
       MwmApplication.from(this).getLocationHelper().restartWithNewMode();
+    requestPostNotificationsPermission();
+    TripMonitoringService.start(this);
+  }
+
+  private void resumeRegisteredTrip()
+  {
+    final TripSafety safety = TripSafety.get(this);
+    if (!safety.hasActiveTrip() || RoutingController.get().isNavigating())
+      return;
+    mResumeRegisteredTripAfterBuild = true;
+    if (!Map.isEngineCreated())
+      return;
+    final TripPlan plan = TripPlan.current();
+    if (plan != null && safety.matches(plan))
+    {
+      startAreaMapRoute(plan);
+      mResumeRegisteredTripAfterBuild = false;
+      return;
+    }
+    if (safety.restoreSavedRoute())
+      return;
+    if (RoutingController.get().hasSavedRoute())
+      RoutingController.get().restoreRoute();
+    else
+    {
+      final MapObject start = MapObject.createMapObject(MapObject.API_POINT, getString(R.string.areamap_route_start),
+                                                        "", safety.startLat(), safety.startLon());
+      final MapObject finish = MapObject.createMapObject(MapObject.API_POINT, getString(R.string.areamap_route_finish),
+                                                         "", safety.finishLat(), safety.finishLon());
+      RoutingController.get().prepare(start, finish, Router.Pedestrian);
+    }
   }
 
   private void updateGpxBanner()
@@ -1542,6 +1615,7 @@ public class MwmActivity extends BaseMwmFragmentActivity
     banner.setOnClickListener(v -> showGpxRouteChoices(session));
     banner.findViewById(R.id.areamap_track_stop).setOnClickListener(v -> {
       GpxNavigation.stop(this);
+      TripMonitoringService.stopIfUnused(this);
       mGpxSession = null;
       UiUtils.hide(banner);
     });
@@ -1593,13 +1667,15 @@ public class MwmActivity extends BaseMwmFragmentActivity
 
     final boolean stopOwnedRecording = safety.ownsTrackRecording();
     final String report = safety.returnReport();
+    if (!TripReportSender.send(this, "finish", report))
+      return;
     safety.completeTrip();
+    TripMonitoringService.stopIfUnused(this);
     if (RoutingController.get().isNavigating())
       RoutingController.get().cancel();
     if (stopOwnedRecording && TrackRecorder.nativeIsTrackRecordingEnabled())
       saveAndStopTrackRecording();
 
-    TripReportSender.shareToTelegram(this, report);
     Toast.makeText(this, R.string.areamap_trip_completed, Toast.LENGTH_LONG).show();
   }
 
@@ -1830,6 +1906,11 @@ public class MwmActivity extends BaseMwmFragmentActivity
 
     RouteCheckpointBookmarks.show(this, plan);
     showAreaMapRoutePanel(plan);
+    if (mResumeRegisteredTripAfterBuild && TripSafety.get(this).matches(plan))
+    {
+      mResumeRegisteredTripAfterBuild = false;
+      startAreaMapRoute(plan);
+    }
   }
 
   @Override
@@ -2006,6 +2087,7 @@ public class MwmActivity extends BaseMwmFragmentActivity
     if (gpx != null)
     {
       gpx.update(location);
+      gpx.saveProgress(this);
       updateGpxBanner();
     }
 
@@ -2106,7 +2188,10 @@ public class MwmActivity extends BaseMwmFragmentActivity
         if (pendingPlan != null && pendingProfile != null)
           beginRegisteredAreaMapRoute(pendingPlan, pendingProfile);
         else
+        {
           clearPendingRegisteredAreaMapTrip();
+          resumeRegisteredTrip();
+        }
       }
 
       if (requestedForGpx && hasFineLocationPermission)

@@ -67,13 +67,18 @@ public final class TripWeatherRepository
 
   public static boolean refreshForPoint(@NonNull Context context, double lat, double lon, int alt)
   {
+    return refreshForPoint(context, lat, lon, alt, false);
+  }
+
+  public static boolean refreshForPoint(@NonNull Context context, double lat, double lon, int alt, boolean force)
+  {
     final SharedPreferences prefs = prefs(context);
     final long now = System.currentTimeMillis();
     final boolean moved = Math.abs(lat - parseDouble(prefs.getString(KEY_LAT, "999"))) > 0.002
         || Math.abs(lon - parseDouble(prefs.getString(KEY_LON, "999"))) > 0.002
         || Math.abs(alt - prefs.getInt(KEY_ALT, -10000)) > 100;
 
-    if (!moved && prefs.contains(KEY_JSON) && now - prefs.getLong(KEY_FETCHED_AT, 0L) < REFRESH_MS)
+    if (!force && !moved && prefs.contains(KEY_JSON) && now - prefs.getLong(KEY_FETCHED_AT, 0L) < REFRESH_MS)
       return true;
 
     if (!isNetworkConnected(context))
@@ -84,11 +89,12 @@ public final class TripWeatherRepository
     {
       final String altitude = alt >= 0 ? "&elevation=" + alt : "";
       final String endpoint = String.format(Locale.US,
-          "https://api.open-meteo.com/v1/forecast"
-              + "?latitude=%.6f&longitude=%.6f%s"
-              + "&hourly=temperature_2m,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_gusts_10m"
-              + "&forecast_days=2&timeformat=unixtime&timezone=GMT",
-          lat, lon, altitude);
+                                            "https://api.open-meteo.com/v1/forecast"
+                                                + "?latitude=%.6f&longitude=%.6f%s"
+                                                + "&hourly=temperature_2m,precipitation_probability,precipitation,"
+                                                + "weather_code,wind_speed_10m,wind_gusts_10m"
+                                                + "&forecast_days=2&timeformat=unixtime&timezone=GMT",
+                                            lat, lon, altitude);
 
       connection = (HttpURLConnection) new URL(endpoint).openConnection();
       connection.setRequestMethod("GET");
