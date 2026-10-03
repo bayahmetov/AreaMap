@@ -16,6 +16,18 @@
       android:paddingBottom="32dp">
 
     <TextView
+        android:id="@+id/trip_open_profile"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="48dp"
+        android:gravity="end|center_vertical"
+        android:text="@string/home_profile"
+        android:textColor="@color/areamap_green"
+        android:textSize="16sp"
+        android:background="?selectableItemBackground"
+        android:focusable="true" />
+
+    <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/areamap_hike_page_title"

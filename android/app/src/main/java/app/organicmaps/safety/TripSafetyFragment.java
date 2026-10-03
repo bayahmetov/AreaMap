@@ -43,6 +43,8 @@ public class TripSafetyFragment extends BaseMwmFragment
     ViewCompat.setOnApplyWindowInsetsListener(view, PaddingInsetsListener.excludeTop());
     requireActivity().setTitle(R.string.areamap_nav_trip);
     mSos = TripSafety.get(requireContext());
+    view.findViewById(R.id.trip_open_profile).setOnClickListener(v -> startActivity(new Intent(requireContext(),
+        app.organicmaps.profile.AreaMapProfileActivity.class).addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)));
 
     view.findViewById(R.id.guide_import)
         .setOnClickListener(v -> startActivity(new Intent(requireContext(), RouteImportActivity.class)));

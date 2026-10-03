@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <color name="profile_background">#F3F6F4</color>
+  <color name="profile_surface">#FFFFFF</color>
+  <color name="profile_text">#17231D</color>
+  <color name="profile_secondary">#53645A</color>
+  <color name="profile_border">#D4DED7</color>
+  <color name="profile_accent">#087E3E</color>
+</resources>

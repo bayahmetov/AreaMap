@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <color name="profile_background">@color/areamap_bg</color>
+  <color name="profile_surface">@color/areamap_surface</color>
+  <color name="profile_text">@color/areamap_text</color>
+  <color name="profile_secondary">@color/areamap_text_secondary</color>
+  <color name="profile_border">@color/areamap_stroke</color>
+  <color name="profile_accent">@color/areamap_green</color>
+</resources>

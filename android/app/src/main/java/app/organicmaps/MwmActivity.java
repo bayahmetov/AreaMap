@@ -721,8 +721,9 @@ public class MwmActivity extends BaseMwmFragmentActivity
     });
     tripAction.setOnClickListener(v ->
         startActivity(new Intent(this, app.organicmaps.safety.TripSafetyActivity.class)));
-    // Profile currently opens existing settings; no unused demo destination.
-    profileAction.setOnClickListener(v -> onSettingsOptionSelected());
+    // AreaMap identity is separate from the optional OpenStreetMap account in Settings.
+    profileAction.setOnClickListener(v -> startActivity(new Intent(this,
+        app.organicmaps.profile.AreaMapProfileActivity.class).addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)));
     nav.findViewById(R.id.areamap_nav_guides).setOnClickListener(v ->
         startActivity(new Intent(this, app.organicmaps.safety.GuideListActivity.class)));
     nav.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) -> {
