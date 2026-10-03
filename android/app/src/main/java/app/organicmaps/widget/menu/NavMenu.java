@@ -14,6 +14,7 @@ import androidx.lifecycle.DefaultLifecycleObserver;
 import androidx.lifecycle.LifecycleOwner;
 import app.organicmaps.MwmApplication;
 import app.organicmaps.R;
+import app.organicmaps.safety.TripSafety;
 import app.organicmaps.sdk.routing.RoutingInfo;
 import app.organicmaps.sdk.sound.TtsPlayer;
 import app.organicmaps.sdk.util.StringUtils;
@@ -44,6 +45,8 @@ public class NavMenu implements DefaultLifecycleObserver
   private final TextView mDistanceValue;
   private final TextView mDistanceUnits;
   private final LinearProgressIndicator mRouteProgress;
+  private final TextView mTripStatus;
+  private final Button mTripSafety;
 
   private final AppCompatActivity mActivity;
   private final NavMenuListener mNavMenuListener;
@@ -107,12 +110,15 @@ public class NavMenu implements DefaultLifecycleObserver
     mDistanceValue = bottomFrame.findViewById(R.id.distance_value);
     mDistanceUnits = bottomFrame.findViewById(R.id.distance_dimen);
     mRouteProgress = bottomFrame.findViewById(R.id.navigation_progress);
+    mTripStatus = bottomFrame.findViewById(R.id.areamap_nav_trip_status);
 
     // Bottom frame buttons
     ImageView mSettings = bottomFrame.findViewById(R.id.settings);
     mSettings.setOnClickListener(v -> onSettingsClicked());
     mTts = bottomFrame.findViewById(R.id.tts_volume);
     mTts.setOnClickListener(v -> onTtsClicked());
+    mTripSafety = bottomFrame.findViewById(R.id.areamap_trip_safety);
+    mTripSafety.setOnClickListener(v -> onTripSafetyClicked());
     Button stop = bottomFrame.findViewById(R.id.stop);
     stop.setOnClickListener(v -> onStopClicked());
     UiUtils.updateRedButton(stop);
@@ -130,6 +136,11 @@ public class NavMenu implements DefaultLifecycleObserver
   private void onStopClicked()
   {
     mNavMenuListener.onStopClicked();
+  }
+
+  private void onTripSafetyClicked()
+  {
+    mNavMenuListener.onTripSafetyClicked();
   }
 
   private void onSettingsClicked()
@@ -262,11 +273,23 @@ public class NavMenu implements DefaultLifecycleObserver
     mDistanceValue.setText(info.distToTarget.mDistanceStr);
     mDistanceUnits.setText(info.distToTarget.getUnitsStr(mActivity.getApplicationContext()));
     mRouteProgress.setProgressCompat((int) info.completionPercent, true);
+
+    final TripSafety safety = TripSafety.get(mActivity);
+    if (safety.hasActiveTrip())
+    {
+      mTripStatus.setText(safety.navigationCheckpointSummary(info.completionPercent)
+                          + "\n" + safety.navigationReturnSummary());
+      UiUtils.show(mTripStatus);
+    }
+    else
+      UiUtils.hide(mTripStatus);
   }
 
   public interface NavMenuListener
   {
     void onStopClicked();
+
+    void onTripSafetyClicked();
 
     void onSettingsClicked();
 

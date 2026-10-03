@@ -1,10 +1,17 @@
 package app.organicmaps.safety;
 
 import android.content.ContentResolver;
+import android.content.Context;
 import android.location.Location;
 import android.net.Uri;
 import android.os.SystemClock;
+import android.util.AtomicFile;
 import android.util.Xml;
+import androidx.annotation.Nullable;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import org.xmlpull.v1.XmlPullParser;
@@ -12,6 +19,9 @@ import org.xmlpull.v1.XmlPullParser;
 /** Foreground track guidance. It deliberately does not replace GPX geometry with a road route. */
 public final class GpxNavigation
 {
+  private static final String ACTIVE_FILE = "areamap_active_gpx.bin";
+  private static final int MAX_POINTS = 20000;
+
   public static GpxNavigation current;
   public final GpxTrack track;
   private long mStarted;
@@ -30,7 +40,115 @@ public final class GpxNavigation
     remaining = track.length;
   }
 
-  public void update(Location location)
+  public static synchronized boolean activate(Context context, GpxTrack track)
+  {
+    if (!persist(context.getApplicationContext(), track))
+      return false;
+    context.getSharedPreferences("areamap_gpx_progress", Context.MODE_PRIVATE).edit().clear().commit();
+    current = new GpxNavigation(track);
+    return true;
+  }
+
+  @Nullable
+  public static synchronized GpxNavigation restore(Context context)
+  {
+    if (current != null)
+      return current;
+
+    final File file = new File(context.getApplicationContext().getFilesDir(), ACTIVE_FILE);
+    if (!file.isFile() && !new File(file.getPath() + ".bak").isFile())
+      return null;
+
+    try (DataInputStream input = new DataInputStream(new AtomicFile(file).openRead()))
+    {
+      final int count = input.readInt();
+      if (count < 2 || count > MAX_POINTS)
+        throw new IllegalArgumentException("Invalid saved GPX point count");
+
+      final double[][] points = new double[count][3];
+      for (int i = 0; i < count; i++)
+      {
+        points[i][0] = input.readDouble();
+        points[i][1] = input.readDouble();
+        points[i][2] = input.readDouble();
+      }
+      current = new GpxNavigation(new GpxTrack(points));
+      final android.content.SharedPreferences prefs =
+          context.getSharedPreferences("areamap_gpx_progress", Context.MODE_PRIVATE);
+      current.mPrevious = Double.longBitsToDouble(prefs.getLong("previous", Double.doubleToLongBits(-1)));
+      current.mFirstProgress = Double.longBitsToDouble(prefs.getLong("first", Double.doubleToLongBits(-1)));
+      current.remaining =
+          Double.longBitsToDouble(prefs.getLong("remaining", Double.doubleToLongBits(current.track.length)));
+      current.seconds = prefs.getInt("seconds", 0);
+      current.arrived = prefs.getBoolean("arrived", false);
+      final long wallNow = System.currentTimeMillis();
+      final long elapsedNow = SystemClock.elapsedRealtime();
+      final long startWall = prefs.getLong("started_wall", wallNow);
+      current.mStarted = elapsedNow - Math.max(0, wallNow - startWall);
+      final long fixWall = prefs.getLong("fix_wall", 0);
+      current.mLastFix = fixWall == 0 ? 0 : elapsedNow - Math.max(0, wallNow - fixWall);
+      // A new process must obtain a fresh position before presenting live guidance.
+      current.hasFix = false;
+      return current;
+    }
+    catch (Exception ignored)
+    {
+      new AtomicFile(file).delete();
+      return null;
+    }
+  }
+
+  public static synchronized void stop(Context context)
+  {
+    current = null;
+    new AtomicFile(new File(context.getApplicationContext().getFilesDir(), ACTIVE_FILE)).delete();
+    context.getSharedPreferences("areamap_gpx_progress", Context.MODE_PRIVATE).edit().clear().commit();
+  }
+
+  public synchronized void saveProgress(Context context)
+  {
+    final long elapsedNow = SystemClock.elapsedRealtime();
+    final long wallNow = System.currentTimeMillis();
+    context.getSharedPreferences("areamap_gpx_progress", Context.MODE_PRIVATE)
+        .edit()
+        .putLong("previous", Double.doubleToLongBits(mPrevious))
+        .putLong("first", Double.doubleToLongBits(mFirstProgress))
+        .putLong("remaining", Double.doubleToLongBits(remaining))
+        .putInt("seconds", seconds)
+        .putBoolean("arrived", arrived)
+        .putLong("started_wall", mFirstProgress < 0 ? wallNow : wallNow - (elapsedNow - mStarted))
+        .putLong("fix_wall", mLastFix == 0 ? 0 : wallNow - (elapsedNow - mLastFix))
+        .apply();
+  }
+
+  private static boolean persist(Context context, GpxTrack track)
+  {
+    final AtomicFile file = new AtomicFile(new File(context.getFilesDir(), ACTIVE_FILE));
+    FileOutputStream stream = null;
+    try
+    {
+      stream = file.startWrite();
+      final DataOutputStream output = new DataOutputStream(stream);
+      output.writeInt(track.points.length);
+      for (double[] point : track.points)
+      {
+        output.writeDouble(point[0]);
+        output.writeDouble(point[1]);
+        output.writeDouble(point[2]);
+      }
+      output.flush();
+      file.finishWrite(stream);
+      return true;
+    }
+    catch (Exception ignored)
+    {
+      if (stream != null)
+        file.failWrite(stream);
+      return false;
+    }
+  }
+
+  public synchronized void update(Location location)
   {
     final long now = SystemClock.elapsedRealtime();
     hasFix = location != null && location.hasAccuracy() && location.getAccuracy() <= 50
@@ -87,7 +205,7 @@ public final class GpxNavigation
               return null;
           if ("trkpt".equals(name) || "rtept".equals(name))
           {
-            if (points.size() >= 20000)
+            if (points.size() >= MAX_POINTS)
               return null;
             point = new double[] {Double.parseDouble(parser.getAttributeValue(null, "lat")),
                                   Double.parseDouble(parser.getAttributeValue(null, "lon")), Double.NaN};

@@ -1,0 +1,25 @@
+<resources>
+  <string name="route_preview_pedestrian">Пеший маршрут</string>
+  <string name="route_preview_distance">Дистанция</string>
+  <string name="route_preview_ascent">Набор высоты</string>
+  <string name="route_preview_duration">В пути</string>
+  <string name="route_preview_offline">Офлайн-карты</string>
+  <string name="route_preview_weather">Погода на маршруте</string>
+  <string name="route_preview_checkpoints">Чекпоинты</string>
+  <string name="route_preview_show_map">Показать на карте ›</string>
+  <string name="route_preview_no_elevation">Для этого маршрута нет профиля высоты</string>
+  <string name="route_preview_available">Доступны</string>
+  <string name="route_preview_download">Скачать</string>
+  <string name="route_preview_unknown">Проверить</string>
+  <string name="route_preview_temperature">%1$.0f°</string>
+  <string name="route_preview_wind">Ветер %1$.0f км/ч</string>
+  <string name="route_preview_altitude">%1$d м</string>
+  <string name="route_preview_distance_value">%1$.1f км</string>
+  <string name="route_preview_coordinates">%1$.4f, %2$.4f</string>
+  <string name="route_preview_elapsed">%1$d:%2$02d</string>
+  <string name="route_preview_reverse">Развернуть маршрут</string>
+  <string name="route_preview_reset">Сбросить маршрут</string>
+  <string name="route_preview_empty">—</string>
+  <string name="route_preview_start_marker">S</string>
+  <string name="route_preview_finish_marker">F</string>
+</resources>

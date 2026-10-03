@@ -30,6 +30,18 @@
       app:trackCornerRadius="@dimen/nav_progress_head"
       app:trackThickness="@dimen/nav_progress"
       app:trackColor="@color/bg_routing_progress" />
+
+    <TextView
+      android:id="@+id/areamap_nav_trip_status"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:paddingStart="@dimen/nav_bottom_gap"
+      android:paddingTop="6dp"
+      android:paddingEnd="@dimen/nav_bottom_gap"
+      android:paddingBottom="6dp"
+      android:text="@string/areamap_nav_no_registered_trip"
+      android:visibility="gone"
+      tools:visibility="visible" />
   </LinearLayout>
 
   <LinearLayout
@@ -61,6 +73,14 @@
       android:scaleType="center"
       app:srcCompat="@drawable/ic_menu_settings"
       app:tint="?iconTint" />
+
+    <Button
+      android:id="@+id/areamap_trip_safety"
+      android:layout_width="0dp"
+      android:layout_height="@dimen/nav_button_height"
+      android:layout_marginEnd="@dimen/nav_bottom_gap"
+      android:layout_weight="0.3"
+      android:text="@string/areamap_nav_safety" />
 
     <Button
       android:id="@+id/stop"

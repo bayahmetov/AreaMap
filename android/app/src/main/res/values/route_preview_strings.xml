@@ -1,0 +1,25 @@
+<resources>
+  <string name="route_preview_pedestrian">Walking route</string>
+  <string name="route_preview_distance">Distance</string>
+  <string name="route_preview_ascent">Elevation gain</string>
+  <string name="route_preview_duration">Duration</string>
+  <string name="route_preview_offline">Offline maps</string>
+  <string name="route_preview_weather">Weather en route</string>
+  <string name="route_preview_checkpoints">Checkpoints</string>
+  <string name="route_preview_show_map">Show on map ›</string>
+  <string name="route_preview_no_elevation">Elevation profile is unavailable for this route</string>
+  <string name="route_preview_available">Ready</string>
+  <string name="route_preview_download">Download</string>
+  <string name="route_preview_unknown">Check</string>
+  <string name="route_preview_temperature">%1$.0f°</string>
+  <string name="route_preview_wind">%1$.0f km/h wind</string>
+  <string name="route_preview_altitude">%1$d m</string>
+  <string name="route_preview_distance_value">%1$.1f km</string>
+  <string name="route_preview_coordinates">%1$.4f, %2$.4f</string>
+  <string name="route_preview_elapsed">%1$d:%2$02d</string>
+  <string name="route_preview_reverse">Reverse route</string>
+  <string name="route_preview_reset">Reset route</string>
+  <string name="route_preview_empty">—</string>
+  <string name="route_preview_start_marker">S</string>
+  <string name="route_preview_finish_marker">F</string>
+</resources>

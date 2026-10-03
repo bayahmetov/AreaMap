@@ -11,17 +11,21 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import app.organicmaps.R;
-import app.organicmaps.sdk.location.TrackRecorder;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import java.text.DateFormat;
 import java.util.Date;
 
 public final class TripStartFlow
 {
+  public interface RegisteredStart
+  {
+    void start(@NonNull TripSafety.Profile profile);
+  }
+
   private TripStartFlow() {}
 
   public static void show(@NonNull Activity activity, @NonNull TripPlan plan,
-                          @NonNull Runnable startDemo, @NonNull Runnable startRegistered)
+                          @NonNull Runnable startDemo, @NonNull RegisteredStart startRegistered)
   {
     new MaterialAlertDialogBuilder(activity)
         .setTitle(R.string.areamap_start_mode_title)
@@ -37,7 +41,7 @@ public final class TripStartFlow
   }
 
   private static void showRegistration(@NonNull Activity activity, @NonNull TripPlan plan,
-                                       @NonNull Runnable startRegistered)
+                                       @NonNull RegisteredStart startRegistered)
   {
     final View content = LayoutInflater.from(activity).inflate(R.layout.areamap_trip_registration, null);
     final TextView summary = content.findViewById(R.id.trip_registration_summary);
@@ -113,7 +117,7 @@ public final class TripStartFlow
   }
 
   private static void showConfirmation(@NonNull Activity activity, @NonNull TripPlan plan,
-                                       @NonNull TripSafety.Profile profile, @NonNull Runnable startRegistered)
+                                       @NonNull TripSafety.Profile profile, @NonNull RegisteredStart startRegistered)
   {
     final long now = System.currentTimeMillis();
     final String preview = activity.getString(R.string.areamap_confirm_send_body,
@@ -126,12 +130,8 @@ public final class TripStartFlow
         .setMessage(preview)
         .setNegativeButton(R.string.areamap_back, (dialog, which) ->
             showRegistration(activity, plan, startRegistered))
-        .setPositiveButton(R.string.areamap_confirm_and_start, (dialog, which) -> {
-          final TripSafety safety = TripSafety.get(activity);
-          safety.startMonitoredTrip(plan, profile, !TrackRecorder.nativeIsTrackRecordingEnabled());
-          startRegistered.run();
-          TripReportSender.shareToTelegram(activity, safety.startReport());
-        })
+        .setPositiveButton(R.string.areamap_confirm_and_start,
+                           (dialog, which) -> startRegistered.start(profile))
         .show();
   }
 

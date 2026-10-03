@@ -65,6 +65,7 @@ public:
 
   dp::Anchor GetAnchor() const override;
   drape_ptr<SymbolNameZoomInfo> GetSymbolNames() const override;
+  drape_ptr<ColoredSymbolZoomInfo> GetColoredSymbols() const override;
 
   df::ColorConstant GetColorConstant() const override;
 

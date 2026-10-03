@@ -40,7 +40,15 @@ public final class TripWeatherNotifier
 
   public static void evaluate(@NonNull Context context, @NonNull TripSafety safety)
   {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+        && ActivityCompat.checkSelfPermission(context, POST_NOTIFICATIONS) != PERMISSION_GRANTED)
+      return;
+    if (!NotificationManagerCompat.from(context).areNotificationsEnabled())
+      return;
     if (!safety.hasActiveTrip())
+      return;
+    if (!TripWeatherRepository.hasForecastForPoint(context, safety.weatherLat(), safety.weatherLon(),
+                                                    safety.weatherAltitudeMeters()))
       return;
 
     final long now = System.currentTimeMillis();
@@ -65,6 +73,10 @@ public final class TripWeatherNotifier
     if (!safety.hasActiveTrip())
       return context.getString(R.string.areamap_weather_no_trip);
 
+    if (!TripWeatherRepository.hasForecastForPoint(context, safety.weatherLat(), safety.weatherLon(),
+                                                    safety.weatherAltitudeMeters()))
+      return context.getString(R.string.areamap_weather_no_cache);
+
     final TripWeatherRepository.Hour hour =
         TripWeatherRepository.closestHour(context, safety.weatherTargetAtMillis());
     if (hour == null)
@@ -84,6 +96,10 @@ public final class TripWeatherNotifier
   @NonNull
   public static String summaryForPlan(@NonNull Context context, @NonNull TripPlan plan)
   {
+    if (!TripWeatherRepository.hasForecastForPoint(context, plan.weatherLat, plan.weatherLon,
+                                                    plan.weatherAltitudeMeters))
+      return context.getString(R.string.areamap_weather_no_cache);
+
     final long targetMillis = System.currentTimeMillis() + plan.weatherEtaSeconds * 1000L;
     final TripWeatherRepository.Hour hour = TripWeatherRepository.closestHour(context, targetMillis);
     if (hour == null)
@@ -119,7 +135,7 @@ public final class TripWeatherNotifier
   }
 
   @NonNull
-  private static String weatherLabel(@NonNull Context context, int code)
+  public static String weatherLabel(@NonNull Context context, int code)
   {
     if (code == 0)
       return context.getString(R.string.areamap_weather_clear);

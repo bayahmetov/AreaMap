@@ -4,14 +4,19 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.location.Location;
 import androidx.annotation.NonNull;
+import app.organicmaps.MwmApplication;
 import app.organicmaps.R;
 import app.organicmaps.sdk.Framework;
+import app.organicmaps.sdk.Router;
+import app.organicmaps.sdk.routing.RouteMarkData;
+import app.organicmaps.sdk.routing.RouteMarkType;
 import app.organicmaps.sdk.routing.RoutingController;
 import app.organicmaps.sdk.routing.RoutingInfo;
 import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 /**
  * Stores the latest SOS fix, the reusable hiker profile and the currently registered trip.
@@ -69,15 +74,18 @@ public final class TripSafety
 
   public synchronized void onLocation(@NonNull Location location)
   {
-    if (!location.hasAccuracy())
+    if (!location.hasAccuracy() || location.getAccuracy() > 100
+        || System.currentTimeMillis() - location.getTime() > 120000)
       return;
     save(location);
     updateReturnDetection(location);
     updateScheduleDelay();
   }
 
-  public void save(@NonNull Location location)
+  public synchronized void save(@NonNull Location location)
   {
+    if (!location.hasAccuracy() || location.getTime() < mPrefs.getLong("measured", 0))
+      return;
     mPrefs.edit()
         .putString("lat", Double.toString(location.getLatitude()))
         .putString("lon", Double.toString(location.getLongitude()))
@@ -105,43 +113,145 @@ public final class TripSafety
         .apply();
   }
 
-  public void startMonitoredTrip(@NonNull TripPlan plan, @NonNull Profile profile, boolean ownsTrackRecording)
+  public synchronized boolean startMonitoredTrip(@NonNull TripPlan plan, @NonNull Profile profile,
+                                                 boolean ownsTrackRecording)
   {
+    if (hasActiveTrip())
+      return false;
     saveProfile(profile);
     final long now = System.currentTimeMillis();
-    final String tripId = new SimpleDateFormat("yyyyMMdd-HHmmss", Locale.US).format(new Date(now));
-    mPrefs.edit()
-        .putBoolean("trip_active", true)
-        .putString("trip_id", "AM-" + tripId)
-        .putLong("trip_started_at", now)
-        .putLong("trip_planned_finish", now + plan.plannedSeconds * 1000L)
-        .putLong("trip_planned_return", now + (plan.plannedSeconds + plan.returnSeconds) * 1000L)
-        .putInt("trip_planned_seconds", plan.plannedSeconds)
-        .putInt("trip_return_seconds", plan.returnSeconds)
-        .putString("trip_start_title", plan.startTitle)
-        .putString("trip_finish_title", plan.finishTitle)
-        .putString("trip_start_lat", Double.toString(plan.startLat))
-        .putString("trip_start_lon", Double.toString(plan.startLon))
-        .putString("trip_finish_lat", Double.toString(plan.finishLat))
-        .putString("trip_finish_lon", Double.toString(plan.finishLon))
-        .putString("trip_distance", Double.toString(plan.distanceMeters))
-        .putString("trip_checkpoints", encodeCheckpoints(plan))
-        .putString("trip_weather_lat", Double.toString(plan.weatherLat))
-        .putString("trip_weather_lon", Double.toString(plan.weatherLon))
-        .putInt("trip_weather_altitude", plan.weatherAltitudeMeters)
-        .putInt("trip_weather_eta_seconds", plan.weatherEtaSeconds)
-        .putBoolean("trip_weather_highest", plan.weatherAtHighestPoint)
-        .putBoolean("trip_departed_start", false)
-        .putBoolean("trip_return_detected", false)
-        .putBoolean("trip_return_prompt_dismissed", false)
-        .putBoolean("trip_owns_track_recording", ownsTrackRecording)
-        .putInt("trip_schedule_alert_bucket", 0)
-        .putInt("trip_timing_offset_seconds", 0)
-        .putLong("trip_last_ok", 0)
-        .apply();
+    final String tripId = java.util.UUID.randomUUID().toString();
+    final boolean saved = mPrefs.edit()
+                              .putBoolean("trip_active", true)
+                              .putString("trip_id", "AM-" + tripId)
+                              .putLong("trip_started_at", now)
+                              .putLong("trip_planned_finish", now + plan.plannedSeconds * 1000L)
+                              .putLong("trip_planned_return", now + (plan.plannedSeconds + plan.returnSeconds) * 1000L)
+                              .putInt("trip_planned_seconds", plan.plannedSeconds)
+                              .putInt("trip_return_seconds", plan.returnSeconds)
+                              .putString("trip_start_title", plan.startTitle)
+                              .putString("trip_finish_title", plan.finishTitle)
+                              .putString("trip_start_lat", Double.toString(plan.startLat))
+                              .putString("trip_start_lon", Double.toString(plan.startLon))
+                              .putString("trip_finish_lat", Double.toString(plan.finishLat))
+                              .putString("trip_finish_lon", Double.toString(plan.finishLon))
+                              .putString("trip_distance", Double.toString(plan.distanceMeters))
+                              .putString("trip_route_points", encodeRoutePoints())
+                              .putString("trip_checkpoints", encodeCheckpoints(plan))
+                              .putString("trip_weather_lat", Double.toString(plan.weatherLat))
+                              .putString("trip_weather_lon", Double.toString(plan.weatherLon))
+                              .putInt("trip_weather_altitude", plan.weatherAltitudeMeters)
+                              .putInt("trip_weather_eta_seconds", plan.weatherEtaSeconds)
+                              .putBoolean("trip_weather_highest", plan.weatherAtHighestPoint)
+                              .putBoolean("trip_departed_start", false)
+                              .putBoolean("trip_return_detected", false)
+                              .putBoolean("trip_return_prompt_dismissed", false)
+                              .putBoolean("trip_owns_track_recording", ownsTrackRecording)
+                              .putInt("trip_schedule_alert_bucket", 0)
+                              .putInt("trip_timing_offset_seconds", 0)
+                              .putLong("trip_last_ok", 0)
+                              .commit();
 
+    if (!saved)
+      return false;
     TripWeatherRepository.clearAlertState(mContext);
     TripWeatherWorker.start(mContext);
+    return true;
+  }
+
+  @NonNull
+  public String tripId()
+  {
+    return hasActiveTrip() ? mPrefs.getString("trip_id", "unregistered") : "unregistered";
+  }
+
+  public double startLat()
+  {
+    return parseDouble("trip_start_lat");
+  }
+  public double startLon()
+  {
+    return parseDouble("trip_start_lon");
+  }
+  public double finishLat()
+  {
+    return parseDouble("trip_finish_lat");
+  }
+  public double finishLon()
+  {
+    return parseDouble("trip_finish_lon");
+  }
+
+  public boolean matches(@NonNull TripPlan plan)
+  {
+    final float[] distance = new float[1];
+    Location.distanceBetween(finishLat(), finishLon(), plan.finishLat, plan.finishLon, distance);
+    return hasActiveTrip() && distance[0] < 100;
+  }
+
+  private String encodeRoutePoints()
+  {
+    final JSONArray out = new JSONArray();
+    final RouteMarkData[] points = Framework.nativeGetRoutePoints();
+    if (points != null)
+      for (RouteMarkData point : points)
+      {
+        try
+        {
+          out.put(new JSONObject()
+                      .put("lat", point.mLat)
+                      .put("lon", point.mLon)
+                      .put("type", point.mPointType.name())
+                      .put("title", point.mTitle == null ? "" : point.mTitle)
+                      .put("subtitle", point.mSubtitle == null ? "" : point.mSubtitle));
+        }
+        catch (org.json.JSONException e)
+        {
+          throw new IllegalStateException("Invalid route point", e);
+        }
+      }
+    return out.toString();
+  }
+
+  /** Rebuild the original ordered route points, retaining intermediate stops and the trip identity. */
+  public boolean restoreSavedRoute()
+  {
+    if (!hasActiveTrip())
+      return false;
+    try
+    {
+      final JSONArray points = new JSONArray(mPrefs.getString("trip_route_points", "[]"));
+      if (points.length() < 2)
+        return false;
+      final RoutingController controller = RoutingController.get();
+      controller.prepare(null, null, Router.Pedestrian);
+      for (int i = 0; i < points.length(); i++)
+      {
+        final JSONObject point = points.getJSONObject(i);
+        Framework.addRoutePoint(new RouteMarkData(point.getString("title"), point.getString("subtitle"),
+                                                  RouteMarkType.valueOf(point.getString("type")), i, true, false, false,
+                                                  point.getDouble("lat"), point.getDouble("lon")),
+                                false);
+      }
+      controller.checkAndBuildRoute();
+      return true;
+    }
+    catch (org.json.JSONException e)
+    {
+      return false;
+    }
+  }
+
+  @NonNull
+  public String sosReport()
+  {
+    final Profile profile = getProfile();
+    return mContext.getString(R.string.areamap_report_sos_header) + "\n"
+  + mContext.getString(R.string.areamap_report_trip_id, tripId()) + "\n"
+  + mContext.getString(R.string.areamap_report_person, profile.name, profile.phone) + "\n"
+  + mContext.getString(R.string.areamap_report_group, profile.groupSize) + "\n"
+  + mContext.getString(R.string.areamap_report_emergency, profile.emergencyName, profile.emergencyPhone) + "\n"
+  + (hasActiveTrip() ? activeTripSummary() + "\n" : "") + card();
   }
 
   public boolean hasActiveTrip()
@@ -196,9 +306,10 @@ public final class TripSafety
 
   public void markImOk()
   {
+    // Acknowledging an alert must not reset its delay bucket, otherwise the next GPS fix
+    // can immediately post the same warning again.
     mPrefs.edit()
         .putLong("trip_last_ok", System.currentTimeMillis())
-        .putInt("trip_schedule_alert_bucket", 0)
         .apply();
   }
 
@@ -248,7 +359,7 @@ public final class TripSafety
         .putBoolean("trip_owns_track_recording", false)
         .putInt("trip_schedule_alert_bucket", 0)
         .putInt("trip_timing_offset_seconds", 0)
-        .apply();
+        .commit();
   }
 
   @NonNull
@@ -276,6 +387,36 @@ public final class TripSafety
   public String returnReport()
   {
     return report(true);
+  }
+
+  @NonNull
+  public String okReport()
+  {
+    final Profile profile = getProfile();
+    final StringBuilder out = new StringBuilder();
+    out.append(mContext.getString(R.string.areamap_report_ok_header)).append('\n');
+    out.append(mContext.getString(R.string.areamap_report_trip_id, mPrefs.getString("trip_id", "—"))).append('\n');
+    out.append(mContext.getString(R.string.areamap_report_person, profile.name, profile.phone)).append('\n');
+    out.append(mContext.getString(R.string.areamap_report_ok_time,
+                                  formatTime(System.currentTimeMillis()))).append('\n');
+    out.append(mContext.getString(R.string.areamap_report_last_fix, coordinates())).append('\n');
+    out.append(mContext.getString(R.string.areamap_nav_return_eta,
+                                  formatClock(mPrefs.getLong("trip_planned_return", 0))));
+    return out.toString();
+  }
+
+  @NonNull
+  public String breakReport(int addedMinutes)
+  {
+    final Profile profile = getProfile();
+    final StringBuilder out = new StringBuilder();
+    out.append(mContext.getString(R.string.areamap_report_break_header)).append('\n');
+    out.append(mContext.getString(R.string.areamap_report_trip_id, mPrefs.getString("trip_id", "—"))).append('\n');
+    out.append(mContext.getString(R.string.areamap_report_person, profile.name, profile.phone)).append('\n');
+    out.append(mContext.getString(R.string.areamap_report_break_time, addedMinutes,
+                                  formatClock(mPrefs.getLong("trip_planned_return", 0)))).append('\n');
+    out.append(mContext.getString(R.string.areamap_report_last_fix, coordinates()));
+    return out.toString();
   }
 
   @NonNull
@@ -353,7 +494,8 @@ public final class TripSafety
 
   private void updateScheduleDelay()
   {
-    if (!hasActiveTrip() || !RoutingController.get().isNavigating())
+    if (!hasActiveTrip() || !MwmApplication.from(mContext).getOrganicMaps().arePlatformAndCoreInitialized()
+        || !RoutingController.get().isNavigating())
       return;
 
     final RoutingInfo info = Framework.nativeGetRouteFollowingInfo();

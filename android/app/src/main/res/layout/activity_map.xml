@@ -59,11 +59,11 @@
     android:layout_height="match_parent" />
 
   <include
-    android:id="@+id/areamap_route_panel_v2"
-    layout="@layout/areamap_route_panel_v2"
+    android:id="@+id/areamap_track_navigation"
+    layout="@layout/areamap_track_navigation"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_gravity="bottom|center_horizontal" />
+    android:layout_gravity="top|center_horizontal" />
 
   <androidx.fragment.app.FragmentContainerView
     android:id="@+id/place_page_container_fragment"
