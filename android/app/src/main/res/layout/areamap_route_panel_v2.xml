@@ -59,5 +59,5 @@
       <TextView android:id="@+id/route_preview_weather_details" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="10dp" android:textColor="@color/areamap_text_secondary" android:textSize="11sp" />
     </LinearLayout>
   </androidx.core.widget.NestedScrollView>
-  <com.google.android.material.button.MaterialButton android:textColor="@color/areamap_on_green" android:id="@+id/areamap_route_v2_start" style="@style/AreaMap.ActionButton" android:layout_width="match_parent" android:layout_height="52dp" android:layout_marginStart="16dp" android:layout_marginEnd="16dp" android:layout_marginBottom="8dp" android:text="@string/areamap_rebuild_start" />
+  <com.google.android.material.button.MaterialButton android:textSize="16sp" android:textColor="@color/areamap_on_green" android:id="@+id/areamap_route_v2_start" style="@style/AreaMap.ActionButton" android:layout_width="match_parent" android:layout_height="52dp" android:layout_marginStart="16dp" android:layout_marginEnd="16dp" android:layout_marginBottom="8dp" android:text="@string/areamap_rebuild_start" />
 </LinearLayout>

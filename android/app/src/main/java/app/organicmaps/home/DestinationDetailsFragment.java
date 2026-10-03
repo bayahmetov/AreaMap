@@ -7,6 +7,7 @@ import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.text.format.DateUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,13 +28,12 @@ import app.organicmaps.safety.TripPlan;
 import app.organicmaps.safety.TripWeatherNotifier;
 import app.organicmaps.safety.TripWeatherRepository;
 import app.organicmaps.util.SharingUtils;
+import app.organicmaps.util.Utils;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import java.io.IOException;
 import java.io.InputStream;
-import java.text.DateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -110,19 +110,34 @@ public final class DestinationDetailsFragment extends BottomSheetDialogFragment
       updateFavorite();
     });
     gallery();
+    final View hero = root.findViewById(R.id.destination_hero);
+    hero.addOnLayoutChangeListener((view, l, t, r, b, oldL, oldT, oldR, oldB) -> {
+      final int height = Math.round((r - l) * 10f / 16f);
+      if (height > 0 && view.getLayoutParams().height != height)
+      {
+        view.getLayoutParams().height = height;
+        view.requestLayout();
+      }
+    });
+    text(R.id.destination_source, getString(R.string.destination_source, mItem.sourceName));
+    root.findViewById(R.id.destination_source)
+        .setOnClickListener(v -> Utils.openUrl(requireContext(), mItem.sourceUrl));
     final LinearLayout info = root.findViewById(R.id.destination_info);
     if (mItem.altitude >= 0)
     {
       final TextView altitude = new TextView(requireContext());
-      altitude.setText(getString(R.string.home_altitude, mItem.altitude));
+      altitude.setText(getString(R.string.destination_altitude_label, mItem.altitude));
+      altitude.setTextSize(16);
       altitude.setTextColor(androidx.core.content.ContextCompat.getColor(requireContext(), R.color.areamap_text));
-      altitude.setBackgroundResource(R.drawable.destination_card);
+
       final int p = getResources().getDimensionPixelSize(R.dimen.home_padding);
-      altitude.setPadding(p, p, p, p);
+      altitude.setPadding(0, p / 2, p, p / 2);
       info.addView(altitude);
     }
-    text(R.id.destination_description,
-         getString(mItem.description == 0 ? R.string.destination_description_missing : mItem.description));
+    text(R.id.destination_description, mItem.description == 0 ? "" : getString(mItem.description));
+    root.findViewById(R.id.destination_description_heading)
+        .setVisibility(mItem.description == 0 ? View.GONE : View.VISIBLE);
+    root.findViewById(R.id.destination_description).setVisibility(mItem.description == 0 ? View.GONE : View.VISIBLE);
     ((TextView) root.findViewById(R.id.destination_description))
         .setMaxLines(mDescriptionExpanded ? Integer.MAX_VALUE : 4);
     root.findViewById(R.id.destination_description_expand)
@@ -190,7 +205,7 @@ public final class DestinationDetailsFragment extends BottomSheetDialogFragment
     final android.widget.ImageButton favorite = mRoot.findViewById(R.id.destination_favorite);
     favorite.setSelected(saved);
     favorite.setColorFilter(androidx.core.content.ContextCompat.getColor(
-        requireContext(), saved ? R.color.areamap_green : R.color.areamap_on_green));
+        requireContext(), saved ? R.color.areamap_green : R.color.home_photo_text));
     favorite.setContentDescription(
         getString(saved ? R.string.home_unfavorite : R.string.home_favorite, getString(mItem.title)));
   }
@@ -206,14 +221,14 @@ public final class DestinationDetailsFragment extends BottomSheetDialogFragment
           photos.add(photo);
       }
       catch (IOException ignored)
-      { /* Missing local photo is explicitly disclosed below. */
+      { /* Use the local artwork if decoding fails. */
       }
     mRoutePhoto = photos.isEmpty() ? null : photos.get(0);
-    text(R.id.destination_photo_caption, getString(photos.isEmpty()           ? R.string.destination_photo_missing
-                                                   : mItem.regionalPhoto      ? R.string.destination_regional_photo
-                                                   : mItem.photoShowsApproach ? R.string.home_photo_approach
-                                                                              : R.string.home_photo_credits));
+    text(R.id.destination_photo_caption,
+         getString(mItem.photoShowsApproach ? R.string.home_photo_approach : R.string.home_photo_credits));
+    mRoot.findViewById(R.id.destination_photo_caption).setVisibility(photos.isEmpty() ? View.GONE : View.VISIBLE);
     mRoot.findViewById(R.id.destination_photo_caption).setOnClickListener(v -> HomePhotoCredits.show(requireContext()));
+    mRoot.findViewById(R.id.destination_artwork).setVisibility(photos.isEmpty() ? View.VISIBLE : View.GONE);
     final RecyclerView gallery = mRoot.findViewById(R.id.destination_gallery);
     final LinearLayoutManager manager = new LinearLayoutManager(requireContext(), RecyclerView.HORIZONTAL, false);
     gallery.setLayoutManager(manager);
@@ -276,8 +291,50 @@ public final class DestinationDetailsFragment extends BottomSheetDialogFragment
           matches = true;
           break;
         }
-    mRoot.findViewById(R.id.destination_related_empty).setVisibility(matches ? View.GONE : View.VISIBLE);
-    mRoot.findViewById(R.id.destination_related_scroll).setVisibility(matches ? View.VISIBLE : View.GONE);
+    final boolean hasRoutes = matches || !mItem.relatedRoutes.isEmpty();
+    mRoot.findViewById(R.id.destination_related_empty).setVisibility(hasRoutes ? View.GONE : View.VISIBLE);
+    mRoot.findViewById(R.id.destination_related_scroll).setVisibility(hasRoutes ? View.VISIBLE : View.GONE);
+    final LinearLayout container = mRoot.findViewById(R.id.destination_related);
+    for (RelatedRoute source : mItem.relatedRoutes)
+    {
+      final LinearLayout sourceCard = new LinearLayout(requireContext());
+      sourceCard.setOrientation(LinearLayout.VERTICAL);
+      sourceCard.setBackgroundResource(R.drawable.destination_card);
+      final int p = getResources().getDimensionPixelSize(R.dimen.home_padding);
+      sourceCard.setPadding(p, p, p, p);
+      final LinearLayout.LayoutParams params =
+          new LinearLayout.LayoutParams(p * 18, ViewGroup.LayoutParams.WRAP_CONTENT);
+      params.setMarginEnd(p / 2);
+      sourceCard.setLayoutParams(params);
+      final ImageView photo = new ImageView(requireContext());
+      photo.setScaleType(ImageView.ScaleType.CENTER_CROP);
+      if (mRoutePhoto == null)
+        photo.setImageResource(R.drawable.destination_artwork);
+      else
+        photo.setImageBitmap(mRoutePhoto);
+      photo.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+      sourceCard.addView(photo, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, p * 8));
+      addRouteLabel(sourceCard, getString(source.title), 18);
+      if (source.sourceDistanceKm > 0)
+      {
+        addRouteLabel(sourceCard, getString(R.string.destination_related_source), 14);
+        addRouteLabel(sourceCard,
+                      getString(R.string.destination_source_figures, source.sourceDistanceKm,
+                                getString(source.sourceDuration), source.sourceDifficulty),
+                      14);
+        if (source.sourceAscent > 0)
+          addRouteLabel(sourceCard, getString(R.string.destination_source_ascent, source.sourceAscent), 14);
+      }
+      addRouteLabel(sourceCard, getString(R.string.destination_route_variant), 14);
+      sourceCard.setClickable(true);
+      sourceCard.setFocusable(true);
+      sourceCard.setOnClickListener(v -> {
+        final MwmActivity activity = (MwmActivity) requireActivity();
+        if (activity.buildRelatedDestinationRoute(source))
+          dismiss();
+      });
+      container.addView(sourceCard);
+    }
     if (!matches)
       return;
     final LinearLayout card = new LinearLayout(requireContext());
@@ -300,16 +357,9 @@ public final class DestinationDetailsFragment extends BottomSheetDialogFragment
     final TextView route = new TextView(requireContext());
     route.setText(getString(R.string.destination_route_current, plan.startTitle, plan.finishTitle,
                             plan.distanceMeters / 1000, plan.plannedSeconds / 60));
+    route.setTextSize(16);
     route.setTextColor(androidx.core.content.ContextCompat.getColor(requireContext(), R.color.areamap_text));
     card.addView(route);
-    if (mItem.regionalPhoto || mItem.photoShowsApproach)
-    {
-      final TextView caption = new TextView(requireContext());
-      caption.setText(mItem.regionalPhoto ? R.string.destination_regional_photo : R.string.home_photo_approach);
-      caption.setTextColor(
-          androidx.core.content.ContextCompat.getColor(requireContext(), R.color.areamap_text_secondary));
-      card.addView(caption);
-    }
     card.setMinimumHeight(getResources().getDimensionPixelSize(R.dimen.home_control));
     card.setFocusable(true);
     card.setContentDescription(route.getText());
@@ -319,6 +369,16 @@ public final class DestinationDetailsFragment extends BottomSheetDialogFragment
       activity.showAreaMapRoutePanel(plan);
     });
     ((LinearLayout) mRoot.findViewById(R.id.destination_related)).addView(card);
+  }
+
+  private void addRouteLabel(LinearLayout card, String value, int size)
+  {
+    final TextView label = new TextView(requireContext());
+    label.setText(value);
+    label.setTextSize(size);
+    label.setTextColor(androidx.core.content.ContextCompat.getColor(requireContext(), R.color.areamap_text));
+    label.setPadding(0, getResources().getDimensionPixelSize(R.dimen.home_gap), 0, 0);
+    card.addView(label);
   }
 
   private void renderWeather()
@@ -333,17 +393,20 @@ public final class DestinationDetailsFragment extends BottomSheetDialogFragment
     else
     {
       final TripWeatherRepository.Hour hour = hours.get(0);
-      final DateFormat time = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
-      text(R.id.destination_weather,
-           getString(R.string.destination_weather_value, time.format(new Date(hour.timeMillis)), hour.temperatureC,
-                     TripWeatherNotifier.weatherLabel(requireContext(), hour.weatherCode),
-                     time.format(new Date(TripWeatherRepository.destinationFetchedAt(requireContext(), mItem.id)))));
+      text(R.id.destination_weather, getString(R.string.destination_weather_value, hour.temperatureC,
+                                               TripWeatherNotifier.weatherLabel(requireContext(), hour.weatherCode)));
+      final long fetched = TripWeatherRepository.destinationFetchedAt(requireContext(), mItem.id);
+      text(R.id.destination_weather_age, getString(R.string.destination_weather_updated,
+                                                   DateUtils.getRelativeTimeSpanString(
+                                                       fetched, System.currentTimeMillis(), DateUtils.MINUTE_IN_MILLIS,
+                                                       DateUtils.FORMAT_ABBREV_RELATIVE)));
       ((TextView) mRoot.findViewById(R.id.destination_weather))
           .setCompoundDrawablesWithIntrinsicBounds(hour.weatherCode == 0    ? R.drawable.ic_preview_sun
                                                    : hour.weatherCode <= 48 ? R.drawable.ic_preview_cloud
                                                                             : R.drawable.ic_preview_rain,
                                                    0, 0, 0);
     }
+    mRoot.findViewById(R.id.destination_weather_age).setVisibility(hours.isEmpty() ? View.GONE : View.VISIBLE);
     mRoot.findViewById(R.id.destination_weather_refresh).setEnabled(!mLoading);
   }
 

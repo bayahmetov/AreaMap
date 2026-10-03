@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-  xmlns:tools="http://schemas.android.com/tools"
+<LinearLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:ns1="http://schemas.android.com/tools"
   android:layout_width="match_parent"
   android:layout_height="wrap_content"
   android:layout_margin="12dp"
@@ -9,33 +10,31 @@
   android:orientation="vertical"
   android:padding="14dp"
   android:visibility="gone"
-  tools:visibility="visible">
-
+  ns1:visibility="visible">
   <LinearLayout
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:gravity="center_vertical"
     android:orientation="horizontal">
-
     <TextView
       android:layout_width="0dp"
       android:layout_height="wrap_content"
       android:layout_weight="1"
       android:text="@string/areamap_follow_track"
-      android:textStyle="bold" />
-
+      android:textStyle="bold"/>
     <Button
       android:id="@+id/areamap_track_stop"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
-      android:text="@string/areamap_track_stop" />
+      android:text="@string/areamap_track_stop"
+      style="@style/AreaMap.SecondaryButton"
+      android:textSize="14sp"/>
   </LinearLayout>
-
   <TextView
     android:id="@+id/areamap_track_status"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginTop="6dp"
     android:accessibilityLiveRegion="polite"
-    android:text="@string/areamap_track_waiting" />
+    android:text="@string/areamap_track_waiting"/>
 </LinearLayout>

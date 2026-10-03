@@ -1,76 +1,223 @@
-<?xml version="1.0" ?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/destination_root" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:background="@color/areamap_bg">
-
-
-  <androidx.core.widget.NestedScrollView android:id="@+id/destination_scroll" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:fillViewport="false">
-
-
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="@dimen/home_padding" android:orientation="vertical">
-
-
-      <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="220dp" app:cardCornerRadius="@dimen/home_card_radius" app:cardBackgroundColor="@color/areamap_surface" app:cardElevation="0dp">
-
-
-        <FrameLayout android:layout_width="match_parent" android:layout_height="match_parent">
-
-
-          <androidx.recyclerview.widget.RecyclerView android:id="@+id/destination_gallery" android:layout_width="match_parent" android:layout_height="match_parent"/>
-
-
-          <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="@dimen/home_gap" android:orientation="horizontal">
-
-
-            <ImageButton android:id="@+id/destination_back" style="@style/AreaMap.HomeControl" android:tint="@color/areamap_on_green" android:src="@drawable/destination_back" android:contentDescription="@string/destination_back"/>
-
-
-            <Space android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1"/>
-
-
-            <ImageButton android:id="@+id/destination_favorite" style="@style/AreaMap.HomeControl" android:tint="@color/areamap_on_green" android:src="@drawable/home_heart"/>
-
-
-            <ImageButton android:id="@+id/destination_share" style="@style/AreaMap.HomeControl" android:tint="@color/areamap_on_green" android:src="@drawable/ic_share" android:contentDescription="@string/destination_share"/>
-
-
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:app="http://schemas.android.com/apk/res-auto"
+  android:id="@+id/destination_root"
+  android:layout_width="match_parent"
+  android:layout_height="match_parent"
+  android:orientation="vertical"
+  android:background="@color/areamap_bg">
+  <androidx.core.widget.NestedScrollView
+    android:id="@+id/destination_scroll"
+    android:layout_width="match_parent"
+    android:layout_height="0dp"
+    android:layout_weight="1"
+    android:fillViewport="false">
+    <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:padding="@dimen/home_padding"
+      android:orientation="vertical">
+      <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="220dp"
+        app:cardCornerRadius="18dp"
+        app:cardBackgroundColor="@color/areamap_surface"
+        app:cardElevation="0dp"
+        android:id="@+id/destination_hero">
+        <FrameLayout
+          android:layout_width="match_parent"
+          android:layout_height="match_parent">
+          <ImageView
+            android:id="@+id/destination_artwork"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:src="@drawable/destination_artwork"
+            android:scaleType="centerCrop"
+            android:importantForAccessibility="no"/>
+          <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/destination_gallery"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+          <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="@dimen/home_gap"
+            android:orientation="horizontal">
+            <ImageButton
+              android:id="@+id/destination_back"
+              style="@style/AreaMap.HomeControl"
+              android:tint="@color/home_photo_text"
+              android:src="@drawable/destination_back"
+              android:contentDescription="@string/destination_back"
+              android:background="@drawable/destination_photo_control"/>
+            <Space
+              android:layout_width="0dp"
+              android:layout_height="1dp"
+              android:layout_weight="1"/>
+            <ImageButton
+              android:id="@+id/destination_favorite"
+              style="@style/AreaMap.HomeControl"
+              android:tint="@color/home_photo_text"
+              android:src="@drawable/home_heart"
+              android:background="@drawable/destination_photo_control"/>
+            <ImageButton
+              android:id="@+id/destination_share"
+              style="@style/AreaMap.HomeControl"
+              android:tint="@color/home_photo_text"
+              android:src="@drawable/ic_share"
+              android:contentDescription="@string/destination_share"
+              android:background="@drawable/destination_photo_control"/>
           </LinearLayout>
-
-
         </FrameLayout>
       </com.google.android.material.card.MaterialCardView>
-
-
-      <TextView android:id="@+id/destination_photo_caption" style="@style/AreaMap.HomeText" android:layout_marginBottom="@dimen/home_gap" android:textColor="@color/areamap_text_secondary"/>
-      <TextView android:id="@+id/destination_page_indicator" style="@style/AreaMap.HomeText" android:layout_marginBottom="@dimen/home_gap" android:gravity="center"/>
-      <TextView android:id="@+id/destination_title" style="@style/AreaMap.HomeText" android:layout_marginBottom="@dimen/home_gap" android:textSize="@dimen/home_title_size" android:textStyle="bold"/>
-      <TextView android:id="@+id/destination_type" style="@style/AreaMap.HomeText" android:layout_marginBottom="@dimen/home_gap" android:textColor="@color/areamap_text_secondary"/>
-      <HorizontalScrollView android:layout_width="match_parent" android:layout_height="wrap_content" android:scrollbars="none">
-        <LinearLayout android:id="@+id/destination_info" android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal"/>
+      <TextView
+        android:id="@+id/destination_photo_caption"
+        style="@style/AreaMap.HomeText"
+        android:layout_marginBottom="@dimen/home_gap"
+        android:textColor="@color/areamap_text_secondary"/>
+      <TextView
+        android:id="@+id/destination_page_indicator"
+        style="@style/AreaMap.HomeText"
+        android:layout_marginBottom="@dimen/home_gap"
+        android:gravity="center"/>
+      <TextView
+        android:id="@+id/destination_title"
+        style="@style/AreaMap.HomeText"
+        android:layout_marginBottom="@dimen/home_gap"
+        android:textSize="30sp"
+        android:textStyle="bold"/>
+      <TextView
+        android:id="@+id/destination_type"
+        style="@style/AreaMap.HomeText"
+        android:layout_marginBottom="@dimen/home_gap"
+        android:textColor="@color/areamap_text_secondary"
+        android:textSize="17sp"/>
+      <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="none">
+        <LinearLayout
+          android:id="@+id/destination_info"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:orientation="horizontal"/>
       </HorizontalScrollView>
-
-
-      <TextView android:id="@+id/destination_weather" style="@style/AreaMap.HomeText" android:layout_marginBottom="@dimen/home_gap" android:background="@drawable/destination_card" android:padding="@dimen/home_padding"/>
-      <com.google.android.material.button.MaterialButton android:id="@+id/destination_weather_refresh" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="48dp" android:text="@string/hike_refresh" android:backgroundTint="@color/areamap_green" android:textColor="@color/areamap_on_green"/>
-      <TextView android:id="@+id/destination_description_heading" style="@style/AreaMap.HomeText" android:layout_marginBottom="@dimen/home_gap" android:text="@string/destination_description" android:textStyle="bold"/>
-      <TextView android:id="@+id/destination_description" style="@style/AreaMap.HomeText" android:layout_marginBottom="@dimen/home_gap" android:maxLines="4" android:background="@drawable/destination_card" android:padding="@dimen/home_padding"/>
-      <com.google.android.material.button.MaterialButton android:id="@+id/destination_description_expand" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="48dp" android:text="@string/destination_read_more" android:backgroundTint="@color/areamap_green" android:textColor="@color/areamap_on_green"/>
-      <TextView android:id="@+id/destination_location_heading" style="@style/AreaMap.HomeText" android:layout_marginBottom="@dimen/home_gap" android:text="@string/destination_location" android:textStyle="bold"/>
-      <TextView android:id="@+id/destination_location" style="@style/AreaMap.HomeText" android:background="@drawable/destination_card" android:padding="@dimen/home_padding" android:minHeight="48dp" android:clickable="true" android:focusable="true" android:foreground="?attr/selectableItemBackground"/>
-
-
-      <TextView android:id="@+id/destination_related_heading" style="@style/AreaMap.HomeText" android:layout_marginBottom="@dimen/home_gap" android:text="@string/destination_related" android:textStyle="bold"/>
-      <HorizontalScrollView android:id="@+id/destination_related_scroll" android:layout_width="match_parent" android:layout_height="wrap_content" android:scrollbars="none">
-        <LinearLayout android:id="@+id/destination_related" android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal"/>
+      <TextView
+        style="@style/AreaMap.HomeText"
+        android:text="@string/destination_weather_heading"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_marginTop="12dp"/>
+      <TextView
+        android:id="@+id/destination_weather"
+        style="@style/AreaMap.HomeText"
+        android:layout_marginBottom="@dimen/home_gap"
+        android:background="@drawable/destination_card"
+        android:padding="@dimen/home_padding"
+        android:textSize="24sp"/>
+      <TextView
+        style="@style/AreaMap.HomeText"
+        android:id="@+id/destination_weather_age"
+        android:textColor="@color/areamap_text_secondary"
+        android:textSize="14sp"/>
+      <com.google.android.material.button.MaterialButton
+        android:id="@+id/destination_weather_refresh"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/hike_refresh"
+        style="@style/AreaMap.SecondaryButton"
+        android:minHeight="48dp"
+        android:textSize="14sp"/>
+      <TextView
+        android:id="@+id/destination_description_heading"
+        style="@style/AreaMap.HomeText"
+        android:layout_marginBottom="@dimen/home_gap"
+        android:text="@string/destination_description"
+        android:textStyle="bold"
+        android:textSize="18sp"/>
+      <TextView
+        android:id="@+id/destination_description"
+        style="@style/AreaMap.HomeText"
+        android:layout_marginBottom="@dimen/home_gap"
+        android:maxLines="4"
+        android:textSize="17sp"
+        android:lineSpacingExtra="4dp"
+        android:ellipsize="end"/>
+      <com.google.android.material.button.MaterialButton
+        android:id="@+id/destination_description_expand"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/destination_read_more"
+        style="@style/AreaMap.SecondaryButton"
+        android:minHeight="48dp"
+        android:textSize="14sp"/>
+      <TextView
+        style="@style/AreaMap.HomeText"
+        android:id="@+id/destination_source"
+        android:textColor="@color/areamap_green"
+        android:textSize="14sp"
+        android:minHeight="48dp"
+        android:gravity="center_vertical"
+        android:clickable="true"
+        android:focusable="true"/>
+      <TextView
+        android:id="@+id/destination_location_heading"
+        style="@style/AreaMap.HomeText"
+        android:layout_marginBottom="@dimen/home_gap"
+        android:text="@string/destination_location"
+        android:textStyle="bold"
+        android:textSize="18sp"/>
+      <TextView
+        android:id="@+id/destination_location"
+        style="@style/AreaMap.HomeText"
+        android:background="@drawable/destination_card"
+        android:padding="@dimen/home_padding"
+        android:minHeight="48dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?attr/selectableItemBackground"
+        android:textSize="16sp"
+        android:drawableStart="@drawable/ic_location_crosshair"
+        android:drawablePadding="12dp"/>
+      <TextView
+        android:id="@+id/destination_related_heading"
+        style="@style/AreaMap.HomeText"
+        android:layout_marginBottom="@dimen/home_gap"
+        android:text="@string/destination_related"
+        android:textStyle="bold"
+        android:textSize="18sp"/>
+      <HorizontalScrollView
+        android:id="@+id/destination_related_scroll"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="none">
+        <LinearLayout
+          android:id="@+id/destination_related"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:orientation="horizontal"/>
       </HorizontalScrollView>
-
-
-      <TextView android:id="@+id/destination_related_empty" style="@style/AreaMap.HomeText" android:layout_marginBottom="@dimen/home_gap" android:text="@string/destination_no_routes"/>
+      <TextView
+        android:id="@+id/destination_related_empty"
+        style="@style/AreaMap.HomeText"
+        android:layout_marginBottom="@dimen/home_gap"
+        android:text="@string/destination_no_routes"/>
     </LinearLayout>
   </androidx.core.widget.NestedScrollView>
-
-
-  <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="@dimen/home_edge" android:background="@color/areamap_surface" android:orientation="vertical">
-
-
-    <com.google.android.material.button.MaterialButton android:id="@+id/destination_route" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="48dp" android:text="@string/destination_build_route" android:backgroundTint="@color/areamap_green" android:textColor="@color/areamap_on_green"/>
+  <LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="@dimen/home_edge"
+    android:background="@color/areamap_surface"
+    android:orientation="vertical">
+    <com.google.android.material.button.MaterialButton
+      android:id="@+id/destination_route"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:text="@string/destination_build_route"
+      style="@style/AreaMap.ActionButton"
+      android:minHeight="54dp"
+      android:textSize="16sp"/>
   </LinearLayout>
 </LinearLayout>

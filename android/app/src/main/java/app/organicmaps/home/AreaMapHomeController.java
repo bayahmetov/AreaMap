@@ -1,12 +1,14 @@
 package app.organicmaps.home;
 
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.core.graphics.Insets;
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import app.organicmaps.MwmActivity;
@@ -32,6 +34,10 @@ public final class AreaMapHomeController
   private final ViewTreeObserver.OnGlobalLayoutListener mLayoutListener = this::updateLayout;
   private final HikeRecommendationAdapter mRecommendations;
   private Insets mInsets = Insets.NONE;
+  private RecyclerView mCarousel;
+  private boolean mGrid;
+  private Parcelable mCarouselState;
+  private Parcelable mGridState;
   private boolean mVisible;
   private boolean mPreviewVisible;
 
@@ -59,8 +65,9 @@ public final class AreaMapHomeController
         .setOnClickListener(v -> activity.onMapButtonClick(MapButtonsController.MapButtons.myPosition));
     activity.findViewById(R.id.home_offline_action).setOnClickListener(v -> openMaps.run());
     activity.findViewById(R.id.home_all).setOnClickListener(v -> {
+      setGrid(!mGrid);
       mBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-      activity.findViewById(R.id.home_recommendations).requestFocus();
+      mCarousel.requestFocus();
     });
     activity.findViewById(R.id.home_handle)
         .setOnClickListener(v
@@ -73,15 +80,23 @@ public final class AreaMapHomeController
         activity, HikeRecommendation.catalog(), item -> DestinationDetailsFragment.open(activity, item.id));
     mRecommendations = adapter;
     carousel.setAdapter(adapter);
+    mCarousel = carousel;
+    if (state != null)
+    {
+      setGrid(state.getBoolean("destination_all"));
+      mCarouselState = state.getParcelable("destination_carousel");
+      mGridState = state.getParcelable("destination_grid");
+      final Parcelable restored = mGrid ? mGridState : mCarouselState;
+      if (restored != null)
+        carousel.getLayoutManager().onRestoreInstanceState(restored);
+    }
     activity.findViewById(R.id.home_photo_credits).setOnClickListener(v -> HomePhotoCredits.show(activity));
-    activity.findViewById(R.id.home_photos_missing)
-        .setVisibility(adapter.hasMissingPhotos() ? View.VISIBLE : View.GONE);
-    ((TextView) activity.findViewById(R.id.home_weather)).setText(HomeInfoRepository.demoWeather(activity));
-    ((TextView) activity.findViewById(R.id.home_wind)).setText(HomeInfoRepository.demoWind(activity));
     mBehavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
       @Override
       public void onStateChanged(@NonNull View view, int state)
       {
+        if (state == BottomSheetBehavior.STATE_COLLAPSED && mGrid)
+          setGrid(false);
         updateLayout();
       }
       @Override
@@ -91,6 +106,29 @@ public final class AreaMapHomeController
       }
     });
     mRoot.getViewTreeObserver().addOnGlobalLayoutListener(mLayoutListener);
+  }
+
+  private void setGrid(boolean grid)
+  {
+    if (mGrid == grid)
+      return;
+    final Parcelable previous = mCarousel.getLayoutManager().onSaveInstanceState();
+    if (mGrid)
+      mGridState = previous;
+    else
+      mCarouselState = previous;
+    mGrid = grid;
+    final int width = mActivity.getResources().getConfiguration().screenWidthDp;
+    mCarousel.setLayoutManager(grid ? new GridLayoutManager(mActivity, width >= 600   ? 3
+                                                                       : width >= 340 ? 2
+                                                                                      : 1)
+                                    : new LinearLayoutManager(mActivity, RecyclerView.HORIZONTAL, false));
+    mRecommendations.setGrid(grid);
+    final Parcelable restored = grid ? mGridState : mCarouselState;
+    if (restored != null)
+      mCarousel.getLayoutManager().onRestoreInstanceState(restored);
+    ((TextView) mActivity.findViewById(R.id.home_all))
+        .setText(grid ? R.string.home_carousel : R.string.home_all_places);
   }
 
   public void setInsets(Insets insets)
@@ -207,6 +245,10 @@ public final class AreaMapHomeController
 
   public void saveState(Bundle state)
   {
+    final Parcelable current = mCarousel.getLayoutManager().onSaveInstanceState();
+    state.putParcelable("destination_carousel", mGrid ? mCarouselState : current);
+    state.putParcelable("destination_grid", mGrid ? current : mGridState);
+    state.putBoolean("destination_all", mGrid);
     state.putInt(SAVED_STATE, mBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED
                                   ? BottomSheetBehavior.STATE_EXPANDED
                                   : BottomSheetBehavior.STATE_COLLAPSED);

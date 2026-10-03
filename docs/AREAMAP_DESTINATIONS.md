@@ -1,3 +1,10 @@
+# Historical initial destination implementation
+
+For current presentation, content and verification limits see
+[AREAMAP_DESTINATIONS_POLISH.md](AREAMAP_DESTINATIONS_POLISH.md).
+The regional-photo fallback and missing-content notes below describe the
+previous implementation and have been superseded.
+
 # Popular destination details
 
 ## Flow and existing sources

@@ -762,7 +762,7 @@ public class MwmActivity extends BaseMwmFragmentActivity
 
   public boolean buildDestinationRoute(app.organicmaps.home.HikeRecommendation item)
   {
-    if (RoutingController.get().isNavigating() || GpxNavigation.current != null)
+    if (RoutingController.get().isNavigating() || GpxNavigation.current != null || TripSafety.get(this).hasActiveTrip())
     {
       Toast.makeText(this, R.string.destination_active_route, Toast.LENGTH_SHORT).show();
       return false;
@@ -772,6 +772,27 @@ public class MwmActivity extends BaseMwmFragmentActivity
         MapObject.createMapObject(MapObject.API_POINT, getString(item.title), getString(item.type), item.lat, item.lon);
     final MapObject start = MwmApplication.from(this).getLocationHelper().getMyPosition();
     RoutingController.get().prepare(start, target, Router.Pedestrian);
+    return true;
+  }
+
+  public boolean buildRelatedDestinationRoute(app.organicmaps.home.RelatedRoute route)
+  {
+    if (RoutingController.get().isNavigating() || GpxNavigation.current != null || TripSafety.get(this).hasActiveTrip())
+    {
+      Toast.makeText(this, R.string.destination_active_route, Toast.LENGTH_SHORT).show();
+      return false;
+    }
+    final java.util.List<MapObject> points = new java.util.ArrayList<>();
+    for (int i = 0; i < route.pointCount(); i++)
+    {
+      final String title = i == 0                      ? getString(route.startTitle)
+                         : i == route.pointCount() - 1 ? getString(route.finishTitle)
+                                                       : getString(R.string.destination_route_waypoint, i);
+      points.add(MapObject.createMapObject(MapObject.API_POINT, title, getString(route.title), route.latitude(i),
+                                           route.longitude(i)));
+    }
+    closeFloatingPanels();
+    RoutingController.get().prepare(points, Router.Pedestrian);
     return true;
   }
 
