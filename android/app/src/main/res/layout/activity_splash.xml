@@ -8,10 +8,8 @@
   <ImageView
       android:layout_width="@dimen/splash_screen_logo_size"
       android:layout_height="@dimen/splash_screen_logo_size"
-      android:layout_marginTop="3dp"
-      android:layout_marginEnd="1dp"
       android:contentDescription="@null"
-      app:srcCompat="@drawable/ic_splash"
+      app:srcCompat="@drawable/areamap_launch_logo"
       app:layout_constraintTop_toTopOf="parent"
       app:layout_constraintBottom_toBottomOf="parent"
       app:layout_constraintStart_toStartOf="parent"
