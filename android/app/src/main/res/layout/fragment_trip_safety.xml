@@ -122,6 +122,14 @@
       </LinearLayout>
 
       <com.google.android.material.button.MaterialButton
+          android:id="@+id/active_trip_continue"
+          style="@style/AreaMap.ActionButton"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:layout_marginTop="10dp"
+          android:text="@string/areamap_continue_hike" />
+
+      <com.google.android.material.button.MaterialButton
           android:id="@+id/active_trip_resend"
           style="@style/AreaMap.SecondaryButton"
           android:layout_width="match_parent"
@@ -137,6 +145,19 @@
           android:layout_marginTop="8dp"
           android:text="@string/areamap_manual_return" />
     </LinearLayout>
+
+    <TextView
+        android:id="@+id/trip_delivery_status"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:textIsSelectable="true" />
+
+    <Button
+        android:id="@+id/trip_delivery_retry"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/areamap_delivery_retry" />
 
     <LinearLayout
         android:layout_width="match_parent"

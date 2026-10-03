@@ -32,6 +32,7 @@ public final class AreaMapHomeController
   private final ViewTreeObserver.OnGlobalLayoutListener mLayoutListener = this::updateLayout;
   private Insets mInsets = Insets.NONE;
   private boolean mVisible;
+  private boolean mPreviewVisible;
 
   public AreaMapHomeController(MwmActivity activity, Bundle state, Runnable openSettings, Runnable openMaps)
   {
@@ -47,35 +48,45 @@ public final class AreaMapHomeController
     mBehavior.setDraggable(true);
     mBehavior.setSkipCollapsed(false);
     mBehavior.setState(state != null && state.getInt(SAVED_STATE) == BottomSheetBehavior.STATE_EXPANDED
-        ? BottomSheetBehavior.STATE_EXPANDED : BottomSheetBehavior.STATE_COLLAPSED);
+                           ? BottomSheetBehavior.STATE_EXPANDED
+                           : BottomSheetBehavior.STATE_COLLAPSED);
     activity.findViewById(R.id.home_search).setOnClickListener(v -> activity.showSearch(""));
     activity.findViewById(R.id.home_settings).setOnClickListener(v -> openSettings.run());
-    activity.findViewById(R.id.home_layers).setOnClickListener(
-        v -> activity.onMapButtonClick(MapButtonsController.MapButtons.toggleMapLayer));
-    activity.findViewById(R.id.home_location).setOnClickListener(
-        v -> activity.onMapButtonClick(MapButtonsController.MapButtons.myPosition));
+    activity.findViewById(R.id.home_layers)
+        .setOnClickListener(v -> activity.onMapButtonClick(MapButtonsController.MapButtons.toggleMapLayer));
+    activity.findViewById(R.id.home_location)
+        .setOnClickListener(v -> activity.onMapButtonClick(MapButtonsController.MapButtons.myPosition));
     activity.findViewById(R.id.home_offline_action).setOnClickListener(v -> openMaps.run());
     activity.findViewById(R.id.home_all).setOnClickListener(v -> {
       mBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
       activity.findViewById(R.id.home_recommendations).requestFocus();
     });
-    activity.findViewById(R.id.home_handle).setOnClickListener(v -> mBehavior.setState(
-        mBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED
-            ? BottomSheetBehavior.STATE_COLLAPSED : BottomSheetBehavior.STATE_EXPANDED));
+    activity.findViewById(R.id.home_handle)
+        .setOnClickListener(v
+                            -> mBehavior.setState(mBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED
+                                                      ? BottomSheetBehavior.STATE_COLLAPSED
+                                                      : BottomSheetBehavior.STATE_EXPANDED));
     final RecyclerView carousel = activity.findViewById(R.id.home_recommendations);
     carousel.setLayoutManager(new LinearLayoutManager(activity, RecyclerView.HORIZONTAL, false));
-    final HikeRecommendationAdapter adapter = new HikeRecommendationAdapter(activity,
-        HikeRecommendation.demoCatalog(), item -> activity.showSearch(activity.getString(item.title)));
+    final HikeRecommendationAdapter adapter = new HikeRecommendationAdapter(
+        activity, HikeRecommendation.demoCatalog(), item -> activity.showSearch(activity.getString(item.title)));
     carousel.setAdapter(adapter);
     activity.findViewById(R.id.home_photo_credits).setOnClickListener(v -> HomePhotoCredits.show(activity));
-    activity.findViewById(R.id.home_photos_missing).setVisibility(adapter.hasMissingPhotos() ? View.VISIBLE : View.GONE);
+    activity.findViewById(R.id.home_photos_missing)
+        .setVisibility(adapter.hasMissingPhotos() ? View.VISIBLE : View.GONE);
     ((TextView) activity.findViewById(R.id.home_weather)).setText(HomeInfoRepository.demoWeather(activity));
     ((TextView) activity.findViewById(R.id.home_wind)).setText(HomeInfoRepository.demoWind(activity));
     mBehavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
       @Override
-      public void onStateChanged(@NonNull View view, int state) { updateLayout(); }
+      public void onStateChanged(@NonNull View view, int state)
+      {
+        updateLayout();
+      }
       @Override
-      public void onSlide(@NonNull View view, float offset) { updateLayout(); }
+      public void onSlide(@NonNull View view, float offset)
+      {
+        updateLayout();
+      }
     });
     mRoot.getViewTreeObserver().addOnGlobalLayoutListener(mLayoutListener);
   }
@@ -86,12 +97,14 @@ public final class AreaMapHomeController
     updateLayout();
   }
 
-  public void setVisible(boolean visible)
+  public void setPresentation(boolean visible, boolean previewVisible)
   {
+    mPreviewVisible = previewVisible;
     final boolean changed = mVisible != visible;
     mVisible = visible;
-    for (View view : new View[] {mHeader, mControls, mSheet})
-      view.setVisibility(visible ? View.VISIBLE : View.GONE);
+    for (View view : new View[] {mHeader, mControls})
+      view.setVisibility(visible || previewVisible ? View.VISIBLE : View.GONE);
+    mSheet.setVisibility(visible ? View.VISIBLE : View.GONE);
     if (!visible)
     {
       mInfo.setVisibility(View.GONE);
@@ -104,15 +117,20 @@ public final class AreaMapHomeController
     mSheet.post(this::updateLayout);
   }
 
-  public boolean isVisible() { return mVisible; }
+  public boolean isVisible()
+  {
+    return mVisible;
+  }
 
   public void refreshInfo()
   {
-    ((TextView) mActivity.findViewById(R.id.home_offline_status))
-        .setText(HomeInfoRepository.offlineStatus(mActivity));
+    ((TextView) mActivity.findViewById(R.id.home_offline_status)).setText(HomeInfoRepository.offlineStatus(mActivity));
   }
 
-  private int dimension(int id) { return mActivity.getResources().getDimensionPixelSize(id); }
+  private int dimension(int id)
+  {
+    return mActivity.getResources().getDimensionPixelSize(id);
+  }
 
   private void margins(View view, int left, int top, int right, int bottom)
   {
@@ -125,23 +143,25 @@ public final class AreaMapHomeController
 
   private void updateLayout()
   {
-    if (!mVisible || mRoot.getHeight() == 0)
+    if ((!mVisible && !mPreviewVisible) || mRoot.getHeight() == 0)
       return;
     final int edge = dimension(R.dimen.home_edge);
     final int headerHeight = Math.round(dimension(R.dimen.home_header_height)
-        * Math.max(1f, mActivity.getResources().getConfiguration().fontScale));
+                                        * Math.max(1f, mActivity.getResources().getConfiguration().fontScale));
     if (mHeader.getLayoutParams().height != headerHeight)
     {
       mHeader.getLayoutParams().height = headerHeight;
       mHeader.requestLayout();
     }
-    ((TextView) mActivity.findViewById(R.id.home_offline_status)).setMaxWidth(
-        Math.max(1, mRoot.getWidth() - mInsets.left - mInsets.right - edge * 2
-            - dimension(R.dimen.home_control) - dimension(R.dimen.home_padding) * 2));
+    ((TextView) mActivity.findViewById(R.id.home_offline_status))
+        .setMaxWidth(Math.max(1, mRoot.getWidth() - mInsets.left - mInsets.right - edge * 2
+                                     - dimension(R.dimen.home_control) - dimension(R.dimen.home_padding) * 2));
     final View nav = mActivity.findViewById(R.id.areamap_bottom_nav);
-    final int bottom = mInsets.bottom + Math.max(nav.getHeight(), dimension(R.dimen.home_nav_height));
+    final int bottom = Math.max(nav.getHeight(), mInsets.bottom + dimension(R.dimen.home_nav_height));
     margins(mHeader, mInsets.left + edge, mInsets.top + edge, mInsets.right + edge, 0);
     margins(mControls, 0, mInsets.top + headerHeight + edge * 2, mInsets.right + edge, 0);
+    if (mPreviewVisible)
+      return; // RoutingPlanFragment owns the sheet and visible map rectangle during route preview.
     margins(mSheet, mInsets.left, 0, mInsets.right, bottom);
     margins(mInfo, mInsets.left + edge, 0, mInsets.right + edge, 0);
     final int expandedTop = mInsets.top + headerHeight + edge * 2;
@@ -161,8 +181,8 @@ public final class AreaMapHomeController
     if (mapButtons != null)
     {
       // Preserve zoom and map gestures. Replace only controls represented by the new HOME surfaces.
-      for (int id : new int[] {R.id.layers_button, R.id.my_position, R.id.btn_search, R.id.menu_button,
-                               R.id.btn_bookmarks})
+      for (int id :
+           new int[] {R.id.layers_button, R.id.my_position, R.id.btn_search, R.id.menu_button, R.id.btn_bookmarks})
       {
         final View old = mapButtons.findViewById(id);
         if (old != null)
@@ -176,17 +196,17 @@ public final class AreaMapHomeController
     }
     // Feed the existing map engine the unobstructed viewport rather than dimming or blocking the map.
     if (mSheet.getY() > expandedTop)
-      Framework.nativeSetVisibleRect(mInsets.left, expandedTop, mRoot.getWidth() - mInsets.right,
-                                     (int) mSheet.getY());
+      Framework.nativeSetVisibleRect(mInsets.left, expandedTop, mRoot.getWidth() - mInsets.right, (int) mSheet.getY());
     // On narrow phones the logo identifies the app; give its text width back to the real search action.
-    mActivity.findViewById(R.id.home_brand).setVisibility(
-        mActivity.getResources().getConfiguration().screenWidthDp < 360 ? View.GONE : View.VISIBLE);
+    mActivity.findViewById(R.id.home_brand)
+        .setVisibility(mActivity.getResources().getConfiguration().screenWidthDp < 360 ? View.GONE : View.VISIBLE);
   }
 
   public void saveState(Bundle state)
   {
     state.putInt(SAVED_STATE, mBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED
-        ? BottomSheetBehavior.STATE_EXPANDED : BottomSheetBehavior.STATE_COLLAPSED);
+                                  ? BottomSheetBehavior.STATE_EXPANDED
+                                  : BottomSheetBehavior.STATE_COLLAPSED);
   }
 
   public void destroy()

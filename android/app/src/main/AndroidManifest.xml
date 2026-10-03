@@ -579,6 +579,11 @@
       android:stopWithTask="false"
       />
 
+    <service android:name=".safety.TripMonitoringService"
+        android:foregroundServiceType="location"
+        android:exported="false"
+        android:stopWithTask="false" />
+
     <service
         android:name=".downloader.DownloaderService"
         android:foregroundServiceType="dataSync"

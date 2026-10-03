@@ -3,6 +3,7 @@ package app.organicmaps.home;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+
 import org.junit.Test;
 
 public class HomeLayoutPolicyTest
@@ -15,6 +16,18 @@ public class HomeLayoutPolicyTest
     assertFalse(HomeLayoutPolicy.canShow(true, true, false, false));
     assertFalse(HomeLayoutPolicy.canShow(true, false, true, false));
     assertFalse(HomeLayoutPolicy.canShow(true, false, false, true));
+  }
+
+  @Test
+  public void sharedDockYieldsToCoveringScreensAndNavigation()
+  {
+    assertTrue(HomeLayoutPolicy.canShowDock(true, false, false, false, false, false));
+    assertFalse(HomeLayoutPolicy.canShowDock(false, false, false, false, false, false));
+    assertFalse(HomeLayoutPolicy.canShowDock(true, true, false, false, false, false));
+    assertFalse(HomeLayoutPolicy.canShowDock(true, false, true, false, false, false));
+    assertFalse(HomeLayoutPolicy.canShowDock(true, false, false, true, false, false));
+    assertFalse(HomeLayoutPolicy.canShowDock(true, false, false, false, true, false));
+    assertFalse(HomeLayoutPolicy.canShowDock(true, false, false, false, false, true));
   }
 
   @Test

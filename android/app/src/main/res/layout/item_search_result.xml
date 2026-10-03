@@ -4,14 +4,9 @@
   xmlns:tools="http://schemas.android.com/tools"
   android:layout_width="match_parent"
   android:layout_height="wrap_content"
-  android:background="@drawable/bg_areamap_result"
-  android:minHeight="88dp"
-  android:layout_marginStart="12dp"
-  android:layout_marginEnd="12dp"
-  android:layout_marginTop="5dp"
-  android:layout_marginBottom="5dp"
-  android:padding="16dp"
-  android:foreground="?attr/selectableItemBackground">
+  android:background="?selectableItemBackground"
+  android:minHeight="@dimen/search_item_height"
+  android:padding="@dimen/margin_base">
 
   <TextView
       android:id="@+id/title"
@@ -20,9 +15,6 @@
       android:layout_height="wrap_content"
       android:layout_alignParentStart="true"
       android:textAppearance="@style/MwmTextAppearance.Body1"
-      android:textColor="@color/areamap_text"
-      android:textSize="16sp"
-      android:textStyle="bold"
       android:ellipsize="end"
       android:maxLines="2"
       tools:text="Long long title that wraps to multiple lines"/>
@@ -39,7 +31,6 @@
       android:layout_marginTop="@dimen/margin_quarter"
       android:fontFamily="@font/organic_maps_emoji"
       android:textAppearance="@style/MwmTextAppearance.Body3"
-      android:textColor="@color/areamap_text_secondary"
       android:maxLines="2"
       android:ellipsize="end"
       tools:text="Hotel \u2022 \u2605\u2605\u2605\u2605\u2605"/>
@@ -64,8 +55,7 @@
       android:layout_marginTop="@dimen/margin_quarter"
       android:layout_marginEnd="@dimen/margin_half"
       android:textAppearance="@style/MwmTextAppearance.Body3"
-      android:textColor="@color/areamap_text_muted"
-      android:textStyle="normal"
+      android:textStyle="italic"
       android:maxLines="2"
       android:ellipsize="end"
       tools:text="Russia, Moscow &amp; Central, Moscow"/>
@@ -78,6 +68,6 @@
     android:layout_alignBaseline="@id/region"
     android:layout_below="@id/description"
     android:textAppearance="@style/MwmTextAppearance.Body3"
-    android:textColor="@color/areamap_green"
+    android:textColor="?colorAccent"
     tools:text="500 km"/>
 </RelativeLayout>

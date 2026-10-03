@@ -43,8 +43,8 @@ public final class TripWeatherRepository
     public final double windKmh;
     public final double gustKmh;
 
-    Hour(long timeMillis, double temperatureC, int precipitationProbability,
-         double precipitationMm, int weatherCode, double windKmh, double gustKmh)
+    Hour(long timeMillis, double temperatureC, int precipitationProbability, double precipitationMm, int weatherCode,
+         double windKmh, double gustKmh)
     {
       this.timeMillis = timeMillis;
       this.temperatureC = temperatureC;
@@ -62,32 +62,39 @@ public final class TripWeatherRepository
   {
     if (!safety.hasActiveTrip())
       return false;
+    return refreshForPoint(context, safety.weatherLat(), safety.weatherLon(), safety.weatherAltitudeMeters());
+  }
 
+  public static boolean refreshForPoint(@NonNull Context context, double lat, double lon, int alt)
+  {
+    return refreshForPoint(context, lat, lon, alt, false);
+  }
+
+  public static boolean refreshForPoint(@NonNull Context context, double lat, double lon, int alt, boolean force)
+  {
     final SharedPreferences prefs = prefs(context);
     final long now = System.currentTimeMillis();
-    final double lat = safety.weatherLat();
-    final double lon = safety.weatherLon();
-    final int alt = safety.weatherAltitudeMeters();
     final boolean moved = Math.abs(lat - parseDouble(prefs.getString(KEY_LAT, "999"))) > 0.002
-        || Math.abs(lon - parseDouble(prefs.getString(KEY_LON, "999"))) > 0.002
-        || Math.abs(alt - prefs.getInt(KEY_ALT, -10000)) > 100;
+                       || Math.abs(lon - parseDouble(prefs.getString(KEY_LON, "999"))) > 0.002
+                       || Math.abs(alt - prefs.getInt(KEY_ALT, -10000)) > 100;
 
-    if (!moved && prefs.contains(KEY_JSON) && now - prefs.getLong(KEY_FETCHED_AT, 0L) < REFRESH_MS)
+    if (!force && !moved && prefs.contains(KEY_JSON) && now - prefs.getLong(KEY_FETCHED_AT, 0L) < REFRESH_MS)
       return true;
 
     if (!isNetworkConnected(context))
-      return prefs.contains(KEY_JSON);
+      return !moved && prefs.contains(KEY_JSON);
 
     HttpURLConnection connection = null;
     try
     {
       final String altitude = alt >= 0 ? "&elevation=" + alt : "";
       final String endpoint = String.format(Locale.US,
-          "https://api.open-meteo.com/v1/forecast"
-              + "?latitude=%.6f&longitude=%.6f%s"
-              + "&hourly=temperature_2m,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_gusts_10m"
-              + "&forecast_days=2&timeformat=unixtime&timezone=GMT",
-          lat, lon, altitude);
+                                            "https://api.open-meteo.com/v1/forecast"
+                                                + "?latitude=%.6f&longitude=%.6f%s"
+                                                + "&hourly=temperature_2m,precipitation_probability,precipitation,"
+                                                + "weather_code,wind_speed_10m,wind_gusts_10m"
+                                                + "&forecast_days=2&timeformat=unixtime&timezone=GMT",
+                                            lat, lon, altitude);
 
       connection = (HttpURLConnection) new URL(endpoint).openConnection();
       connection.setRequestMethod("GET");
@@ -116,14 +123,27 @@ public final class TripWeatherRepository
     }
     catch (Exception ignored)
     {
-      // Offline is an expected state in the mountains. Keep the previous forecast.
-      return prefs.contains(KEY_JSON);
+      // Network failures are expected in the mountains. Reuse cache only for the same route point.
+      return hasForecastForPoint(context, lat, lon, alt);
     }
     finally
     {
       if (connection != null)
         connection.disconnect();
     }
+  }
+
+  public static boolean hasForecastForPoint(@NonNull Context context, double lat, double lon, int alt)
+  {
+    final SharedPreferences prefs = prefs(context);
+    if (!prefs.contains(KEY_JSON))
+      return false;
+
+    final double cachedLat = parseDouble(prefs.getString(KEY_LAT, "999"));
+    final double cachedLon = parseDouble(prefs.getString(KEY_LON, "999"));
+    final int cachedAlt = prefs.getInt(KEY_ALT, -10000);
+    return Math.abs(lat - cachedLat) <= 0.002 && Math.abs(lon - cachedLon) <= 0.002
+ && (alt < 0 || cachedAlt < 0 || Math.abs(alt - cachedAlt) <= 100);
   }
 
   @Nullable
@@ -153,9 +173,9 @@ public final class TripWeatherRepository
         if (distance >= bestDistance)
           continue;
         bestDistance = distance;
-        best = new Hour(time, temperatures.optDouble(i, Double.NaN),
-                        probabilities.optInt(i, 0), precipitation.optDouble(i, 0.0),
-                        codes.optInt(i, 0), winds.optDouble(i, 0.0), gusts.optDouble(i, 0.0));
+        best = new Hour(time, temperatures.optDouble(i, Double.NaN), probabilities.optInt(i, 0),
+                        precipitation.optDouble(i, 0.0), codes.optInt(i, 0), winds.optDouble(i, 0.0),
+                        gusts.optDouble(i, 0.0));
       }
       return best;
     }
@@ -186,17 +206,16 @@ public final class TripWeatherRepository
           return hour;
       }
     }
-    catch (Exception ignored) {}
+    catch (Exception ignored)
+    {}
     return null;
   }
 
   public static boolean isHazard(@NonNull Hour hour)
   {
-    return hour.precipitationProbability >= 60
-        || hour.precipitationMm >= 1.0
-        || hour.gustKmh >= 50.0
-        || hour.weatherCode == 95 || hour.weatherCode == 96 || hour.weatherCode == 99
-        || (hour.temperatureC <= 1.0 && hour.precipitationMm > 0.0);
+    return hour.precipitationProbability >= 60 || hour.precipitationMm >= 1.0 || hour.gustKmh >= 50.0
+ || hour.weatherCode == 95 || hour.weatherCode == 96 || hour.weatherCode == 99
+ || (hour.temperatureC <= 1.0 && hour.precipitationMm > 0.0);
   }
 
   public static long fetchedAt(@NonNull Context context)
@@ -233,19 +252,17 @@ public final class TripWeatherRepository
 
   private static Hour hourAt(@NonNull JSONObject hourly, int i, long time)
   {
-    return new Hour(time,
-        hourly.optJSONArray("temperature_2m").optDouble(i, Double.NaN),
-        hourly.optJSONArray("precipitation_probability").optInt(i, 0),
-        hourly.optJSONArray("precipitation").optDouble(i, 0.0),
-        hourly.optJSONArray("weather_code").optInt(i, 0),
-        hourly.optJSONArray("wind_speed_10m").optDouble(i, 0.0),
-        hourly.optJSONArray("wind_gusts_10m").optDouble(i, 0.0));
+    return new Hour(time, hourly.optJSONArray("temperature_2m").optDouble(i, Double.NaN),
+                    hourly.optJSONArray("precipitation_probability").optInt(i, 0),
+                    hourly.optJSONArray("precipitation").optDouble(i, 0.0),
+                    hourly.optJSONArray("weather_code").optInt(i, 0),
+                    hourly.optJSONArray("wind_speed_10m").optDouble(i, 0.0),
+                    hourly.optJSONArray("wind_gusts_10m").optDouble(i, 0.0));
   }
 
   private static boolean isNetworkConnected(@NonNull Context context)
   {
-    final ConnectivityManager manager =
-        (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+    final ConnectivityManager manager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
     if (manager == null)
       return false;
     final Network network = manager.getActiveNetwork();

@@ -10,6 +10,12 @@ public final class HomeLayoutPolicy
     return dockVisible && !searching && !gpxActive && !choosingPoint;
   }
 
+  public static boolean canShowDock(boolean regularOrPreview, boolean searching, boolean placePage,
+                                    boolean choosingPoint, boolean fullscreen, boolean navigating)
+  {
+    return regularOrPreview && !searching && !placePage && !choosingPoint && !fullscreen && !navigating;
+  }
+
   public static int peekHeight(int target, int usableHeight)
   {
     return Math.min(target, Math.max(1, Math.max(1, usableHeight) * 62 / 100));
