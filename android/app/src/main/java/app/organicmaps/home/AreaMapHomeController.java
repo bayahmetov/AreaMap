@@ -43,6 +43,14 @@ public final class AreaMapHomeController
   private boolean mPreviewVisible;
   private int mExpandedTop = -1;
   private int mSheetMaxHeight = -1;
+  private boolean mGeometryCheckPending;
+  private boolean mGeometryRepaired;
+  private String mLastGeometryLog;
+  private int mSafeBottom;
+  private int mMapTop;
+  private int mControlsBottom;
+  private int mBottom;
+  private int mVisiblePeek;
   private float mHalfExpandedRatio = -1;
 
   public AreaMapHomeController(MwmActivity activity, Bundle state, Runnable openSettings, Runnable openMaps)
@@ -126,7 +134,7 @@ public final class AreaMapHomeController
     });
     mSheet.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) -> {
       if (t != ot || b != ob)
-        debugState("sheet-layout");
+        checkGeometryAfterLayout();
     });
     debugState("created/inflated");
     mRoot.getViewTreeObserver().addOnGlobalLayoutListener(mLayoutListener);
@@ -350,6 +358,7 @@ public final class AreaMapHomeController
     final int expandedTop = Math.min(safeBottom, controlsBottom + edge);
     if (expandedTop != mExpandedTop)
     {
+      mGeometryRepaired = false;
       mExpandedTop = expandedTop;
       mBehavior.setExpandedOffset(Math.max(mapTop, expandedTop));
       mSheet.requestLayout();
@@ -359,20 +368,31 @@ public final class AreaMapHomeController
     margins(mSheet, mInsets.left, 0, mInsets.right, 0);
     if (mSheet.getPaddingBottom() != bottom)
       mSheet.setPadding(mSheet.getPaddingLeft(), mSheet.getPaddingTop(), mSheet.getPaddingRight(), bottom);
-    final int maxHeight = Math.max(1, mRoot.getHeight() - Math.max(mapTop, expandedTop));
+    final int maxHeight = HomeLayoutPolicy.sheetHeight(mRoot.getHeight(), Math.max(mapTop, expandedTop));
     if (maxHeight != mSheetMaxHeight)
     {
+      mGeometryRepaired = false;
       mSheetMaxHeight = maxHeight;
-      mBehavior.setMaxHeight(maxHeight);
+      // TOP gravity gives the behavior a zero layout origin. Size the view directly instead
+      // of letting maxHeight turn a bottom-gravity match_parent child into an offset child.
+      mSheet.getLayoutParams().height = maxHeight;
       mSheet.requestLayout();
     }
-    final int usable = Math.max(1, safeBottom - mapTop);
-    final int visiblePeek = Math.min(HomeLayoutPolicy.peekHeight(dimension(R.dimen.home_peek), usable),
-                                    Math.max(1, safeBottom - Math.max(mapTop, expandedTop)));
+    final int visiblePeek = HomeLayoutPolicy.visiblePeek(
+        dimension(R.dimen.home_peek), safeBottom, mapTop, Math.max(mapTop, expandedTop));
     final int peek = visiblePeek + bottom;
     if (mBehavior.getPeekHeight() != peek)
+    {
+      mGeometryRepaired = false;
       mBehavior.setPeekHeight(peek);
-    final int collapsedTop = safeBottom - visiblePeek;
+    }
+    mSafeBottom = safeBottom;
+    mMapTop = mapTop;
+    mControlsBottom = controlsBottom;
+    mBottom = bottom;
+    mVisiblePeek = visiblePeek;
+    checkGeometryAfterLayout();
+    final int collapsedTop = HomeLayoutPolicy.collapsedTop(safeBottom, visiblePeek);
     final float halfRatio = Math.max(0.01f, Math.min(0.99f,
         1f - ((Math.max(mapTop, expandedTop) + collapsedTop) / 2f) / mRoot.getHeight()));
     if (mHalfExpandedRatio != halfRatio)
@@ -407,6 +427,56 @@ public final class AreaMapHomeController
                                 ? controlsBottom + edge : mapTop;
     if (sheetTop > viewportTop)
       Framework.nativeSetVisibleRect(mInsets.left, viewportTop, mRoot.getWidth() - mInsets.right, sheetTop);
+  }
+
+  private void checkGeometryAfterLayout()
+  {
+    if (!mVisible || mGeometryCheckPending || mSheetMaxHeight < 0)
+      return;
+    mGeometryCheckPending = true;
+    mSheet.post(() -> {
+      mGeometryCheckPending = false;
+      if (!mVisible || mSheet.isLayoutRequested() || mRoot.isLayoutRequested())
+        return;
+      final View nav = mActivity.findViewById(R.id.areamap_bottom_nav);
+      final int state = mBehavior.getState();
+      final int minimum = Math.min(mVisiblePeek, dimension(R.dimen.home_control));
+      final boolean invalid = mSheet.getHeight() <= 0 || mSheet.getTop() >= mSafeBottom
+          || Math.min(mSafeBottom, mSheet.getBottom()) - mSheet.getTop() < minimum;
+      final String geometry = "rootHeight=" + mRoot.getHeight() + " sheetTop=" + mSheet.getTop()
+          + " sheetBottom=" + mSheet.getBottom() + " sheetY=" + mSheet.getY()
+          + " sheetHeight=" + mSheet.getHeight() + " measuredHeight=" + mSheet.getMeasuredHeight()
+          + " navTop=" + nav.getTop() + " navHeight=" + nav.getHeight() + " bottom=" + mBottom
+          + " safeBottom=" + mSafeBottom + " mapTop=" + mMapTop + " controlsBottom=" + mControlsBottom
+          + " expandedTop=" + mExpandedTop + " maxHeight=" + mSheetMaxHeight + " visiblePeek=" + mVisiblePeek
+          + " peek=" + mBehavior.getPeekHeight() + " state=" + state
+          + " expandedOffset=" + mBehavior.getExpandedOffset() + " visibility=" + mSheet.getVisibility()
+          + " isShown=" + mSheet.isShown() + " alpha=" + mSheet.getAlpha();
+      if (BuildConfig.DEBUG && !geometry.equals(mLastGeometryLog))
+      {
+        android.util.Log.d("AreaMapHome", "final-layout " + geometry);
+        if (invalid)
+          android.util.Log.w("AreaMapHome", "Invalid HOME geometry: " + geometry);
+        mLastGeometryLog = geometry;
+      }
+      // One bounded recovery per geometry. Never interfere with an active drag/settling animation.
+      if (invalid && !mGeometryRepaired && state != BottomSheetBehavior.STATE_DRAGGING
+          && state != BottomSheetBehavior.STATE_SETTLING)
+      {
+        mGeometryRepaired = true;
+        if (mSheet.getHeight() <= 0)
+          mSheet.requestLayout();
+        else
+        {
+          final int top = state == BottomSheetBehavior.STATE_EXPANDED ? mBehavior.getExpandedOffset()
+              : state == BottomSheetBehavior.STATE_HALF_EXPANDED
+                    ? Math.round(mRoot.getHeight() * (1f - mBehavior.getHalfExpandedRatio()))
+                    : HomeLayoutPolicy.collapsedTop(mSafeBottom, mVisiblePeek);
+          androidx.core.view.ViewCompat.offsetTopAndBottom(mSheet, top - mSheet.getTop());
+          updateLayout();
+        }
+      }
+    });
   }
 
   public void saveState(Bundle state)

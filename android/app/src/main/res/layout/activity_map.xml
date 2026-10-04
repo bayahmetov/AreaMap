@@ -52,7 +52,7 @@
   <include android:id="@+id/home_header" layout="@layout/areamap_home_header" android:layout_width="match_parent" android:layout_height="@dimen/home_header_height" android:layout_gravity="top" android:visibility="gone"/>
   <include android:id="@+id/home_controls" layout="@layout/areamap_home_controls" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="top|end" android:visibility="gone"/>
   <include android:id="@+id/home_info" layout="@layout/areamap_home_info" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="top|start" android:visibility="gone"/>
-  <include android:id="@+id/home_sheet" app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior" layout="@layout/areamap_home_sheet" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_gravity="bottom" android:visibility="gone"/>
+  <include android:id="@+id/home_sheet" app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior" layout="@layout/areamap_home_sheet" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_gravity="top" android:visibility="gone"/>
   <androidx.fragment.app.FragmentContainerView
     android:id="@+id/search_container_fragment"
     android:layout_width="match_parent"

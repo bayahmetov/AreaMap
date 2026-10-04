@@ -66,6 +66,43 @@ public class HomeLayoutPolicyTest
   }
 
   @Test
+  public void collapsedGeometryReservesDockExactlyOnce()
+  {
+    // 3x-density phone: 2000px root, 220px dock and controls ending at 1080px.
+    int safeBottom = 2000 - 220;
+    int expandedTop = 1100;
+    int height = HomeLayoutPolicy.sheetHeight(2000, expandedTop);
+    int visible = HomeLayoutPolicy.visiblePeek(930, safeBottom, 220, expandedTop);
+    int peek = visible + 220;
+    int top = HomeLayoutPolicy.collapsedTop(safeBottom, visible);
+    assertEquals(900, height);
+    assertEquals(680, visible);
+    assertEquals(1100, top);
+    assertEquals(2000 - peek, top);
+    assertEquals(visible, safeBottom - top);
+    // Bottom gravity adds a second layout origin before Material adds collapsedOffset.
+    assertTrue((2000 - height) + top >= safeBottom);
+  }
+
+  @Test
+  public void restoredSheetGeometryFitsPortraitAndLandscape()
+  {
+    for (int[] screen : new int[][] {{2200, 220, 200, 700}, {1000, 180, 160, 350}, {800, 160, 140, 600}})
+    {
+      int safe = screen[0] - screen[1];
+      int visible = HomeLayoutPolicy.visiblePeek(930, safe, screen[2], screen[3]);
+      int top = HomeLayoutPolicy.collapsedTop(safe, visible);
+      int height = HomeLayoutPolicy.sheetHeight(screen[0], screen[3]);
+      assertTrue(visible > 0);
+      assertTrue(top >= screen[3]);
+      assertTrue(top < safe);
+      assertTrue(top + height >= safe);
+      assertEquals(screen[0] - (visible + screen[1]), top);
+      assertEquals(visible, safe - top);
+    }
+  }
+
+  @Test
   public void smallScreensRetainUsableMapSpace()
   {
     assertEquals(310, HomeLayoutPolicy.peekHeight(310, 700));
