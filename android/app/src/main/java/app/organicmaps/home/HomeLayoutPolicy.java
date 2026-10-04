@@ -17,6 +17,11 @@ public final class HomeLayoutPolicy
  && (!fullscreen || activeHike);
   }
 
+  public static boolean isChoosingPoint(boolean observableActive, boolean nativeActive)
+  {
+    return observableActive || nativeActive;
+  }
+
   public static int peekHeight(int target, int usableHeight)
   {
     return Math.min(target, Math.max(1, Math.max(1, usableHeight) * 62 / 100));

@@ -36,6 +36,36 @@ public class HomeLayoutPolicyTest
   }
 
   @Test
+  public void chooserOpeningObserverMustHideHomeBeforeNativeModeChanges()
+  {
+    assertTrue(HomeLayoutPolicy.isChoosingPoint(true, false));
+    assertTrue(HomeLayoutPolicy.isChoosingPoint(true, true));
+    assertTrue(HomeLayoutPolicy.isChoosingPoint(false, true));
+    assertFalse(HomeLayoutPolicy.isChoosingPoint(false, false));
+    assertFalse(home(true, false, false, false, false, false, false, false));
+    assertTrue(home(false, false, false, false, false, false, false, false));
+  }
+
+  private static boolean home(boolean chooser, boolean search, boolean place, boolean fullscreen,
+                              boolean planning, boolean preview, boolean hike, boolean gpx)
+  {
+    boolean dock = HomeLayoutPolicy.canShowDock(true, search, place, chooser, fullscreen, hike);
+    return HomeLayoutPolicy.canShow(dock && !planning && !preview && !hike, search, gpx, chooser);
+  }
+
+  @Test
+  public void idleHomeReturnsAfterEachCoveringFlowCloses()
+  {
+    assertTrue(home(false, false, false, false, false, false, false, false));
+    for (int state = 0; state < 8; state++)
+    {
+      assertFalse(home(state == 0, state == 1, state == 2, state == 3,
+                       state == 4, state == 5, state == 6, state == 7));
+      assertTrue(home(false, false, false, false, false, false, false, false));
+    }
+  }
+
+  @Test
   public void smallScreensRetainUsableMapSpace()
   {
     assertEquals(310, HomeLayoutPolicy.peekHeight(310, 700));

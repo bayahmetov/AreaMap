@@ -704,7 +704,20 @@ public class MwmActivity extends BaseMwmFragmentActivity
     final View tripAction = nav.findViewById(R.id.areamap_nav_trip);
     final View profileAction = nav.findViewById(R.id.areamap_nav_profile);
 
-    searchAction.setOnClickListener(v -> showSearch(""));
+    searchAction.setOnClickListener(v -> {
+      // Overview dismisses transient surfaces without cancelling an active route or hike.
+      closeFloatingToolbarsAndPanels();
+      final RoutingController routing = RoutingController.get();
+      if (!routing.isNavigating() && GpxNavigation.current == null && !TripSafety.get(this).hasActiveTrip())
+      {
+        if (routing.isPlanning())
+          routing.cancel();
+        else
+          hideAreaMapRoutePanel();
+      }
+      exitFullscreen();
+      refreshAreaMapBottomNav();
+    });
     routeAction.setOnClickListener(v -> {
       if (RoutingController.get().isNavigating())
       {
@@ -810,6 +823,14 @@ public class MwmActivity extends BaseMwmFragmentActivity
  || GpxNavigation.current != null && !RoutingController.get().isPlanning() && !RoutingController.get().isNavigating();
   }
 
+  private boolean isAreaMapPointChooserActive()
+  {
+    // The observable is set before panels close and before the native chooser mode changes.
+    return app.organicmaps.home.HomeLayoutPolicy.isChoosingPoint(
+        Boolean.TRUE.equals(mRoutingPlanViewModel.getIsPointChooserActive().getValue()),
+        ChoosePositionMode.get() != ChoosePositionMode.None);
+  }
+
   private boolean isAreaMapDockLayout()
   {
     if (mMapButtonsViewModel == null)
@@ -827,7 +848,7 @@ public class MwmActivity extends BaseMwmFragmentActivity
     final boolean searching = Boolean.TRUE.equals(mSearchPageViewModel.getSearchEnabled().getValue());
     final boolean show = app.organicmaps.home.HomeLayoutPolicy.canShowDock(
         visible, searching, mPlacePageViewModel.getMapObject().getValue() != null,
-        ChoosePositionMode.get() != ChoosePositionMode.None, isFullscreen(), isAreaMapHikeActive());
+        isAreaMapPointChooserActive(), isFullscreen(), isAreaMapHikeActive());
 
     UiUtils.showIf(show, nav);
     final int selectedId = isAreaMapHikeActive()         ? R.id.areamap_nav_trip
@@ -872,7 +893,7 @@ public class MwmActivity extends BaseMwmFragmentActivity
       mHomeController.setPresentation(
           app.organicmaps.home.HomeLayoutPolicy.canShow(
               show && !RoutingController.get().isPlanning() && !mAreaMapRoutePanelActive && !isAreaMapHikeActive(),
-              searching, GpxNavigation.current != null, ChoosePositionMode.get() != ChoosePositionMode.None),
+              searching, GpxNavigation.current != null, isAreaMapPointChooserActive()),
           show && mAreaMapRoutePanelActive);
   }
 
