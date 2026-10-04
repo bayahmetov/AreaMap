@@ -850,6 +850,15 @@ public class MwmActivity extends BaseMwmFragmentActivity
         visible, searching, mPlacePageViewModel.getMapObject().getValue() != null,
         isAreaMapPointChooserActive(), isFullscreen(), isAreaMapHikeActive());
 
+    if (BuildConfig.DEBUG)
+      android.util.Log.d("AreaMapHome", "refresh dock=" + visible + " show=" + show
+          + " search=" + searching + " planning=" + RoutingController.get().isPlanning()
+          + " navigating=" + RoutingController.get().isNavigating() + " routePanel=" + mAreaMapRoutePanelActive
+          + " hike=" + isAreaMapHikeActive() + " gpx=" + (GpxNavigation.current != null)
+          + " place=" + (mPlacePageViewModel.getMapObject().getValue() != null)
+          + " chooser=" + isAreaMapPointChooserActive() + " fullscreen=" + isFullscreen()
+          + " layout=" + mMapButtonsViewModel.getLayoutMode().getValue()
+          + " tab=" + (isAreaMapHikeActive() ? "trip" : mAreaMapRoutePanelActive ? "route" : "overview"));
     UiUtils.showIf(show, nav);
     final int selectedId = isAreaMapHikeActive()         ? R.id.areamap_nav_trip
                          : mAreaMapRoutePanelActive      ? R.id.areamap_nav_route
@@ -1261,6 +1270,8 @@ public class MwmActivity extends BaseMwmFragmentActivity
   {
     super.onResume();
     if (mHomeController != null)
+      mHomeController.debugState("activity-onResume");
+    if (mHomeController != null)
     {
       mHomeController.refreshInfo();
       refreshAreaMapBottomNav();
@@ -1339,6 +1350,8 @@ public class MwmActivity extends BaseMwmFragmentActivity
   {
     RoutingController.get().attach(this);
     super.onStart();
+    if (mHomeController != null)
+      mHomeController.debugState("activity-onStart");
 
     Framework.nativePlacePageActivationListener(this);
     BookmarkManager.INSTANCE.addLoadingListener(this);

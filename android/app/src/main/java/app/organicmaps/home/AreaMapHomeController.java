@@ -13,6 +13,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import app.organicmaps.BuildConfig;
 import app.organicmaps.MwmActivity;
 import app.organicmaps.R;
 import app.organicmaps.maplayer.MapButtonsController;
@@ -57,6 +58,9 @@ public final class AreaMapHomeController
     mBehavior.setHideable(false);
     mBehavior.setDraggable(true);
     mBehavior.setSkipCollapsed(false);
+    // Configure the behavior before its first layout; include attributes are not a reliable
+    // source of CoordinatorLayout behavior parameters, and responsive sizing runs later.
+    mBehavior.setPeekHeight(dimension(R.dimen.home_peek));
     mBehavior.setState(state != null && state.getInt(SAVED_STATE) == BottomSheetBehavior.STATE_EXPANDED
                            ? BottomSheetBehavior.STATE_EXPANDED
                            : BottomSheetBehavior.STATE_COLLAPSED);
@@ -108,6 +112,23 @@ public final class AreaMapHomeController
         updateLayout();
       }
     });
+    mSheet.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
+      @Override
+      public void onViewAttachedToWindow(View view)
+      {
+        debugState("attached");
+      }
+      @Override
+      public void onViewDetachedFromWindow(View view)
+      {
+        debugState("detached");
+      }
+    });
+    mSheet.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) -> {
+      if (t != ot || b != ob)
+        debugState("sheet-layout");
+    });
+    debugState("created/inflated");
     mRoot.getViewTreeObserver().addOnGlobalLayoutListener(mLayoutListener);
     new ViewModelProvider(activity).get(RoutingPlanViewModel.class).getRoutingBottomDistanceToTop()
         .observe(activity, top -> {
@@ -159,6 +180,9 @@ public final class AreaMapHomeController
       mControls.setVisibility(View.INVISIBLE);
     }
     mSheet.setVisibility(visible ? View.VISIBLE : View.GONE);
+    if (visible && changed)
+      mSheet.requestLayout();
+    debugState("presentation");
     if (!visible)
     {
       mInfo.setVisibility(View.GONE);
@@ -177,6 +201,18 @@ public final class AreaMapHomeController
     else if (changed)
       refreshInfo();
     mSheet.post(this::updateLayout);
+  }
+
+  public void debugState(String event)
+  {
+    if (!BuildConfig.DEBUG)
+      return;
+    android.util.Log.d("AreaMapHome", event + " visible=" + mVisible + " preview=" + mPreviewVisible
+        + " attached=" + mSheet.isAttachedToWindow() + " visibility=" + mSheet.getVisibility()
+        + " translationY=" + mSheet.getTranslationY() + " top=" + mSheet.getTop()
+        + " height=" + mSheet.getHeight() + " measuredHeight=" + mSheet.getMeasuredHeight()
+        + " parentHeight=" + mRoot.getHeight() + " state=" + mBehavior.getState()
+        + " peek=" + mBehavior.getPeekHeight());
   }
 
   public boolean isVisible()
