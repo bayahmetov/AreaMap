@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="sos_confirm_title">Send SOS?</string>
+  <string name="sos_confirm_message">Your last known coordinates will be used.\n\nSend SOS only if you really need help.</string>
+  <string name="sos_confirm_send">Send SOS</string>
+  <string name="sos_location_unavailable">An accurate location is not available yet.</string>
+  <string name="sos_details_title">SOS details</string>
+  <string name="sos_details_message">No route is active. Enter or check your details before sending SOS.</string>
+</resources>

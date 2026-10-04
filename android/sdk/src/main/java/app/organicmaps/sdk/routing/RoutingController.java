@@ -12,6 +12,7 @@ import app.organicmaps.sdk.bookmarks.data.MapObject;
 import app.organicmaps.sdk.location.LocationHelper;
 import app.organicmaps.sdk.util.concurrency.UiThread;
 import app.organicmaps.sdk.util.log.Logger;
+import java.util.List;
 import org.chromium.base.ObserverList;
 
 @androidx.annotation.UiThread
@@ -393,6 +394,34 @@ public class RoutingController
       setPointsInternal(startPoint, endPoint);
 
     startPlanning(startPoint, endPoint);
+  }
+
+  /** Prepare one route through ordered curated waypoints, building only after all points are installed. */
+  public void prepare(@NonNull List<MapObject> points, Router routerType)
+  {
+    if (points.size() < 2 || points.size() > 102)
+      throw new IllegalArgumentException("Expected 2 to 102 route points");
+    cancel();
+    setState(State.PREPARE);
+    mLastRouterType = routerType;
+    Router.set(routerType);
+    final MapObject start = points.get(0);
+    final MapObject finish = points.get(points.size() - 1);
+    setPointsInternal(start, finish);
+    for (int i = 1; i < points.size() - 1; i++)
+    {
+      final MapObject point = points.get(i);
+      final Pair<String, String> description = getDescriptionForPoint(point);
+      if (!Framework.nativeAddRoutePoint(description.first, description.second, RouteMarkType.Intermediate, false,
+                                         point.getLat(), point.getLon(), false /* preserve source order */))
+      {
+        cancel();
+        if (mContainer != null)
+          mContainer.onStopPointLimitReached();
+        return;
+      }
+    }
+    startPlanning(start, finish);
   }
 
   public void start()

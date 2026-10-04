@@ -7,15 +7,18 @@
     <item name="cornerRadius">16dp</item>
     <item name="android:minHeight">54dp</item>
     <item name="android:textAllCaps">false</item>
-    <item name="android:textSize">15sp</item>
+    <item name="android:textSize">16sp</item>
     <item name="android:textStyle">bold</item>
     <item name="android:paddingStart">18dp</item>
     <item name="android:paddingEnd">18dp</item>
     <item name="backgroundTint">@color/areamap_green</item>
-    <item name="android:textColor">@color/areamap_bg</item>
+    <item name="android:textColor">@color/areamap_on_green</item>
   </style>
 
   <style name="AreaMap.SecondaryButton" parent="AreaMap.ActionButton">
+    <item name="android:textSize">14sp</item>
+    <item name="android:minHeight">48dp</item>
+    <item name="android:textStyle">normal</item>
     <item name="backgroundTint">@color/areamap_surface_2</item>
     <item name="android:textColor">@color/areamap_text</item>
     <item name="strokeColor">@color/areamap_stroke</item>

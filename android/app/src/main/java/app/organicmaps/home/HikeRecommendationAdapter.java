@@ -1,7 +1,6 @@
 package app.organicmaps.home;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Outline;
@@ -26,20 +25,27 @@ public final class HikeRecommendationAdapter extends RecyclerView.Adapter<HikeRe
 {
   private final List<HikeRecommendation> mItems;
   private final Consumer<HikeRecommendation> mOnOpen;
-  private final SharedPreferences mFavorites;
   private final Map<String, Bitmap> mPhotos = new HashMap<>();
   private final Context mContext;
+  private boolean mGrid;
 
-  public HikeRecommendationAdapter(Context context, List<HikeRecommendation> items,
-                                   Consumer<HikeRecommendation> onOpen)
+  public void setGrid(boolean grid)
+  {
+    mGrid = grid;
+    notifyDataSetChanged();
+  }
+
+  public HikeRecommendationAdapter(Context context, List<HikeRecommendation> items, Consumer<HikeRecommendation> onOpen)
   {
     mContext = context;
     mItems = items;
     mOnOpen = onOpen;
-    mFavorites = context.getSharedPreferences("areamap_home_favorites", Context.MODE_PRIVATE);
     // Only local, optimized assets. No image URL or networking in the presentation layer.
     for (HikeRecommendation item : items)
     {
+      DestinationBookmarks.migrate(context, item);
+      if (item.imageAsset.isEmpty())
+        continue;
       try (InputStream input = context.getAssets().open(item.imageAsset))
       {
         final Bitmap bitmap = BitmapFactory.decodeStream(input);
@@ -51,11 +57,6 @@ public final class HikeRecommendationAdapter extends RecyclerView.Adapter<HikeRe
         // Missing photographs are disclosed in HOME; never substitute a fake photograph.
       }
     }
-  }
-
-  public boolean hasMissingPhotos()
-  {
-    return mPhotos.size() != mItems.size();
   }
 
   @NonNull
@@ -81,43 +82,41 @@ public final class HikeRecommendationAdapter extends RecyclerView.Adapter<HikeRe
     final HikeRecommendation item = mItems.get(position);
     final String title = mContext.getString(item.title);
     holder.title.setText(title);
-    holder.altitude.setText(mContext.getString(R.string.home_altitude, item.altitude));
-    holder.details.setText(mContext.getString(R.string.home_card_details,
-        mContext.getString(R.string.home_hours, item.hours), mContext.getString(item.difficulty)));
-    holder.rating.setText(mContext.getString(R.string.home_rating, item.rating));
+    holder.altitude.setText(item.altitude >= 0 ? mContext.getString(R.string.home_altitude, item.altitude) : "");
+    holder.altitude.setVisibility(item.altitude >= 0 ? View.VISIBLE : View.GONE);
+    holder.details.setText(mContext.getString(item.type));
     final Bitmap photo = mPhotos.get(item.id);
-    if (photo != null && item.photoShowsApproach)
-      holder.details.append("\n" + mContext.getString(R.string.home_photo_approach));
-    holder.photo.setImageBitmap(photo);
-    holder.photo.setVisibility(photo == null ? View.GONE : View.VISIBLE);
-    holder.itemView.findViewById(R.id.hike_gradient).setVisibility(photo == null ? View.GONE : View.VISIBLE);
-    // In a build without assets show compact, usable text recommendations, not blank photo placeholders.
+    for (TextView label : new TextView[] {holder.title, holder.altitude, holder.details})
+      label.setTextColor(androidx.core.content.ContextCompat.getColor(mContext, R.color.home_photo_text));
+    if (photo == null)
+      holder.photo.setImageResource(R.drawable.destination_artwork);
+    else
+      holder.photo.setImageBitmap(photo);
+    holder.photo.setVisibility(View.VISIBLE);
     final ViewGroup.LayoutParams params = holder.itemView.getLayoutParams();
-    final int width = mContext.getResources().getDimensionPixelSize(R.dimen.home_card_width);
-    params.width = Math.min(width, Math.max(width / 2,
-        mContext.getResources().getDisplayMetrics().widthPixels * 3 / 5));
-    params.height = photo == null ? ViewGroup.LayoutParams.WRAP_CONTENT
-        : Math.round(mContext.getResources().getDimensionPixelSize(R.dimen.home_card_height)
-            * Math.max(1f, mContext.getResources().getConfiguration().fontScale));
+    params.width = mGrid ? ViewGroup.LayoutParams.MATCH_PARENT
+                         : mContext.getResources().getDimensionPixelSize(R.dimen.home_card_width);
+    params.height = Math.round(mContext.getResources().getDimensionPixelSize(R.dimen.home_card_height)
+                               * Math.max(1f, mContext.getResources().getConfiguration().fontScale));
+    if (params instanceof ViewGroup.MarginLayoutParams margins)
+      margins.bottomMargin = mGrid ? mContext.getResources().getDimensionPixelSize(R.dimen.home_gap) : 0;
     holder.itemView.setLayoutParams(params);
-    final ViewGroup.MarginLayoutParams textParams = (ViewGroup.MarginLayoutParams) ((View) holder.title.getParent()).getLayoutParams();
-    textParams.topMargin = mContext.getResources().getDimensionPixelSize(R.dimen.home_control);
-    ((View) holder.title.getParent()).setLayoutParams(textParams);
     holder.itemView.setContentDescription(title);
     holder.itemView.setOnClickListener(v -> mOnOpen.accept(item));
     updateFavorite(holder, item, title);
     holder.favorite.setOnClickListener(v -> {
-      mFavorites.edit().putBoolean(item.id, !mFavorites.getBoolean(item.id, false)).apply();
+      DestinationBookmarks.toggle(mContext, item);
       updateFavorite(holder, item, title);
     });
   }
 
   private void updateFavorite(Holder holder, HikeRecommendation item, String title)
   {
-    final boolean saved = mFavorites.getBoolean(item.id, false);
-    holder.favorite.setColorFilter(androidx.core.content.ContextCompat.getColor(mContext, saved ? R.color.areamap_green : R.color.areamap_text));
-    holder.favorite.setContentDescription(mContext.getString(
-        saved ? R.string.home_unfavorite : R.string.home_favorite, title));
+    final boolean saved = DestinationBookmarks.find(item) != null;
+    holder.favorite.setColorFilter(androidx.core.content.ContextCompat.getColor(
+        mContext, saved ? R.color.areamap_green : R.color.home_photo_text));
+    holder.favorite.setContentDescription(
+        mContext.getString(saved ? R.string.home_unfavorite : R.string.home_favorite, title));
     holder.favorite.setSelected(saved);
   }
 
@@ -134,7 +133,6 @@ public final class HikeRecommendationAdapter extends RecyclerView.Adapter<HikeRe
     final TextView title;
     final TextView altitude;
     final TextView details;
-    final TextView rating;
 
     Holder(View view)
     {
@@ -144,7 +142,17 @@ public final class HikeRecommendationAdapter extends RecyclerView.Adapter<HikeRe
       title = view.findViewById(R.id.hike_title);
       altitude = view.findViewById(R.id.hike_altitude);
       details = view.findViewById(R.id.hike_details);
-      rating = view.findViewById(R.id.hike_rating);
+      final View labels = (View) title.getParent();
+      labels.addOnLayoutChangeListener((v, l, t, r, b, oldL, oldT, oldR, oldB) -> {
+        final View gradient = view.findViewById(R.id.hike_gradient);
+        final ViewGroup.LayoutParams params = gradient.getLayoutParams();
+        final int height = b - t + view.getResources().getDimensionPixelSize(R.dimen.home_gap);
+        if (params.height != height)
+        {
+          params.height = height;
+          gradient.setLayoutParams(params);
+        }
+      });
     }
   }
 }

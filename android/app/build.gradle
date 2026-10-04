@@ -277,6 +277,7 @@ dependencies {
   implementation libs.devnullorthrow.mpandroidchart
 
   // Test Dependencies
+  testImplementation 'org.json:json:20240303' // Real JSON implementation for route snapshot host tests.
   testImplementation libs.androidx.junit
   testImplementation libs.mockito.core
   testImplementation libs.mockito.inline

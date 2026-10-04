@@ -1,11 +1,10 @@
-<?xml version="1.0" ?>
+<?xml version="1.0" encoding="utf-8"?>
 <FrameLayout
   xmlns:android="http://schemas.android.com/apk/res/android"
-  xmlns:app="http://schemas.android.com/apk/res-auto"
   android:layout_width="@dimen/home_card_width"
   android:layout_height="@dimen/home_card_height"
   android:layout_marginEnd="@dimen/home_gap"
-  android:background="@drawable/home_surface"
+  android:background="@drawable/destination_card"
   android:clickable="true"
   android:focusable="true">
   <ImageView
@@ -17,18 +16,9 @@
   <View
     android:id="@+id/hike_gradient"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@drawable/home_photo_gradient"/>
-  <TextView
-    android:id="@+id/hike_rating"
-    android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:layout_margin="@dimen/home_gap"
-    android:padding="6dp"
-    android:background="@drawable/home_badge"
-    android:textColor="@color/areamap_text"
-    android:textStyle="bold"
-    android:textSize="@dimen/home_body_size"/>
+    android:background="@drawable/home_photo_gradient"
+    android:layout_gravity="bottom"/>
   <ImageButton
     android:id="@+id/hike_favorite"
     android:layout_width="48dp"
@@ -46,17 +36,23 @@
     <TextView
       android:id="@+id/hike_title"
       style="@style/AreaMap.HomeText"
-      android:textSize="18sp"
-      android:textStyle="bold"/>
+      android:textSize="20sp"
+      android:textStyle="bold"
+      android:textColor="@color/home_photo_text"
+      android:maxLines="2"
+      android:ellipsize="end"/>
     <TextView
       android:id="@+id/hike_altitude"
       style="@style/AreaMap.HomeText"
-      android:textColor="@color/areamap_text_secondary"/>
+      android:textColor="@color/home_photo_text"
+      android:textSize="14sp"/>
     <TextView
       android:id="@+id/hike_details"
       style="@style/AreaMap.HomeText"
       android:layout_marginTop="@dimen/home_gap"
-      android:textColor="@color/areamap_green"
-      android:textSize="@dimen/home_caption_size"/>
+      android:textColor="@color/home_photo_text"
+      android:textSize="14sp"
+      android:maxLines="2"
+      android:ellipsize="end"/>
   </LinearLayout>
 </FrameLayout>

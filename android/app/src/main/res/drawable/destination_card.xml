@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+  <solid android:color="@color/areamap_surface"/>
+  <stroke android:width="@dimen/home_border" android:color="@color/areamap_stroke"/>
+  <corners android:radius="@dimen/home_card_radius"/>
+</shape>

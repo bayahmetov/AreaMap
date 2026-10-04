@@ -4,6 +4,7 @@ import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.util.Pair;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -14,12 +15,8 @@ import androidx.lifecycle.DefaultLifecycleObserver;
 import androidx.lifecycle.LifecycleOwner;
 import app.organicmaps.MwmApplication;
 import app.organicmaps.R;
-import app.organicmaps.safety.DarknessUtil;
-import app.organicmaps.safety.HikingTiming;
 import app.organicmaps.safety.TripSafety;
-import app.organicmaps.sdk.Router;
 import app.organicmaps.sdk.routing.RoutingInfo;
-import app.organicmaps.sdk.routing.RoutingController;
 import app.organicmaps.sdk.sound.TtsPlayer;
 import app.organicmaps.sdk.util.StringUtils;
 import app.organicmaps.util.Graphics;
@@ -49,22 +46,19 @@ public class NavMenu implements DefaultLifecycleObserver
   private final TextView mDistanceValue;
   private final TextView mDistanceUnits;
   private final LinearProgressIndicator mRouteProgress;
-  private final View mTripReturn;
-  private final View mTripStatusActions;
-  private final TextView mNextCheckpoint;
-  private final TextView mReturnEta;
+  private final TextView mTripStatus;
+  private final Button mTripSafety;
+  private final ActiveHikePanelController mHikePanel;
+  private final View mBottomFrame;
+  private final View mSheet;
+  private boolean mHikeActive;
+  private boolean mHikeVisible = true;
 
   private final AppCompatActivity mActivity;
   private final NavMenuListener mNavMenuListener;
   private final Runnable mTtsStateListener = this::refreshTts;
 
   private int currentPeekHeight = 0;
-
-  private long mHikeStartedElapsedMs;
-  private double mHikeTotalMeters;
-  private double mPlannedSecondsPerKm = Double.NaN;
-  private double mLastCompletionPercent;
-  private int mDemoBreakSeconds;
 
   public interface OnMenuSizeChangedListener
   {
@@ -79,15 +73,13 @@ public class NavMenu implements DefaultLifecycleObserver
     mActivity = activity;
     mNavMenuListener = navMenuListener;
     final View bottomFrame = mActivity.findViewById(R.id.nav_bottom_frame);
+    mBottomFrame = bottomFrame;
+    mSheet = activity.findViewById(R.id.nav_bottom_sheet);
     mHeaderFrame = bottomFrame.findViewById(R.id.line_frame);
     mOnMenuSizeChangedListener = onMenuSizeChangedListener;
     mHeaderFrame.setOnClickListener(v -> toggleNavMenu());
     mHeaderFrame.addOnLayoutChangeListener((view, i, i1, i2, i3, i4, i5, i6, i7) -> setPeekHeight());
     mNavBottomSheetBehavior = BottomSheetBehavior.from(mActivity.findViewById(R.id.nav_bottom_sheet));
-    // Navigation must always leave a tappable collapsed header on screen. If the sheet is allowed
-    // to become HIDDEN, the user has no handle left to bring hike timing/status back.
-    mNavBottomSheetBehavior.setHideable(false);
-    mNavBottomSheetBehavior.setSkipCollapsed(false);
     mBottomSheetBackground = mActivity.findViewById(R.id.nav_bottom_sheet_background);
     mBottomSheetBackground.setOnClickListener(v -> collapseNavBottomSheet());
     mBottomSheetBackground.setVisibility(View.GONE);
@@ -96,7 +88,8 @@ public class NavMenu implements DefaultLifecycleObserver
       @Override
       public void onStateChanged(@NonNull View bottomSheet, int newState)
       {
-        if (newState == BottomSheetBehavior.STATE_COLLAPSED || newState == BottomSheetBehavior.STATE_HIDDEN)
+        if (newState == BottomSheetBehavior.STATE_COLLAPSED || newState == BottomSheetBehavior.STATE_HIDDEN
+            || mHikeActive && !mHikeVisible)
         {
           mBottomSheetBackground.setVisibility(View.GONE);
           mBottomSheetBackground.setAlpha(0);
@@ -110,7 +103,7 @@ public class NavMenu implements DefaultLifecycleObserver
       @Override
       public void onSlide(@NonNull View bottomSheet, float slideOffset)
       {
-        mBottomSheetBackground.setAlpha(slideOffset);
+        mBottomSheetBackground.setAlpha(mHikeActive && !mHikeVisible ? 0 : slideOffset);
       }
     });
 
@@ -126,38 +119,22 @@ public class NavMenu implements DefaultLifecycleObserver
     mDistanceValue = bottomFrame.findViewById(R.id.distance_value);
     mDistanceUnits = bottomFrame.findViewById(R.id.distance_dimen);
     mRouteProgress = bottomFrame.findViewById(R.id.navigation_progress);
-    mTripReturn = bottomFrame.findViewById(R.id.areamap_trip_return);
-    mTripStatusActions = bottomFrame.findViewById(R.id.areamap_nav_status_actions);
-    mNextCheckpoint = bottomFrame.findViewById(R.id.areamap_nav_next_checkpoint);
-    mReturnEta = bottomFrame.findViewById(R.id.areamap_nav_return_eta);
-    mTripReturn.setOnClickListener(v -> mNavMenuListener.onTripReturnClicked());
-    bottomFrame.findViewById(R.id.areamap_trip_ok).setOnClickListener(v -> {
-      TripSafety.get(mActivity).markImOk();
-      android.widget.Toast.makeText(mActivity, R.string.areamap_trip_ok_saved, android.widget.Toast.LENGTH_SHORT).show();
-      refreshTripState();
-    });
-    bottomFrame.findViewById(R.id.areamap_trip_break).setOnClickListener(v -> {
-      final TripSafety safety = TripSafety.get(mActivity);
-      if (safety.hasActiveTrip())
-        safety.addBreakMinutes(20);
-      else
-        mDemoBreakSeconds += 20 * 60;
-      android.widget.Toast.makeText(mActivity, R.string.areamap_trip_break_added, android.widget.Toast.LENGTH_SHORT).show();
-      final RoutingInfo info = RoutingController.get().getCachedRoutingInfo();
-      if (info != null)
-        refreshTripDetails(info);
-      refreshTripState();
-    });
-    refreshTripState();
+    mTripStatus = bottomFrame.findViewById(R.id.areamap_nav_trip_status);
 
     // Bottom frame buttons
     ImageView mSettings = bottomFrame.findViewById(R.id.settings);
     mSettings.setOnClickListener(v -> onSettingsClicked());
     mTts = bottomFrame.findViewById(R.id.tts_volume);
     mTts.setOnClickListener(v -> onTtsClicked());
+    mTripSafety = bottomFrame.findViewById(R.id.areamap_trip_safety);
+    mTripSafety.setOnClickListener(v -> onTripSafetyClicked());
     Button stop = bottomFrame.findViewById(R.id.stop);
     stop.setOnClickListener(v -> onStopClicked());
+    UiUtils.updateRedButton(stop);
 
+    mHikePanel = new ActiveHikePanelController(activity, bottomFrame, this::onStopClicked);
+    activity.findViewById(R.id.nav_bottom_sheet_coordinator)
+        .addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) -> updateHikeHeight());
     TtsPlayer.addStateChangedListener(mTtsStateListener);
     mActivity.getLifecycle().addObserver(this);
   }
@@ -171,6 +148,11 @@ public class NavMenu implements DefaultLifecycleObserver
   private void onStopClicked()
   {
     mNavMenuListener.onStopClicked();
+  }
+
+  private void onTripSafetyClicked()
+  {
+    mNavMenuListener.onTripSafetyClicked();
   }
 
   private void onSettingsClicked()
@@ -201,10 +183,8 @@ public class NavMenu implements DefaultLifecycleObserver
 
   public void setPeekHeight()
   {
-    // On some devices the first measurement arrives as 0 and the collapsed navigation sheet then
-    // vanishes completely. Keep a real minimum: handle + timing/distance row + progress bar.
-    final int minPeek = Math.round(88 * mActivity.getResources().getDisplayMetrics().density);
-    final int headerHeight = Math.max(mHeaderFrame.getHeight(), minPeek);
+    updateHikeHeight();
+    int headerHeight = mHeaderFrame.getHeight();
     if (currentPeekHeight != headerHeight)
     {
       currentPeekHeight = headerHeight;
@@ -213,15 +193,70 @@ public class NavMenu implements DefaultLifecycleObserver
     }
   }
 
+  public void setHikePresentation(boolean active, boolean visible)
+  {
+    final boolean changed = mHikeActive != active;
+    mHikeActive = active;
+    mBottomFrame.setBackgroundColor(active ? ContextCompat.getColor(mActivity, R.color.areamap_surface)
+                                           : android.graphics.Color.TRANSPARENT);
+    mHikeVisible = visible;
+    mBottomFrame.findViewById(R.id.nav_legacy_numbers).setVisibility(active ? View.GONE : View.VISIBLE);
+    mBottomFrame.findViewById(R.id.content_frame).setVisibility(active ? View.GONE : View.VISIBLE);
+    mBottomFrame.findViewById(R.id.active_hike_header).setVisibility(active ? View.VISIBLE : View.GONE);
+    mBottomFrame.findViewById(R.id.active_hike_details).setVisibility(active ? View.VISIBLE : View.GONE);
+    if (active)
+      mTripStatus.setVisibility(View.GONE);
+    mSheet.setVisibility(!active || visible ? View.VISIBLE : View.INVISIBLE);
+    if (active)
+      mBottomSheetBackground.setVisibility(
+          visible && getBottomSheetState() == BottomSheetBehavior.STATE_EXPANDED ? View.VISIBLE : View.GONE);
+    mHikePanel.setEnabled(active);
+    if (changed)
+    {
+      if (!active)
+        mNavBottomSheetBehavior.setMaxHeight(Integer.MAX_VALUE);
+      mHeaderFrame.post(this::setPeekHeight);
+    }
+  }
+
+  public void updateHike()
+  {
+    mHikePanel.update(null);
+  }
+
+  public void showHikeDetails()
+  {
+    expandNavBottomSheet();
+  }
+
+  private void updateHikeHeight()
+  {
+    if (!mHikeActive)
+      return;
+    final View coordinator = mActivity.findViewById(R.id.nav_bottom_sheet_coordinator);
+    final int available = coordinator.getHeight();
+    if (available <= 0 || mHeaderFrame.getHeight() <= 0)
+      return;
+    // Leave the top fifth for the map and native turn panel. Dock/system insets are already reserved by the host.
+    final int max = Math.max(mHeaderFrame.getHeight(), available * 4 / 5);
+    mNavBottomSheetBehavior.setMaxHeight(max);
+    final View details = mBottomFrame.findViewById(R.id.active_hike_details);
+    final ViewGroup.LayoutParams params = details.getLayoutParams();
+    final int height = Math.max(1, max - mHeaderFrame.getHeight());
+    if (params.height != height)
+    {
+      params.height = height;
+      details.setLayoutParams(params);
+    }
+  }
+
   public void collapseNavBottomSheet()
   {
-    setPeekHeight();
     mNavBottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
   }
 
   public void expandNavBottomSheet()
   {
-    setPeekHeight();
     mNavBottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
   }
 
@@ -230,14 +265,8 @@ public class NavMenu implements DefaultLifecycleObserver
     return mNavBottomSheetBehavior.getState();
   }
 
-  public void resetHikeSession()
-  {
-    resetHikingTiming();
-  }
-
   public void refreshTts()
   {
-    refreshTripState();
     final Drawable icon;
     switch (TtsPlayer.getState())
     {
@@ -309,131 +338,32 @@ public class NavMenu implements DefaultLifecycleObserver
 
   public void update(@NonNull RoutingInfo info)
   {
-    refreshTripState();
     updateSpeedView(info);
     updateTime(info.totalTimeInSeconds);
     mDistanceValue.setText(info.distToTarget.mDistanceStr);
     mDistanceUnits.setText(info.distToTarget.getUnitsStr(mActivity.getApplicationContext()));
     mRouteProgress.setProgressCompat((int) info.completionPercent, true);
 
-    if (Router.get() == Router.Pedestrian)
-    {
-      updateHikingTiming(info);
-      refreshTripDetails(info);
-    }
-    else
-    {
-      resetHikingTiming();
-      refreshTripDetails(info);
-    }
-  }
-
-  private void updateHikingTiming(@NonNull RoutingInfo info)
-  {
-    final double remainingMeters = HikingTiming.toMeters(info.distToTarget);
-    final double remainingFraction = Math.max(0.01, 1.0 - info.completionPercent / 100.0);
-    final double inferredTotalMeters = remainingMeters / remainingFraction;
-
-    final boolean completionMovedBack = mLastCompletionPercent > 5.0
-                                        && info.completionPercent + 2.0 < mLastCompletionPercent;
-    final boolean newRouteAtStart = mHikeStartedElapsedMs != 0
-                                    && info.completionPercent < 2.0
-                                    && Math.abs(inferredTotalMeters - mHikeTotalMeters)
-                                       > Math.max(500.0, mHikeTotalMeters * 0.2);
-    if (mHikeStartedElapsedMs == 0 || completionMovedBack || newRouteAtStart)
-    {
-      mHikeStartedElapsedMs = android.os.SystemClock.elapsedRealtime();
-      mHikeTotalMeters = inferredTotalMeters;
-      mPlannedSecondsPerKm = HikingTiming.secondsPerKm(info.totalTimeInSeconds, remainingMeters);
-    }
-    mLastCompletionPercent = info.completionPercent;
-
-    final double completedMeters = Math.max(0.0, mHikeTotalMeters - remainingMeters);
-    final long elapsedMs = android.os.SystemClock.elapsedRealtime() - mHikeStartedElapsedMs;
-    final double actualPace = elapsedMs > 0 && completedMeters >= 100.0
-                                ? (elapsedMs / 1000.0) / (completedMeters / 1000.0)
-                                : mPlannedSecondsPerKm;
-
-    final String pace = HikingTiming.formatPace(actualPace);
-    final int delta = HikingTiming.scheduleDeltaSeconds(elapsedMs, completedMeters, mPlannedSecondsPerKm);
-    final int minutes = Math.max(1, (int) Math.round(Math.abs(delta) / 60.0));
-    final String schedule;
-    if (Math.abs(delta) < 120)
-      schedule = mActivity.getString(R.string.areamap_schedule_on_time);
-    else if (delta > 0)
-      schedule = mActivity.getString(R.string.areamap_schedule_behind, minutes);
-    else
-      schedule = mActivity.getString(R.string.areamap_schedule_ahead, minutes);
-
-    final String format =
-        android.text.format.DateFormat.is24HourFormat(mTimeMinuteValue.getContext()) ? "HH:mm" : "h:mm a";
-    final LocalTime localTime = LocalTime.now().plusSeconds(info.totalTimeInSeconds);
-    String detail = localTime.format(DateTimeFormatter.ofPattern(format)) + " · "
-                    + mActivity.getString(R.string.areamap_pace_live, pace) + " · " + schedule;
-
-    final Location last = MwmApplication.from(mActivity).getLocationHelper().getSavedLocation();
-    if (last != null
-        && DarknessUtil.routeTouchesDarkness(System.currentTimeMillis(), info.totalTimeInSeconds,
-                                          last.getLatitude(), last.getLongitude()))
-      detail += "\n" + mActivity.getString(R.string.areamap_night_warning_live);
-
-    mTimeEstimate.setText(detail);
-  }
-
-  private void refreshTripDetails(@NonNull RoutingInfo info)
-  {
+    mHikePanel.update(info);
     final TripSafety safety = TripSafety.get(mActivity);
-    if (Router.get() == Router.Pedestrian && safety.hasActiveTrip())
+    if (safety.hasActiveTrip() && !mHikeActive)
     {
-      mNextCheckpoint.setText(safety.navigationCheckpointSummary(info.completionPercent));
-      mReturnEta.setText(safety.navigationReturnSummary());
-    }
-    else if (Router.get() == Router.Pedestrian)
-    {
-      final String format =
-          android.text.format.DateFormat.is24HourFormat(mActivity) ? "HH:mm" : "h:mm a";
-      final int adjustedSeconds = info.totalTimeInSeconds + mDemoBreakSeconds;
-      final LocalTime destination = LocalTime.now().plusSeconds(adjustedSeconds);
-      final LocalTime back = destination.plusSeconds(info.totalTimeInSeconds);
-      mNextCheckpoint.setText(mActivity.getString(R.string.areamap_nav_destination_eta,
-                                                  destination.format(DateTimeFormatter.ofPattern(format))));
-      mReturnEta.setText(mActivity.getString(R.string.areamap_nav_demo_return_eta,
-                                             back.format(DateTimeFormatter.ofPattern(format))));
+      mTripStatus.setText(safety.navigationCheckpointSummary(info.completionPercent) + "\n"
+                          + safety.navigationReturnSummary());
+      UiUtils.show(mTripStatus);
     }
     else
-    {
-      mNextCheckpoint.setText("");
-      mReturnEta.setText("");
-    }
-  }
-
-  private void refreshTripState()
-  {
-    final boolean hiking = Router.get() == Router.Pedestrian;
-    final boolean active = hiking && TripSafety.get(mActivity).hasActiveTrip();
-    // Demo hikes should look and behave like real hikes; only the DCHS/Telegram send is omitted.
-    UiUtils.showIf(hiking, mTripReturn, mTripStatusActions);
-    if (active)
-      mReturnEta.setText(TripSafety.get(mActivity).navigationReturnSummary());
-  }
-
-  private void resetHikingTiming()
-  {
-    mHikeStartedElapsedMs = 0;
-    mHikeTotalMeters = 0.0;
-    mPlannedSecondsPerKm = Double.NaN;
-    mLastCompletionPercent = 0.0;
-    mDemoBreakSeconds = 0;
+      UiUtils.hide(mTripStatus);
   }
 
   public interface NavMenuListener
   {
     void onStopClicked();
 
+    void onTripSafetyClicked();
+
     void onSettingsClicked();
 
     void onTtsVoiceSettingsClicked();
-
-    void onTripReturnClicked();
   }
 }

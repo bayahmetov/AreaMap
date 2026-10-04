@@ -20,7 +20,7 @@
       <androidx.core.widget.NestedScrollView
         android:id="@+id/placepage"
         style="@style/MwmWidget.BottomSheet.Rounded"
-        android:background="@drawable/bg_areamap_sheet"
+        android:background="?cardBackground"
         android:elevation="0dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

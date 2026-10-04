@@ -40,7 +40,15 @@ public final class TripWeatherNotifier
 
   public static void evaluate(@NonNull Context context, @NonNull TripSafety safety)
   {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+        && ActivityCompat.checkSelfPermission(context, POST_NOTIFICATIONS) != PERMISSION_GRANTED)
+      return;
+    if (!NotificationManagerCompat.from(context).areNotificationsEnabled())
+      return;
     if (!safety.hasActiveTrip())
+      return;
+    if (!TripWeatherRepository.hasForecastForPoint(context, safety.weatherLat(), safety.weatherLon(),
+                                                   safety.weatherAltitudeMeters()))
       return;
 
     final long now = System.currentTimeMillis();
@@ -50,13 +58,11 @@ public final class TripWeatherNotifier
 
     final long from = Math.max(now, target - 60 * 60 * 1000L);
     final long end = target + 60 * 60 * 1000L;
-    final TripWeatherRepository.Hour hazard =
-        TripWeatherRepository.firstHazard(context, from, end);
+    final TripWeatherRepository.Hour hazard = TripWeatherRepository.firstHazard(context, from, end);
     if (hazard == null || !TripWeatherRepository.markAlertIfNew(context, hazard))
       return;
 
-    post(context, context.getString(R.string.areamap_weather_alert_title),
-         hazardText(context, safety, hazard));
+    post(context, context.getString(R.string.areamap_weather_alert_title), hazardText(context, safety, hazard));
   }
 
   @NonNull
@@ -65,29 +71,62 @@ public final class TripWeatherNotifier
     if (!safety.hasActiveTrip())
       return context.getString(R.string.areamap_weather_no_trip);
 
-    final TripWeatherRepository.Hour hour =
-        TripWeatherRepository.closestHour(context, safety.weatherTargetAtMillis());
+    if (!TripWeatherRepository.hasForecastForPoint(context, safety.weatherLat(), safety.weatherLon(),
+                                                   safety.weatherAltitudeMeters()))
+      return context.getString(R.string.areamap_weather_no_cache);
+
+    final TripWeatherRepository.Hour hour = TripWeatherRepository.closestHour(context, safety.weatherTargetAtMillis());
     if (hour == null)
       return context.getString(R.string.areamap_weather_no_cache);
 
     final String point = safety.weatherAtHighestPoint()
-        ? context.getString(R.string.areamap_weather_highest_point, safety.weatherAltitudeMeters())
-        : context.getString(R.string.areamap_weather_destination);
+                           ? context.getString(R.string.areamap_weather_highest_point, safety.weatherAltitudeMeters())
+                           : context.getString(R.string.areamap_weather_destination);
     final String time = DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date(hour.timeMillis));
     final long fetchedAt = TripWeatherRepository.fetchedAt(context);
     final String updated = fetchedAt <= 0 ? context.getString(R.string.areamap_weather_never_updated)
-        : DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date(fetchedAt));
+                                          : DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date(fetchedAt));
     return context.getString(R.string.areamap_weather_summary, point, time, weatherLabel(context, hour.weatherCode),
                              hour.temperatureC, hour.precipitationProbability, hour.gustKmh, updated);
   }
 
   @NonNull
-  private static String hazardText(@NonNull Context context, @NonNull TripSafety safety,
-                                   @NonNull TripWeatherRepository.Hour hour)
+  public static String summaryForPlan(@NonNull Context context, @NonNull TripPlan plan)
+  {
+    if (!TripWeatherRepository.hasForecastForPoint(context, plan.weatherLat, plan.weatherLon,
+                                                   plan.weatherAltitudeMeters))
+      return context.getString(R.string.areamap_weather_no_cache);
+
+    final long targetMillis = System.currentTimeMillis() + plan.weatherEtaSeconds * 1000L;
+    final TripWeatherRepository.Hour hour = TripWeatherRepository.closestHour(context, targetMillis);
+    if (hour == null)
+      return context.getString(R.string.areamap_weather_no_cache);
+
+    final String point = plan.weatherAtHighestPoint
+                           ? context.getString(R.string.areamap_weather_highest_point, plan.weatherAltitudeMeters)
+                           : context.getString(R.string.areamap_weather_destination);
+    final String time = DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date(hour.timeMillis));
+    final long fetchedAt = TripWeatherRepository.fetchedAt(context);
+    final String updated = fetchedAt <= 0 ? context.getString(R.string.areamap_weather_never_updated)
+                                          : DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date(fetchedAt));
+    return context.getString(R.string.areamap_weather_summary, point, time, weatherLabel(context, hour.weatherCode),
+                             hour.temperatureC, hour.precipitationProbability, hour.gustKmh, updated);
+  }
+
+  @NonNull
+  public static String hazardText(@NonNull Context context, @NonNull TripSafety safety,
+                                  @NonNull TripWeatherRepository.Hour hour)
   {
     final String point = safety.weatherAtHighestPoint()
-        ? context.getString(R.string.areamap_weather_highest_point, safety.weatherAltitudeMeters())
-        : context.getString(R.string.areamap_weather_destination);
+                           ? context.getString(R.string.areamap_weather_highest_point, safety.weatherAltitudeMeters())
+                           : context.getString(R.string.areamap_weather_destination);
+    return hazardText(context, point, hour);
+  }
+
+  @NonNull
+  public static String hazardText(@NonNull Context context, @NonNull String point,
+                                  @NonNull TripWeatherRepository.Hour hour)
+  {
     final String time = DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date(hour.timeMillis));
     final String kind = TripWeatherRepository.hazardKind(hour);
     if ("storm".equals(kind))
@@ -100,7 +139,7 @@ public final class TripWeatherNotifier
   }
 
   @NonNull
-  private static String weatherLabel(@NonNull Context context, int code)
+  public static String weatherLabel(@NonNull Context context, int code)
   {
     if (code == 0)
       return context.getString(R.string.areamap_weather_clear);
@@ -125,20 +164,18 @@ public final class TripWeatherNotifier
 
     final int immutable = Build.VERSION.SDK_INT < Build.VERSION_CODES.M ? 0 : PendingIntent.FLAG_IMMUTABLE;
     final Intent open = new Intent(context, MwmActivity.class)
-        .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                            .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
     final PendingIntent pendingIntent =
-        PendingIntent.getActivity(context, NOTIFICATION_ID, open,
-                                  PendingIntent.FLAG_UPDATE_CURRENT | immutable);
-    final NotificationCompat.Builder notification =
-        new NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.warning_icon)
-            .setContentTitle(title)
-            .setContentText(body)
-            .setStyle(new NotificationCompat.BigTextStyle().bigText(body))
-            .setCategory(NotificationCompat.CATEGORY_ALARM)
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setAutoCancel(true)
-            .setContentIntent(pendingIntent);
+        PendingIntent.getActivity(context, NOTIFICATION_ID, open, PendingIntent.FLAG_UPDATE_CURRENT | immutable);
+    final NotificationCompat.Builder notification = new NotificationCompat.Builder(context, CHANNEL_ID)
+                                                        .setSmallIcon(R.drawable.warning_icon)
+                                                        .setContentTitle(title)
+                                                        .setContentText(body)
+                                                        .setStyle(new NotificationCompat.BigTextStyle().bigText(body))
+                                                        .setCategory(NotificationCompat.CATEGORY_ALARM)
+                                                        .setPriority(NotificationCompat.PRIORITY_HIGH)
+                                                        .setAutoCancel(true)
+                                                        .setContentIntent(pendingIntent);
     NotificationManagerCompat.from(context).notify(NOTIFICATION_ID, notification.build());
   }
 }

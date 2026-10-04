@@ -1,0 +1,70 @@
+<?xml version='1.0' encoding='utf-8'?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:id="@+id/areamap_route_panel_v2" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:background="@drawable/bg_areamap_sheet" android:visibility="gone">
+  <View android:layout_width="38dp" android:layout_height="4dp" android:layout_gravity="center_horizontal" android:layout_marginTop="9dp" android:layout_marginBottom="10dp" android:background="@color/areamap_stroke" />
+  <androidx.core.widget.NestedScrollView android:id="@+id/route_preview_scroll" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:fillViewport="false" android:clipToPadding="false">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="16dp" android:paddingEnd="16dp" android:paddingBottom="12dp">
+      <LinearLayout android:layout_width="match_parent" android:layout_height="48dp" android:gravity="center_vertical">
+        <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_areamap_hike" android:tint="@color/areamap_green" android:importantForAccessibility="no" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/areamap_nav_route" android:textSize="18sp" android:textColor="@color/areamap_text" android:layout_marginStart="8dp" android:textStyle="bold" />
+        <Space android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1" />
+        <ImageButton android:id="@+id/route_preview_overflow" android:layout_width="48dp" android:layout_height="48dp" android:background="?attr/selectableItemBackgroundBorderless" android:src="@drawable/ic_more" android:tint="@color/areamap_text_secondary" android:contentDescription="@string/settings" />
+      </LinearLayout>
+      <TextView android:id="@+id/areamap_route_v2_title" android:layout_width="match_parent" android:layout_height="wrap_content" android:textColor="@color/areamap_text" android:textSize="22sp" android:textStyle="bold" android:maxLines="2" android:ellipsize="end" />
+      <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/route_preview_pedestrian" android:textSize="12sp" android:textColor="@color/areamap_text_secondary" android:layout_marginTop="5dp" android:maxLines="2" />
+      <HorizontalScrollView android:id="@+id/route_metrics_row" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp" android:scrollbars="none">
+        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal">
+          <LinearLayout android:layout_width="98dp" android:layout_height="92dp" android:layout_marginEnd="6dp" android:background="@drawable/bg_route_preview_card" android:orientation="vertical" android:padding="10dp">
+            <ImageView android:layout_width="18dp" android:layout_height="18dp" android:src="@drawable/ic_manage_route" android:tint="@color/areamap_green" android:importantForAccessibility="no" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/areamap_route_v2_distance" android:textSize="16sp" android:textColor="@color/areamap_text" android:layout_marginTop="7dp" android:textStyle="bold" android:maxLines="1" android:ellipsize="end" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/route_preview_distance" android:textSize="10sp" android:textColor="@color/areamap_text_secondary" android:layout_marginTop="3dp" />
+          </LinearLayout>
+          <LinearLayout android:layout_width="98dp" android:layout_height="92dp" android:layout_marginEnd="6dp" android:background="@drawable/bg_route_preview_card" android:orientation="vertical" android:padding="10dp">
+            <ImageView android:layout_width="18dp" android:layout_height="18dp" android:src="@drawable/ic_areamap_hike" android:tint="@color/areamap_green" android:importantForAccessibility="no" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/areamap_route_v2_ascent" android:textSize="16sp" android:textColor="@color/areamap_text" android:layout_marginTop="7dp" android:textStyle="bold" android:maxLines="1" android:ellipsize="end" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/route_preview_ascent" android:textSize="10sp" android:textColor="@color/areamap_text_secondary" android:layout_marginTop="3dp" />
+          </LinearLayout>
+          <LinearLayout android:layout_width="98dp" android:layout_height="92dp" android:layout_marginEnd="6dp" android:background="@drawable/bg_route_preview_card" android:orientation="vertical" android:padding="10dp">
+            <ImageView android:layout_width="18dp" android:layout_height="18dp" android:src="@drawable/ic_preview_clock" android:tint="@color/areamap_green" android:importantForAccessibility="no" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/areamap_route_v2_time" android:textSize="16sp" android:textColor="@color/areamap_text" android:layout_marginTop="7dp" android:textStyle="bold" android:maxLines="1" android:ellipsize="end" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/route_preview_duration" android:textSize="10sp" android:textColor="@color/areamap_text_secondary" android:layout_marginTop="3dp" />
+          </LinearLayout>
+          <LinearLayout android:layout_width="98dp" android:layout_height="92dp" android:layout_marginEnd="6dp" android:background="@drawable/bg_route_preview_card" android:orientation="vertical" android:padding="10dp">
+            <ImageView android:layout_width="18dp" android:layout_height="18dp" android:src="@drawable/ic_download" android:tint="@color/areamap_green" android:importantForAccessibility="no" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/areamap_route_v2_offline" android:textSize="16sp" android:textColor="@color/areamap_text" android:layout_marginTop="7dp" android:textStyle="bold" android:maxLines="1" android:ellipsize="end" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/route_preview_offline" android:textSize="10sp" android:textColor="@color/areamap_text_secondary" android:layout_marginTop="3dp" />
+          </LinearLayout>
+          <LinearLayout android:layout_width="98dp" android:layout_height="92dp" android:layout_marginEnd="6dp" android:background="@drawable/bg_route_preview_card" android:orientation="vertical" android:padding="10dp">
+            <ImageView android:layout_width="18dp" android:layout_height="18dp" android:src="@drawable/ic_preview_sun" android:tint="@color/areamap_green" android:importantForAccessibility="no" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/areamap_route_v2_weather" android:textSize="16sp" android:textColor="@color/areamap_text" android:layout_marginTop="7dp" android:textStyle="bold" android:maxLines="1" android:ellipsize="end" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/route_preview_weather" android:textSize="10sp" android:textColor="@color/areamap_text_secondary" android:layout_marginTop="3dp" />
+          </LinearLayout>
+        </LinearLayout>
+      </HorizontalScrollView>
+      <LinearLayout android:id="@+id/route_preview_preparation" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:orientation="vertical" android:background="@drawable/bg_route_preview_card" android:padding="12dp">
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/preparation_packing" android:textSize="16sp" android:textColor="@color/areamap_text" android:textStyle="bold" android:accessibilityHeading="true" />
+        <com.google.android.material.chip.ChipGroup xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/route_preview_packing" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" app:singleLine="false" app:chipSpacingHorizontal="6dp" app:chipSpacingVertical="6dp" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:text="@string/preparation_before" android:textSize="16sp" android:textColor="@color/areamap_text" android:textStyle="bold" android:accessibilityHeading="true" />
+        <LinearLayout android:id="@+id/route_preview_advisories" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:orientation="vertical" />
+        <TextView android:id="@+id/route_preview_preparation_source" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="48dp" android:gravity="center_vertical" android:textSize="13sp" android:textColor="@color/areamap_text_secondary" android:background="?attr/selectableItemBackground" android:clickable="true" android:focusable="true" android:visibility="gone" />
+      </LinearLayout>
+      <LinearLayout android:id="@+id/route_preview_graph" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="10dp" android:orientation="vertical" android:background="@drawable/bg_route_preview_card" android:padding="6dp">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content">
+          <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/route_preview_start_altitude" android:textSize="10sp" android:textColor="@color/areamap_text_secondary" />
+          <Space android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1" />
+          <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/route_preview_finish_altitude" android:textSize="10sp" android:textColor="@color/areamap_text_secondary" />
+        </LinearLayout>
+        <include layout="@layout/route_elevation_profile" android:layout_width="match_parent" android:layout_height="122dp" />
+      </LinearLayout>
+      <TextView android:id="@+id/route_preview_graph_empty" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="14dp" android:text="@string/route_preview_no_elevation" android:textColor="@color/areamap_text_secondary" android:visibility="gone" />
+      <LinearLayout android:layout_width="match_parent" android:layout_height="48dp" android:gravity="center_vertical">
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/route_preview_checkpoints" android:textSize="16sp" android:textColor="@color/areamap_text" android:textStyle="bold" />
+        <Space android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/route_preview_show_map" android:text="@string/route_preview_show_map" android:textSize="11sp" android:textColor="@color/areamap_green" android:gravity="center" android:minHeight="48dp" android:clickable="true" android:focusable="true" />
+      </LinearLayout>
+      <LinearLayout android:id="@+id/route_preview_checkpoints" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:background="@drawable/bg_route_preview_card" />
+      <TextView android:id="@+id/areamap_route_v2_warning" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="10dp" android:textColor="@color/areamap_amber" android:textSize="12sp" android:visibility="gone" />
+      <TextView android:id="@+id/route_preview_weather_details" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="10dp" android:textColor="@color/areamap_text_secondary" android:textSize="11sp" />
+    </LinearLayout>
+  </androidx.core.widget.NestedScrollView>
+  <com.google.android.material.button.MaterialButton android:textSize="16sp" android:textColor="@color/areamap_on_green" android:id="@+id/areamap_route_v2_start" style="@style/AreaMap.ActionButton" android:layout_width="match_parent" android:layout_height="52dp" android:layout_marginStart="16dp" android:layout_marginEnd="16dp" android:layout_marginBottom="8dp" android:text="@string/areamap_rebuild_start" />
+</LinearLayout>

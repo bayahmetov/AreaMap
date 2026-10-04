@@ -97,6 +97,14 @@ public class Bookmark extends MapObject
     mCategoryId = catId;
   }
 
+  /** Presentation-only badge for temporary route preview bookmarks. */
+  public void setRouteCheckpointLabel(@NonNull String label)
+  {
+    nativeSetRouteCheckpointLabel(mBookmarkId, label);
+  }
+
+  private static native void nativeSetRouteCheckpointLabel(long bookmarkId, @NonNull String label);
+
   public void setIconColor(@ColorInt int color)
   {
     mIcon = new Icon(color, mIcon.getType());

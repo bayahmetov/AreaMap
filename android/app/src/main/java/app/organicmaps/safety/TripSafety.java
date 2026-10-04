@@ -4,14 +4,21 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.location.Location;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import app.organicmaps.MwmApplication;
 import app.organicmaps.R;
+import app.organicmaps.routing.HikePanelProgress;
 import app.organicmaps.sdk.Framework;
+import app.organicmaps.sdk.Router;
+import app.organicmaps.sdk.routing.RouteMarkData;
+import app.organicmaps.sdk.routing.RouteMarkType;
 import app.organicmaps.sdk.routing.RoutingController;
 import app.organicmaps.sdk.routing.RoutingInfo;
 import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 /**
  * Stores the latest SOS fix, the reusable hiker profile and the currently registered trip.
@@ -23,14 +30,18 @@ public final class TripSafety
 {
   public static final class Profile
   {
-    @NonNull public final String name;
-    @NonNull public final String phone;
+    @NonNull
+    public final String name;
+    @NonNull
+    public final String phone;
     public final int groupSize;
-    @NonNull public final String emergencyName;
-    @NonNull public final String emergencyPhone;
+    @NonNull
+    public final String emergencyName;
+    @NonNull
+    public final String emergencyPhone;
 
-    public Profile(@NonNull String name, @NonNull String phone, int groupSize,
-                   @NonNull String emergencyName, @NonNull String emergencyPhone)
+    public Profile(@NonNull String name, @NonNull String phone, int groupSize, @NonNull String emergencyName,
+                   @NonNull String emergencyPhone)
     {
       this.name = name.trim();
       this.phone = phone.trim();
@@ -48,6 +59,8 @@ public final class TripSafety
   private static TripSafety sInstance;
   private final Context mContext;
   private final SharedPreferences mPrefs;
+  private TripPlan mActivePlan;
+  private String mActivePlanId = "";
 
   private TripSafety(@NonNull Context context)
   {
@@ -63,21 +76,95 @@ public final class TripSafety
     return sInstance;
   }
 
+  public void addStateListener(SharedPreferences.OnSharedPreferenceChangeListener listener)
+  {
+    mPrefs.registerOnSharedPreferenceChangeListener(listener);
+  }
+
+  public void removeStateListener(SharedPreferences.OnSharedPreferenceChangeListener listener)
+  {
+    mPrefs.unregisterOnSharedPreferenceChangeListener(listener);
+  }
+
+  @Nullable
+  public synchronized TripPlan activePlan()
+  {
+    if (!hasActiveTrip())
+      return null;
+    final String id = tripId();
+    if (id.equals(mActivePlanId))
+      return mActivePlan;
+    mActivePlanId = id;
+    mActivePlan = TripPlan.fromJson(mPrefs.getString("trip_plan", ""));
+    if (mActivePlan != null)
+      return mActivePlan;
+    // Older registrations retained checkpoint distances/ETAs, but no point names or coordinates.
+    final java.util.List<TripPlan.Checkpoint> stops = new java.util.ArrayList<>();
+    for (String row : mPrefs.getString("trip_checkpoints", "").split(";"))
+    {
+      final String[] fields = row.split(",");
+      if (fields.length != 3)
+        continue;
+      try
+      {
+        stops.add(new TripPlan.Checkpoint(Double.parseDouble(fields[1]), Integer.parseInt(fields[2]),
+                                          Integer.parseInt(fields[0]), Double.NaN, Double.NaN));
+      }
+      catch (NumberFormatException ignored)
+      {}
+    }
+    mActivePlan = new TripPlan(mPrefs.getString("trip_start_title", ""), mPrefs.getString("trip_finish_title", ""),
+                               startLat(), startLon(), finishLat(), finishLon(), parseDouble("trip_distance"),
+                               mPrefs.getInt("trip_planned_seconds", 0), mPrefs.getInt("trip_return_seconds", 0), stops,
+                               null, weatherLat(), weatherLon(), weatherAltitudeMeters(),
+                               mPrefs.getInt("trip_weather_eta_seconds", 0), weatherAtHighestPoint());
+    return mActivePlan;
+  }
+
+  public long startedAtMillis()
+  {
+    return mPrefs.getLong("trip_started_at", 0);
+  }
+  public long timingOffsetMillis()
+  {
+    return mPrefs.getInt("trip_timing_offset_seconds", 0) * 1000L;
+  }
+
+  public long scheduleDriftSeconds(double completionPercent, long now)
+  {
+    if (!hasActiveTrip())
+      return Long.MIN_VALUE;
+    return HikePanelProgress.scheduleDriftSeconds(now, startedAtMillis(), mPrefs.getInt("trip_planned_seconds", 0),
+                                                  mPrefs.getInt("trip_timing_offset_seconds", 0),
+                                                  HikePanelProgress.fraction(completionPercent));
+  }
+
+  public long projectedReturnAtMillis(double completionPercent, long now)
+  {
+    final long drift = scheduleDriftSeconds(completionPercent, now);
+    return hasActiveTrip()
+      ? mPrefs.getLong("trip_planned_return", 0) + (drift == Long.MIN_VALUE ? 0 : Math.max(0, drift / 60) * 60000L)
+      : 0;
+  }
+
   public void onServiceStarted() {}
   public void onServiceStopped() {}
   public void onLocationUnavailable() {}
 
   public synchronized void onLocation(@NonNull Location location)
   {
-    if (!location.hasAccuracy())
+    if (!location.hasAccuracy() || location.getAccuracy() > 100
+        || System.currentTimeMillis() - location.getTime() > 120000)
       return;
     save(location);
     updateReturnDetection(location);
     updateScheduleDelay();
   }
 
-  public void save(@NonNull Location location)
+  public synchronized void save(@NonNull Location location)
   {
+    if (!location.hasAccuracy() || location.getTime() < mPrefs.getLong("measured", 0))
+      return;
     mPrefs.edit()
         .putString("lat", Double.toString(location.getLatitude()))
         .putString("lon", Double.toString(location.getLongitude()))
@@ -105,43 +192,146 @@ public final class TripSafety
         .apply();
   }
 
-  public void startMonitoredTrip(@NonNull TripPlan plan, @NonNull Profile profile, boolean ownsTrackRecording)
+  public synchronized boolean startMonitoredTrip(@NonNull TripPlan plan, @NonNull Profile profile,
+                                                 boolean ownsTrackRecording)
   {
+    if (hasActiveTrip())
+      return false;
     saveProfile(profile);
     final long now = System.currentTimeMillis();
-    final String tripId = new SimpleDateFormat("yyyyMMdd-HHmmss", Locale.US).format(new Date(now));
-    mPrefs.edit()
-        .putBoolean("trip_active", true)
-        .putString("trip_id", "AM-" + tripId)
-        .putLong("trip_started_at", now)
-        .putLong("trip_planned_finish", now + plan.plannedSeconds * 1000L)
-        .putLong("trip_planned_return", now + (plan.plannedSeconds + plan.returnSeconds) * 1000L)
-        .putInt("trip_planned_seconds", plan.plannedSeconds)
-        .putInt("trip_return_seconds", plan.returnSeconds)
-        .putString("trip_start_title", plan.startTitle)
-        .putString("trip_finish_title", plan.finishTitle)
-        .putString("trip_start_lat", Double.toString(plan.startLat))
-        .putString("trip_start_lon", Double.toString(plan.startLon))
-        .putString("trip_finish_lat", Double.toString(plan.finishLat))
-        .putString("trip_finish_lon", Double.toString(plan.finishLon))
-        .putString("trip_distance", Double.toString(plan.distanceMeters))
-        .putString("trip_checkpoints", encodeCheckpoints(plan))
-        .putString("trip_weather_lat", Double.toString(plan.weatherLat))
-        .putString("trip_weather_lon", Double.toString(plan.weatherLon))
-        .putInt("trip_weather_altitude", plan.weatherAltitudeMeters)
-        .putInt("trip_weather_eta_seconds", plan.weatherEtaSeconds)
-        .putBoolean("trip_weather_highest", plan.weatherAtHighestPoint)
-        .putBoolean("trip_departed_start", false)
-        .putBoolean("trip_return_detected", false)
-        .putBoolean("trip_return_prompt_dismissed", false)
-        .putBoolean("trip_owns_track_recording", ownsTrackRecording)
-        .putInt("trip_schedule_alert_bucket", 0)
-        .putInt("trip_timing_offset_seconds", 0)
-        .putLong("trip_last_ok", 0)
-        .apply();
+    final String tripId = java.util.UUID.randomUUID().toString();
+    final boolean saved = mPrefs.edit()
+                              .putBoolean("trip_active", true)
+                              .putString("trip_id", "AM-" + tripId)
+                              .putLong("trip_started_at", now)
+                              .putLong("trip_planned_finish", now + plan.plannedSeconds * 1000L)
+                              .putLong("trip_planned_return", now + (plan.plannedSeconds + plan.returnSeconds) * 1000L)
+                              .putInt("trip_planned_seconds", plan.plannedSeconds)
+                              .putInt("trip_return_seconds", plan.returnSeconds)
+                              .putString("trip_start_title", plan.startTitle)
+                              .putString("trip_finish_title", plan.finishTitle)
+                              .putString("trip_start_lat", Double.toString(plan.startLat))
+                              .putString("trip_start_lon", Double.toString(plan.startLon))
+                              .putString("trip_finish_lat", Double.toString(plan.finishLat))
+                              .putString("trip_finish_lon", Double.toString(plan.finishLon))
+                              .putString("trip_distance", Double.toString(plan.distanceMeters))
+                              .putString("trip_route_points", encodeRoutePoints())
+                              .putString("trip_checkpoints", encodeCheckpoints(plan))
+                              .putString("trip_plan", plan.toJson())
+                              .putString("trip_weather_lat", Double.toString(plan.weatherLat))
+                              .putString("trip_weather_lon", Double.toString(plan.weatherLon))
+                              .putInt("trip_weather_altitude", plan.weatherAltitudeMeters)
+                              .putInt("trip_weather_eta_seconds", plan.weatherEtaSeconds)
+                              .putBoolean("trip_weather_highest", plan.weatherAtHighestPoint)
+                              .putBoolean("trip_departed_start", false)
+                              .putBoolean("trip_return_detected", false)
+                              .putBoolean("trip_return_prompt_dismissed", false)
+                              .putBoolean("trip_owns_track_recording", ownsTrackRecording)
+                              .putInt("trip_schedule_alert_bucket", 0)
+                              .putInt("trip_timing_offset_seconds", 0)
+                              .putLong("trip_last_ok", 0)
+                              .commit();
 
+    if (!saved)
+      return false;
     TripWeatherRepository.clearAlertState(mContext);
     TripWeatherWorker.start(mContext);
+    return true;
+  }
+
+  @NonNull
+  public String tripId()
+  {
+    return hasActiveTrip() ? mPrefs.getString("trip_id", "unregistered") : "unregistered";
+  }
+
+  public double startLat()
+  {
+    return parseDouble("trip_start_lat");
+  }
+  public double startLon()
+  {
+    return parseDouble("trip_start_lon");
+  }
+  public double finishLat()
+  {
+    return parseDouble("trip_finish_lat");
+  }
+  public double finishLon()
+  {
+    return parseDouble("trip_finish_lon");
+  }
+
+  public boolean matches(@NonNull TripPlan plan)
+  {
+    final float[] distance = new float[1];
+    Location.distanceBetween(finishLat(), finishLon(), plan.finishLat, plan.finishLon, distance);
+    return hasActiveTrip() && distance[0] < 100;
+  }
+
+  private String encodeRoutePoints()
+  {
+    final JSONArray out = new JSONArray();
+    final RouteMarkData[] points = Framework.nativeGetRoutePoints();
+    if (points != null)
+      for (RouteMarkData point : points)
+      {
+        try
+        {
+          out.put(new JSONObject()
+                      .put("lat", point.mLat)
+                      .put("lon", point.mLon)
+                      .put("type", point.mPointType.name())
+                      .put("title", point.mTitle == null ? "" : point.mTitle)
+                      .put("subtitle", point.mSubtitle == null ? "" : point.mSubtitle));
+        }
+        catch (org.json.JSONException e)
+        {
+          throw new IllegalStateException("Invalid route point", e);
+        }
+      }
+    return out.toString();
+  }
+
+  /** Rebuild the original ordered route points, retaining intermediate stops and the trip identity. */
+  public boolean restoreSavedRoute()
+  {
+    if (!hasActiveTrip())
+      return false;
+    try
+    {
+      final JSONArray points = new JSONArray(mPrefs.getString("trip_route_points", "[]"));
+      if (points.length() < 2)
+        return false;
+      final RoutingController controller = RoutingController.get();
+      controller.prepare(null, null, Router.Pedestrian);
+      for (int i = 0; i < points.length(); i++)
+      {
+        final JSONObject point = points.getJSONObject(i);
+        Framework.addRoutePoint(new RouteMarkData(point.getString("title"), point.getString("subtitle"),
+                                                  RouteMarkType.valueOf(point.getString("type")), i, true, false, false,
+                                                  point.getDouble("lat"), point.getDouble("lon")),
+                                false);
+      }
+      controller.checkAndBuildRoute();
+      return true;
+    }
+    catch (org.json.JSONException e)
+    {
+      return false;
+    }
+  }
+
+  @NonNull
+  public String sosReport()
+  {
+    final Profile profile = getProfile();
+    return mContext.getString(R.string.areamap_report_sos_header) + "\n"
+  + mContext.getString(R.string.areamap_report_trip_id, tripId()) + "\n"
+  + mContext.getString(R.string.areamap_report_person, profile.name, profile.phone) + "\n"
+  + mContext.getString(R.string.areamap_report_group, profile.groupSize) + "\n"
+  + mContext.getString(R.string.areamap_report_emergency, profile.emergencyName, profile.emergencyPhone) + "\n"
+  + (hasActiveTrip() ? activeTripSummary() + "\n" : "") + card();
   }
 
   public boolean hasActiveTrip()
@@ -177,8 +367,7 @@ public final class TripSafety
   public long weatherTargetAtMillis()
   {
     final long startedAt = mPrefs.getLong("trip_started_at", 0L);
-    final int weatherEtaSeconds = mPrefs.getInt("trip_weather_eta_seconds",
-                                                mPrefs.getInt("trip_planned_seconds", 0));
+    final int weatherEtaSeconds = mPrefs.getInt("trip_weather_eta_seconds", mPrefs.getInt("trip_planned_seconds", 0));
     final int offsetSeconds = mPrefs.getInt("trip_timing_offset_seconds", 0);
     return startedAt + (weatherEtaSeconds + offsetSeconds) * 1000L;
   }
@@ -186,7 +375,7 @@ public final class TripSafety
   public boolean shouldSuggestReturn()
   {
     return hasActiveTrip() && mPrefs.getBoolean("trip_return_detected", false)
-        && !mPrefs.getBoolean("trip_return_prompt_dismissed", false);
+ && !mPrefs.getBoolean("trip_return_prompt_dismissed", false);
   }
 
   public void dismissReturnSuggestion()
@@ -196,10 +385,9 @@ public final class TripSafety
 
   public void markImOk()
   {
-    mPrefs.edit()
-        .putLong("trip_last_ok", System.currentTimeMillis())
-        .putInt("trip_schedule_alert_bucket", 0)
-        .apply();
+    // Acknowledging an alert must not reset its delay bucket, otherwise the next GPS fix
+    // can immediately post the same warning again.
+    mPrefs.edit().putLong("trip_last_ok", System.currentTimeMillis()).apply();
   }
 
   public void addBreakMinutes(int minutes)
@@ -234,8 +422,7 @@ public final class TripSafety
   {
     if (!hasActiveTrip())
       return mContext.getString(R.string.areamap_nav_return_unknown);
-    return mContext.getString(R.string.areamap_nav_return_eta,
-                              formatClock(mPrefs.getLong("trip_planned_return", 0)));
+    return mContext.getString(R.string.areamap_nav_return_eta, formatClock(mPrefs.getLong("trip_planned_return", 0)));
   }
 
   public void completeTrip()
@@ -248,7 +435,7 @@ public final class TripSafety
         .putBoolean("trip_owns_track_recording", false)
         .putInt("trip_schedule_alert_bucket", 0)
         .putInt("trip_timing_offset_seconds", 0)
-        .apply();
+        .commit();
   }
 
   @NonNull
@@ -257,13 +444,12 @@ public final class TripSafety
     if (!hasActiveTrip())
       return mContext.getString(R.string.areamap_no_active_trip);
 
-    return mContext.getString(
-        R.string.areamap_active_trip_summary,
-        mPrefs.getString("trip_start_title", mContext.getString(R.string.areamap_route_start)),
-        mPrefs.getString("trip_finish_title", mContext.getString(R.string.areamap_route_finish)),
-        formatTime(mPrefs.getLong("trip_started_at", 0)),
-        formatTime(mPrefs.getLong("trip_planned_finish", 0)),
-        formatTime(mPrefs.getLong("trip_planned_return", 0)));
+    return mContext.getString(R.string.areamap_active_trip_summary,
+                              mPrefs.getString("trip_start_title", mContext.getString(R.string.areamap_route_start)),
+                              mPrefs.getString("trip_finish_title", mContext.getString(R.string.areamap_route_finish)),
+                              formatTime(mPrefs.getLong("trip_started_at", 0)),
+                              formatTime(mPrefs.getLong("trip_planned_finish", 0)),
+                              formatTime(mPrefs.getLong("trip_planned_return", 0)));
   }
 
   @NonNull
@@ -279,46 +465,81 @@ public final class TripSafety
   }
 
   @NonNull
+  public String okReport()
+  {
+    final Profile profile = getProfile();
+    final StringBuilder out = new StringBuilder();
+    out.append(mContext.getString(R.string.areamap_report_ok_header)).append('\n');
+    out.append(mContext.getString(R.string.areamap_report_trip_id, mPrefs.getString("trip_id", "—"))).append('\n');
+    out.append(mContext.getString(R.string.areamap_report_person, profile.name, profile.phone)).append('\n');
+    out.append(mContext.getString(R.string.areamap_report_ok_time, formatTime(System.currentTimeMillis())))
+        .append('\n');
+    out.append(mContext.getString(R.string.areamap_report_last_fix, coordinates())).append('\n');
+    out.append(
+        mContext.getString(R.string.areamap_nav_return_eta, formatClock(mPrefs.getLong("trip_planned_return", 0))));
+    return out.toString();
+  }
+
+  @NonNull
+  public String breakReport(int addedMinutes)
+  {
+    final Profile profile = getProfile();
+    final StringBuilder out = new StringBuilder();
+    out.append(mContext.getString(R.string.areamap_report_break_header)).append('\n');
+    out.append(mContext.getString(R.string.areamap_report_trip_id, mPrefs.getString("trip_id", "—"))).append('\n');
+    out.append(mContext.getString(R.string.areamap_report_person, profile.name, profile.phone)).append('\n');
+    out.append(mContext.getString(R.string.areamap_report_break_time, addedMinutes,
+                                  formatClock(mPrefs.getLong("trip_planned_return", 0))))
+        .append('\n');
+    out.append(mContext.getString(R.string.areamap_report_last_fix, coordinates()));
+    return out.toString();
+  }
+
+  @NonNull
   private String report(boolean returned)
   {
     final Profile profile = getProfile();
     final StringBuilder out = new StringBuilder();
-    out.append(mContext.getString(returned ? R.string.areamap_report_return_header
-                                           : R.string.areamap_report_start_header)).append('\n');
+    out.append(
+           mContext.getString(returned ? R.string.areamap_report_return_header : R.string.areamap_report_start_header))
+        .append('\n');
     out.append(mContext.getString(R.string.areamap_report_trip_id, mPrefs.getString("trip_id", "—"))).append('\n');
     out.append(mContext.getString(R.string.areamap_report_person, profile.name, profile.phone)).append('\n');
     out.append(mContext.getString(R.string.areamap_report_group, profile.groupSize)).append('\n');
     out.append(mContext.getString(R.string.areamap_report_emergency, profile.emergencyName, profile.emergencyPhone))
-       .append('\n');
+        .append('\n');
 
     if (returned)
     {
       out.append(mContext.getString(R.string.areamap_report_return_time, formatTime(System.currentTimeMillis())))
-         .append('\n');
+          .append('\n');
       out.append(mContext.getString(R.string.areamap_report_last_fix, coordinates())).append('\n');
       return out.toString();
     }
 
     final double distanceMeters = parseDouble("trip_distance");
-    out.append(mContext.getString(R.string.areamap_report_route,
-                                  mPrefs.getString("trip_start_title", mContext.getString(R.string.areamap_route_start)),
-                                  mPrefs.getString("trip_finish_title", mContext.getString(R.string.areamap_route_finish))))
-       .append('\n');
-    out.append(mContext.getString(R.string.areamap_report_start_time,
-                                  formatTime(mPrefs.getLong("trip_started_at", 0)))).append('\n');
+    out.append(
+           mContext.getString(R.string.areamap_report_route,
+                              mPrefs.getString("trip_start_title", mContext.getString(R.string.areamap_route_start)),
+                              mPrefs.getString("trip_finish_title", mContext.getString(R.string.areamap_route_finish))))
+        .append('\n');
+    out.append(mContext.getString(R.string.areamap_report_start_time, formatTime(mPrefs.getLong("trip_started_at", 0))))
+        .append('\n');
     out.append(mContext.getString(R.string.areamap_report_finish_time,
                                   formatTime(mPrefs.getLong("trip_planned_finish", 0)),
-                                  formatDuration(mPrefs.getInt("trip_planned_seconds", 0)))).append('\n');
+                                  formatDuration(mPrefs.getInt("trip_planned_seconds", 0))))
+        .append('\n');
     out.append(mContext.getString(R.string.areamap_report_return_plan,
                                   formatDuration(mPrefs.getInt("trip_return_seconds", 0)),
-                                  formatTime(mPrefs.getLong("trip_planned_return", 0)))).append('\n');
+                                  formatTime(mPrefs.getLong("trip_planned_return", 0))))
+        .append('\n');
     out.append(mContext.getString(R.string.areamap_report_distance, distanceMeters / 1000.0)).append('\n');
     out.append(mContext.getString(R.string.areamap_report_round_trip_distance, distanceMeters * 2.0 / 1000.0))
-       .append('\n');
-    out.append(mContext.getString(R.string.areamap_report_start_point,
-                                  point("trip_start_lat", "trip_start_lon"))).append('\n');
-    out.append(mContext.getString(R.string.areamap_report_finish_point,
-                                  point("trip_finish_lat", "trip_finish_lon"))).append('\n');
+        .append('\n');
+    out.append(mContext.getString(R.string.areamap_report_start_point, point("trip_start_lat", "trip_start_lon")))
+        .append('\n');
+    out.append(mContext.getString(R.string.areamap_report_finish_point, point("trip_finish_lat", "trip_finish_lon")))
+        .append('\n');
 
     final String checkpoints = mPrefs.getString("trip_checkpoints", "");
     if (!checkpoints.isEmpty())
@@ -338,13 +559,15 @@ public final class TripSafety
           final int eta = Integer.parseInt(fields[0]);
           final double distance = Double.parseDouble(fields[1]);
           final int altitude = Integer.parseInt(fields[2]);
-          final String altitudeText = altitude >= 0
-              ? mContext.getString(R.string.areamap_report_checkpoint_altitude, altitude) : "";
+          final String altitudeText =
+              altitude >= 0 ? mContext.getString(R.string.areamap_report_checkpoint_altitude, altitude) : "";
           out.append(mContext.getString(R.string.areamap_report_checkpoint_line, number++,
                                         formatTime(started + eta * 1000L + timingOffsetMs), formatDuration(eta),
-                                        distance / 1000.0, altitudeText)).append('\n');
+                                        distance / 1000.0, altitudeText))
+              .append('\n');
         }
-        catch (NumberFormatException ignored) {}
+        catch (NumberFormatException ignored)
+        {}
       }
     }
     out.append(mContext.getString(R.string.areamap_report_consent)).append('\n');
@@ -353,7 +576,8 @@ public final class TripSafety
 
   private void updateScheduleDelay()
   {
-    if (!hasActiveTrip() || !RoutingController.get().isNavigating())
+    if (!hasActiveTrip() || !MwmApplication.from(mContext).getOrganicMaps().arePlatformAndCoreInitialized()
+        || !RoutingController.get().isNavigating())
       return;
 
     final RoutingInfo info = Framework.nativeGetRouteFollowingInfo();
@@ -367,10 +591,7 @@ public final class TripSafety
       return;
 
     final double progress = Math.max(0.0, Math.min(1.0, info.completionPercent / 100.0));
-    final long elapsedSeconds = Math.max(0L, (now - startedAt) / 1000L
-                                               - mPrefs.getInt("trip_timing_offset_seconds", 0));
-    final long plannedElapsedSeconds = Math.round(plannedSeconds * progress);
-    final int delayMinutes = (int) Math.max(0L, (elapsedSeconds - plannedElapsedSeconds) / 60L);
+    final int delayMinutes = (int) Math.max(0, scheduleDriftSeconds(info.completionPercent, now) / 60);
 
     final int bucket = scheduleAlertBucket(delayMinutes);
     final int lastBucket = mPrefs.getInt("trip_schedule_alert_bucket", 0);
@@ -384,12 +605,11 @@ public final class TripSafety
       return;
 
     final NextCheckpoint next = findNextCheckpoint(progress);
-    final long projectedReturn = mPrefs.getLong("trip_planned_return", now) + delayMinutes * 60_000L;
+    final long projectedReturn = projectedReturnAtMillis(info.completionPercent, now);
     mPrefs.edit().putInt("trip_schedule_alert_bucket", bucket).apply();
 
-    TripScheduleNotifier.notifyDelay(
-        mContext, delayMinutes, next.number,
-        formatClock(next.plannedAtMillis), formatClock(projectedReturn));
+    TripScheduleNotifier.notifyDelay(mContext, delayMinutes, next.number, formatClock(next.plannedAtMillis),
+                                     formatClock(projectedReturn));
   }
 
   static int scheduleAlertBucket(int delayMinutes)
@@ -440,7 +660,8 @@ public final class TripSafety
           if (distanceMeters > completedDistance + 50.0)
             return new NextCheckpoint(number, startedAt + etaSeconds * 1000L + timingOffsetMs);
         }
-        catch (NumberFormatException ignored) {}
+        catch (NumberFormatException ignored)
+        {}
         number++;
       }
     }
@@ -460,8 +681,8 @@ public final class TripSafety
 
     final long startedAt = mPrefs.getLong("trip_started_at", 0);
     final float[] distance = new float[1];
-    Location.distanceBetween(location.getLatitude(), location.getLongitude(),
-                             parseDouble("trip_start_lat"), parseDouble("trip_start_lon"), distance);
+    Location.distanceBetween(location.getLatitude(), location.getLongitude(), parseDouble("trip_start_lat"),
+                             parseDouble("trip_start_lon"), distance);
     final boolean departed = mPrefs.getBoolean("trip_departed_start", false);
     if (!departed && distance[0] >= LEAVE_START_RADIUS_M)
     {
@@ -471,10 +692,7 @@ public final class TripSafety
 
     if (departed && System.currentTimeMillis() - startedAt >= MIN_RETURN_TIME_MS && distance[0] <= RETURN_RADIUS_M)
     {
-      mPrefs.edit()
-          .putBoolean("trip_return_detected", true)
-          .putBoolean("trip_return_prompt_dismissed", false)
-          .apply();
+      mPrefs.edit().putBoolean("trip_return_detected", true).putBoolean("trip_return_prompt_dismissed", false).apply();
     }
     else if (distance[0] > RETURN_RADIUS_M * 2)
     {
@@ -490,9 +708,11 @@ public final class TripSafety
     {
       if (out.length() > 0)
         out.append(';');
-      out.append(checkpoint.etaSeconds).append(',')
-         .append(String.format(Locale.US, "%.1f", checkpoint.distanceMeters)).append(',')
-         .append(checkpoint.altitudeMeters);
+      out.append(checkpoint.etaSeconds)
+          .append(',')
+          .append(String.format(Locale.US, "%.1f", checkpoint.distanceMeters))
+          .append(',')
+          .append(checkpoint.altitudeMeters);
     }
     return out.toString();
   }
@@ -518,7 +738,8 @@ public final class TripSafety
   @NonNull
   private String formatTime(long millis)
   {
-    return millis <= 0 ? "—" : DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(new Date(millis));
+    return millis <= 0 ? "—"
+                       : DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(new Date(millis));
   }
 
   @NonNull
@@ -536,9 +757,8 @@ public final class TripSafety
     if (!mPrefs.contains("lat"))
       return mContext.getString(R.string.areamap_no_fix);
 
-    final String coordinates =
-        String.format(Locale.US, "%.6f, %.6f", Double.parseDouble(mPrefs.getString("lat", "0")),
-                      Double.parseDouble(mPrefs.getString("lon", "0")));
+    final String coordinates = String.format(Locale.US, "%.6f, %.6f", Double.parseDouble(mPrefs.getString("lat", "0")),
+                                             Double.parseDouble(mPrefs.getString("lon", "0")));
     final long measured = mPrefs.getLong("measured", 0);
     return mContext.getString(R.string.areamap_fix, coordinates, Math.round(mPrefs.getFloat("accuracy", 0)),
                               DateFormat.getDateTimeInstance().format(new Date(measured)));

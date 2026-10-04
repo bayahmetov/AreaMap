@@ -12,6 +12,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.widget.LinearLayout;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.OptIn;
@@ -37,7 +38,6 @@ import app.organicmaps.search.SearchPageViewModel;
 import app.organicmaps.util.ThemeUtils;
 import app.organicmaps.util.UiUtils;
 import app.organicmaps.util.Utils;
-import app.organicmaps.util.WindowInsetUtils;
 import app.organicmaps.widget.menu.MyPositionButton;
 import app.organicmaps.widget.placepage.PlacePageViewModel;
 import com.google.android.material.badge.BadgeDrawable;
@@ -67,6 +67,18 @@ public class MapButtonsController extends Fragment
   private ObjectAnimator mBlinkingAnimator;
   private float mContentHeight;
   private float mContentWidth;
+  @Nullable
+  private LinearLayout mHomeZoomSlot;
+  private ViewGroup mZoomOriginalParent;
+  private ViewGroup.LayoutParams mZoomOriginalParams;
+  private ViewGroup.LayoutParams mZoomInOriginalParams;
+  private ViewGroup.LayoutParams mZoomOutOriginalParams;
+  private int mZoomOriginalIndex;
+  private LinearLayout mHomeRecordingSlot;
+  private ViewGroup mRecordingOriginalParent;
+  private ViewGroup.LayoutParams mRecordingOriginalParams;
+  private int mRecordingOriginalIndex;
+  private final Map<View, Integer> mHomeHiddenViews = new HashMap<>();
 
   private MapButtonClickListener mMapButtonClickListener;
   private PlacePageViewModel mPlacePageViewModel;
@@ -182,7 +194,7 @@ public class MapButtonsController extends Fragment
   private void setBottomButtonsHidden(boolean hide)
   {
     if (mBottomButtonsFrame != null)
-      UiUtils.showIf(!hide && isInNavigationMode(), mBottomButtonsFrame);
+      UiUtils.showIf(!hide, mBottomButtonsFrame);
   }
 
   public void showButton(boolean show, MapButtonsController.MapButtons button)
@@ -191,6 +203,12 @@ public class MapButtonsController extends Fragment
     final View buttonView = mButtonsMap.get(button);
     if (buttonView == null)
       return;
+    // HOME owns these existing actions. Observers must not reveal a second legacy control.
+    if (mHomeZoomSlot != null && isHomeAlias(button))
+    {
+      buttonView.setVisibility(View.INVISIBLE);
+      return;
+    }
     switch (button)
     {
     case zoom: UiUtils.showIf(show && Config.showZoomButtons(), buttonView); break;
@@ -207,8 +225,102 @@ public class MapButtonsController extends Fragment
     case menu: UiUtils.showIf(show, buttonView); break;
     case trackRecordingStatus:
       UiUtils.showIf(show, buttonView);
+      if (mHomeRecordingSlot != null)
+        mHomeRecordingSlot.setVisibility(show ? View.VISIBLE : View.GONE);
       animateIconBlinking(show, (FloatingActionButton) buttonView);
     }
+  }
+
+  private static boolean isHomeAlias(MapButtons button)
+  {
+    return button == MapButtons.myPosition || button == MapButtons.toggleMapLayer || button == MapButtons.search
+        || button == MapButtons.bookmarks || button == MapButtons.menu;
+  }
+
+  /** Move the actual zoom view, with its listeners, into HOME's shared responsive stack. */
+  public void setHomePresentation(@Nullable LinearLayout slot, boolean horizontal)
+  {
+    final LinearLayout zoom = (LinearLayout) mButtonsMap.get(MapButtons.zoom);
+    if (mHomeZoomSlot != slot)
+    {
+      if (mHomeZoomSlot != null)
+      {
+        if (mHomeRecordingSlot != null)
+        {
+          mHomeRecordingSlot.removeView(mTrackRecordingStatusButton);
+          mHomeRecordingSlot.setVisibility(View.GONE);
+          mRecordingOriginalParent.addView(mTrackRecordingStatusButton, mRecordingOriginalIndex,
+                                          mRecordingOriginalParams);
+          mHomeRecordingSlot = null;
+        }
+        mHomeZoomSlot.removeView(zoom);
+        mHomeZoomSlot.setVisibility(View.GONE);
+        zoom.setOrientation(LinearLayout.VERTICAL);
+        zoom.findViewById(R.id.nav_zoom_in).setLayoutParams(mZoomInOriginalParams);
+        zoom.findViewById(R.id.nav_zoom_out).setLayoutParams(mZoomOutOriginalParams);
+        mZoomOriginalParent.addView(zoom, mZoomOriginalIndex, mZoomOriginalParams);
+        mHomeZoomSlot = null;
+        for (var entry : mHomeHiddenViews.entrySet())
+          entry.getKey().setVisibility(entry.getValue());
+        mHomeHiddenViews.clear();
+        final Integer topMargin = mMapButtonsViewModel.getTopButtonsMarginTop().getValue();
+        if (topMargin != null)
+          updateTopButtonsMargin(topMargin);
+        updateButtonsVisibility();
+      }
+      if (slot != null)
+      {
+        mZoomOriginalParent = (ViewGroup) zoom.getParent();
+        mZoomOriginalIndex = mZoomOriginalParent.indexOfChild(zoom);
+        mZoomOriginalParams = zoom.getLayoutParams();
+        mZoomInOriginalParams = zoom.findViewById(R.id.nav_zoom_in).getLayoutParams();
+        mZoomOutOriginalParams = zoom.findViewById(R.id.nav_zoom_out).getLayoutParams();
+        mZoomOriginalParent.removeView(zoom);
+        slot.addView(zoom, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
+                                                       ViewGroup.LayoutParams.WRAP_CONTENT));
+        mHomeZoomSlot = slot;
+        if (mTrackRecordingStatusButton != null)
+        {
+          mHomeRecordingSlot = requireActivity().findViewById(R.id.home_recording_slot);
+          mRecordingOriginalParent = (ViewGroup) mTrackRecordingStatusButton.getParent();
+          mRecordingOriginalIndex = mRecordingOriginalParent.indexOfChild(mTrackRecordingStatusButton);
+          mRecordingOriginalParams = mTrackRecordingStatusButton.getLayoutParams();
+          mRecordingOriginalParent.removeView(mTrackRecordingStatusButton);
+          final int size = getResources().getDimensionPixelSize(R.dimen.home_control);
+          mHomeRecordingSlot.addView(mTrackRecordingStatusButton, new LinearLayout.LayoutParams(size, size));
+          mHomeRecordingSlot.setVisibility(mTrackRecordingStatusButton.getVisibility() == View.VISIBLE
+                                               ? View.VISIBLE : View.GONE);
+        }
+        for (var entry : mButtonsMap.entrySet())
+          if (isHomeAlias(entry.getKey()))
+          {
+            mHomeHiddenViews.put(entry.getValue(), entry.getValue().getVisibility());
+            entry.getValue().setVisibility(View.INVISIBLE);
+          }
+      }
+      ViewCompat.requestApplyInsets(mFrame);
+    }
+    if (slot == null)
+      return;
+    final int orientation = horizontal ? LinearLayout.HORIZONTAL : LinearLayout.VERTICAL;
+    if (zoom.getOrientation() != orientation
+        || zoom.findViewById(R.id.nav_zoom_in).getLayoutParams() == mZoomInOriginalParams)
+    {
+      zoom.setOrientation(orientation);
+      final int size = getResources().getDimensionPixelSize(R.dimen.home_control);
+      final int gap = getResources().getDimensionPixelSize(R.dimen.home_control_gap);
+      final LinearLayout.LayoutParams first = new LinearLayout.LayoutParams(size, size);
+      if (horizontal)
+        first.setMarginEnd(gap);
+      else
+        first.bottomMargin = gap;
+      zoom.findViewById(R.id.nav_zoom_in).setLayoutParams(first);
+      zoom.findViewById(R.id.nav_zoom_out).setLayoutParams(new LinearLayout.LayoutParams(size, size));
+    }
+    final int visibility = Config.showZoomButtons() ? View.VISIBLE : View.GONE;
+    if (slot.getVisibility() != visibility)
+      slot.setVisibility(visibility);
+    showButton(true, MapButtons.zoom);
   }
 
   void animateIconBlinking(boolean show, @NonNull FloatingActionButton button)
@@ -237,7 +349,7 @@ public class MapButtonsController extends Fragment
 
   private void updateTopButtonsMargin(int margin)
   {
-    if (margin == -1 || mTrackRecordingStatusButton == null)
+    if (margin == -1 || mTrackRecordingStatusButton == null || mHomeZoomSlot != null)
       return;
     ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) mTrackRecordingStatusButton.getLayoutParams();
     params.topMargin = margin;
@@ -456,9 +568,22 @@ public class MapButtonsController extends Fragment
     // itself only happens on the next layout pass — so a listener attached here still receives it.
     // Attaching in onResume() is too late: the dispatch has already run and nothing re-requests
     // insets for an already attached view, leaving the padding at zero.
-    ViewCompat.setOnApplyWindowInsetsListener(
-        view, WindowInsetUtils.PaddingInsetsListener.allSides(WindowInsetsCompat.Type.systemBars()
-                                                              | WindowInsetsCompat.Type.displayCutout()));
+    ViewCompat.setOnApplyWindowInsetsListener(view, (v, insets) -> {
+      final int types = WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout();
+      final var safe = insets.getInsets(types);
+      final int bottom = Math.min(safe.bottom, insets.getInsetsIgnoringVisibility(types).bottom);
+      final View dock = requireActivity().findViewById(R.id.areamap_bottom_nav);
+      // The activity already reserves the entire dock including its system-navigation padding.
+      v.setPadding(safe.left, safe.top, safe.right, dock != null && dock.getVisibility() == View.VISIBLE ? 0 : bottom);
+      return insets;
+    });
+  }
+
+  @Override
+  public void onDestroyView()
+  {
+    setHomePresentation(null, false);
+    super.onDestroyView();
   }
 
   @Override

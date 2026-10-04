@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="sos_confirm_title">Отправить SOS?</string>
+  <string name="sos_confirm_message">Будут использованы ваши последние известные координаты.\n\nОтправляйте SOS только если вам действительно нужна помощь.</string>
+  <string name="sos_confirm_send">Отправить SOS</string>
+  <string name="sos_location_unavailable">Точная геопозиция пока недоступна.</string>
+  <string name="sos_details_title">Данные для SOS</string>
+  <string name="sos_details_message">Маршрут не активен. Заполните или проверьте свои данные перед отправкой SOS.</string>
+</resources>

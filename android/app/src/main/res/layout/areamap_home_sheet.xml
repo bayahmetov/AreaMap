@@ -1,4 +1,4 @@
-<?xml version="1.0" ?>
+<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
   xmlns:android="http://schemas.android.com/apk/res/android"
   xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -9,6 +9,7 @@
   android:background="@drawable/home_sheet"
   app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
   app:behavior_hideable="false"
+  app:paddingBottomSystemWindowInsets="false"
   app:behavior_peekHeight="@dimen/home_peek">
   <FrameLayout
     android:id="@+id/home_handle"
@@ -63,7 +64,7 @@
           android:text="@string/home_all_places"
           android:textColor="@color/areamap_green"
           android:textStyle="bold"
-          android:textSize="@dimen/home_body_size"
+          android:textSize="14sp"
           android:clickable="true"
           android:focusable="true"/>
       </LinearLayout>
@@ -76,13 +77,6 @@
         android:ellipsize="end"
         android:text="@string/home_subtitle"
         android:textColor="@color/areamap_text_secondary"/>
-      <TextView
-        android:id="@+id/home_photos_missing"
-        style="@style/AreaMap.HomeText"
-        android:padding="@dimen/home_padding"
-        android:text="@string/home_photos_missing"
-        android:textColor="@color/areamap_amber"
-        android:visibility="gone"/>
       <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/home_recommendations"
         android:layout_width="match_parent"
@@ -100,12 +94,6 @@
         android:textColor="@color/areamap_green"
         android:clickable="true"
         android:focusable="true"/>
-      <TextView
-        style="@style/AreaMap.HomeText"
-        android:padding="@dimen/home_padding"
-        android:text="@string/home_catalog_demo"
-        android:textSize="@dimen/home_caption_size"
-        android:textColor="@color/areamap_text_muted"/>
     </LinearLayout>
   </androidx.core.widget.NestedScrollView>
 </LinearLayout>
